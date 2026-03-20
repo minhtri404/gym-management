@@ -1,0 +1,160 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+/* =========================
+   LOGIN PAGE
+========================= */
+.login-page {
+  background: linear-gradient(135deg, #ff4d00, #010101);
+  min-height: 100vh;
+}
+
+.login-card {
+  border-radius: 20px;
+}
+
+.logo-circle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background-color: #fd0d0d;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+.dashboard-page {
+  background-color: #f5f7fb;
+}
+
+.dashboard-wrapper {
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: #1f2937;
+  color: #fff;
+  position: sticky;
+  top: 0;
+}
+
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #0d6efd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.sidebar small {
+  color: #cbd5e1;
+}
+
+.sidebar-menu .nav-link {
+  color: #d1d5db;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  transition: 0.3s;
+}
+
+.sidebar-menu .nav-link:hover,
+.sidebar-menu .nav-link.active {
+  background-color: #374151;
+  color: #fff;
+}
+
+.main-content {
+  overflow-x: hidden;
+}
+
+.topbar {
+  background-color: #fff;
+  min-height: 70px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #0d6efd;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.notification-dot {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.stat-card {
+  border-radius: 16px;
+}
+
+.stat-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 991px) {
+  .sidebar {
+    width: 220px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-wrapper {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    position: relative;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}
