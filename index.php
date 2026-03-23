@@ -1,9 +1,11 @@
 <?php
-include 'includes/config.php';
+session_start();
 
-session_unset();
-session_destroy();
-
-header("Location: login.php");
-exit;
+if (isset($_SESSION['admin_id'])) {
+    header("Location: dashboard.php");
+    exit();
+} else {
+    header("Location: login.php");
+    exit();
+}
 ?>

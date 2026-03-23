@@ -1,6 +1,17 @@
 <?php
 $page_title = "Quản lý gói tập";
 include 'includes/auth-check.php';
+
+$sql = "SELECT id, package_name, duration_months, price, status 
+        FROM packages
+        ORDER BY id DESC";
+
+$result = $conn->query($sql);
+$card_sql = "SELECT id, package_name, duration_months, price, status, description
+             FROM packages
+             ORDER BY id DESC
+             LIMIT 5";
+$card_result = $conn->query($card_sql);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -28,76 +39,73 @@ include 'includes/auth-check.php';
       <?php include 'includes/navbar.php'; ?>
 
       <div class="container-fluid p-4">
+        <?php if (isset($_GET['add']) && $_GET['add'] === 'success'): ?>
+          <div class="alert alert-success">Thêm gói tập thành công.</div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['edit']) && $_GET['edit'] === 'success'): ?>
+          <div class="alert alert-success">Cập nhật gói tập thành công.</div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['delete']) && $_GET['delete'] === 'success'): ?>
+          <div class="alert alert-success">Xóa gói tập thành công.</div>
+        <?php endif; ?>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h4 class="mb-0">Danh sách gói tập</h4>
-          <button class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Thêm gói tập
-          </button>
+          <a href="php/packages/add-package.php" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Thêm gói tập
+          </a>
         </div>
 
         <div class="row g-4">
-          <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 package-card">
-              <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="mb-0">Gói 1 tháng</h5>
-                  <span class="badge bg-primary">Cơ bản</span>
-                </div>
-                <h3 class="fw-bold text-primary mb-3">500.000đ</h3>
-                <ul class="list-unstyled package-features mb-4">
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Tập không giới hạn</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hỗ trợ PT cơ bản</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Check-in khuôn mặt</li>
-                </ul>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-warning w-100"><i class="bi bi-pencil me-1"></i>Sửa</button>
-                  <button class="btn btn-danger w-100"><i class="bi bi-trash me-1"></i>Xóa</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 package-card">
-              <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="mb-0">Gói 3 tháng</h5>
-                  <span class="badge bg-success">Phổ biến</span>
-                </div>
-                <h3 class="fw-bold text-success mb-3">1.300.000đ</h3>
-                <ul class="list-unstyled package-features mb-4">
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Giá ưu đãi hơn</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>AI gợi ý lịch tập</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Theo dõi check-in</li>
-                </ul>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-warning w-100"><i class="bi bi-pencil me-1"></i>Sửa</button>
-                  <button class="btn btn-danger w-100"><i class="bi bi-trash me-1"></i>Xóa</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 package-card">
-              <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="mb-0">Gói 6 tháng</h5>
-                  <span class="badge bg-danger">Nâng cao</span>
-                </div>
-                <h3 class="fw-bold text-danger mb-3">2.400.000đ</h3>
-                <ul class="list-unstyled package-features mb-4">
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Tiết kiệm chi phí</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Ưu tiên tư vấn</li>
-                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Gợi ý lịch tập nâng cao</li>
-                </ul>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-warning w-100"><i class="bi bi-pencil me-1"></i>Sửa</button>
-                  <button class="btn btn-danger w-100"><i class="bi bi-trash me-1"></i>Xóa</button>
+          <?php if ($card_result && $card_result->num_rows > 0): ?>
+            <?php while ($card = $card_result->fetch_assoc()): ?>
+              <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 package-card">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h5 class="mb-0"><?php echo htmlspecialchars($card['package_name']); ?></h5>
+                      <?php if ($card['status'] === 'active'): ?>
+                        <span class="badge bg-success">Đang hoạt động</span>
+                      <?php else: ?>
+                        <span class="badge bg-secondary">Ngưng hoạt động</span>
+                      <?php endif; ?>
+                    </div>
+                    <h3 class="fw-bold mb-3">
+                      <?php echo number_format($card['price'], 0, ',', '.'); ?>đ
+                    </h3>
+                    <ul class="list-unstyled package-features mb-4">
+                      <li>
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Thời hạn: <?php echo (int) $card['duration_months']; ?> tháng
+                      </li>
+                      <li>
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <?php echo htmlspecialchars($card['description'] ?: 'Chưa có mô tả'); ?>
+                      </li>
+                    </ul>
+                    <div class="d-flex gap-2">
+                      <a class="btn btn-warning w-100" href="php/packages/edit-package.php?id=<?php echo (int) $card['id']; ?>">
+                        <i class="bi bi-pencil me-1"></i>Sửa
+                      </a>
+                      <a
+                        class="btn btn-danger w-100"
+                        href="php/packages/delete-package.php?id=<?php echo (int) $card['id']; ?>"
+                        onclick="return confirm('Bạn có chắc muốn xóa gói tập này không?');"
+                      >
+                        <i class="bi bi-trash me-1"></i>Xóa
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
+            <?php endwhile; ?>
+          <?php else: ?>
+            <div class="col-12">
+              <div class="text-center text-muted">Chưa có gói tập nào.</div>
             </div>
-          </div>
+          <?php endif; ?>
         </div>
 
         <div class="card border-0 shadow-sm mt-4">
@@ -114,30 +122,43 @@ include 'includes/auth-check.php';
                     <th>Giá</th>
                     <th>Ưu đãi</th>
                     <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Gói 1 tháng</td>
-                    <td>30 ngày</td>
-                    <td>500.000đ</td>
-                    <td>Cơ bản</td>
-                    <td><span class="badge bg-success">Đang áp dụng</span></td>
-                  </tr>
-                  <tr>
-                    <td>Gói 3 tháng</td>
-                    <td>90 ngày</td>
-                    <td>1.300.000đ</td>
-                    <td>Phổ biến</td>
-                    <td><span class="badge bg-success">Đang áp dụng</span></td>
-                  </tr>
-                  <tr>
-                    <td>Gói 6 tháng</td>
-                    <td>180 ngày</td>
-                    <td>2.400.000đ</td>
-                    <td>Nâng cao</td>
-                    <td><span class="badge bg-success">Đang áp dụng</span></td>
-                  </tr>
+                  <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                      <tr>
+                        <td>#<?php echo str_pad($row['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                        <td><?php echo htmlspecialchars($row['package_name']); ?></td>
+                        <td><?php echo (int) $row['duration_months']; ?> tháng</td>
+                        <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
+                        <td>
+                          <?php if ($row['status'] === 'active'): ?>
+                            <span class="badge bg-success">Đang hoạt động</span>
+                          <?php else: ?>
+                            <span class="badge bg-secondary">Ngưng hoạt động</span>
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-end">
+                          <a href="php/packages/edit-package.php?id=<?php echo (int) $row['id']; ?>" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                          </a>
+                          <a
+                            href="php/packages/delete-package.php?id=<?php echo (int) $row['id']; ?>"
+                            class="btn btn-sm btn-danger"
+                            onclick="return confirm('Bạn có chắc muốn xóa gói tập này không?');"
+                          >
+                            <i class="bi bi-trash"></i> Xóa
+                          </a>
+                        </td>
+                      </tr>
+                    <?php endwhile; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">Chưa có gói tập nào.</td>
+                    </tr>
+                  <?php endif; ?>
                 </tbody>
               </table>
             </div>
