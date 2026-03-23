@@ -1,3 +1,7 @@
+<?php
+$page_title = "Quản lý gói tập";
+include 'includes/auth-check.php';
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -18,70 +22,10 @@
 <body class="dashboard-page">
 
   <div class="d-flex dashboard-wrapper">
-    <aside class="sidebar p-3">
-      <div class="brand-box mb-4">
-        <div class="brand-icon">
-          <i class="bi bi-barbell"></i>
-        </div>
-        <div>
-          <h4 class="mb-0">Gym Admin</h4>
-          <small>Management System</small>
-        </div>
-      </div>
-
-      <ul class="nav flex-column sidebar-menu">
-        <li class="nav-item">
-          <a href="dashboard.html" class="nav-link">
-            <i class="bi bi-house-door me-2"></i>Dashboard
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="members.html" class="nav-link">
-            <i class="bi bi-people me-2"></i>Hội viên
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="packages.html" class="nav-link active">
-            <i class="bi bi-box-seam me-2"></i>Gói tập
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="ai-workout.html" class="nav-link">
-            <i class="bi bi-clipboard2-pulse me-2"></i>AI lịch tập
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="face-login.html" class="nav-link">
-            <i class="bi bi-camera me-2"></i>Face Login
-          </a>
-        </li>
-        <li class="nav-item mt-3">
-          <a href="login.html" class="nav-link text-warning">
-            <i class="bi bi-box-arrow-left me-2"></i>Logout
-          </a>
-        </li>
-      </ul>
-    </aside>
+    <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content flex-grow-1">
-      <nav class="navbar navbar-expand-lg topbar px-4">
-        <div class="container-fluid p-0">
-          <span class="navbar-brand fw-bold mb-0">Quản lý gói tập</span>
-          <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-light position-relative">
-              <i class="bi bi-bell"></i>
-              <span class="notification-dot"></span>
-            </button>
-            <div class="admin-info d-flex align-items-center">
-              <div class="admin-avatar me-2">A</div>
-              <div>
-                <div class="fw-semibold">Admin</div>
-                <small class="text-muted">Quản trị viên</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <?php include 'includes/navbar.php'; ?>
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">

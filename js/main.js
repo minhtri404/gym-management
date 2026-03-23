@@ -12,7 +12,7 @@ if (loginForm) {
       return;
     }
 
-    // Day 1 chỉ demo giao diện
-    window.location.href = "dashboard.html";
+    // Day 1 chỉ demo giao diện                       
+    window.location.href = "dashboard.php";
   });
 }
