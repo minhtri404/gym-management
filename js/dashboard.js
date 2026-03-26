@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   if (typeof Chart === "undefined") {
     return;
   }

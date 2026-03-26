@@ -47,18 +47,40 @@ $result = $conn->query($sql);
           <div class="alert alert-success">Xóa hội viên thành công.</div>
         <?php endif; ?>
 
+        <?php if (isset($_GET['checkin_success']) && $_GET['checkin_success'] === '1'): ?>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>Check-in thành công!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['checkin_duplicate']) && $_GET['checkin_duplicate'] === '1'): ?>
+          <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>Hội viên đã check-in hôm nay rồi!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['checkin_error']) && $_GET['checkin_error'] === '1'): ?>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-x-circle me-2"></i>Lỗi check-in, hội viên không tồn tại hoặc không hoạt động!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <?php endif; ?>
+
+        
+
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-white border-0 pt-4 px-4">
             <div class="d-flex justify-content-between align-items-center">
               <h5 class="mb-0">Danh sách hội viên</h5>
               <a class="btn btn-primary btn-sm" href="php/members/add-member.php">
+                
                 <i class="bi bi-plus-circle me-2"></i>Thêm hội viên
               </a>
             </div>
           </div>
           <div class="card-body px-4 pb-4">
-            <p class="mb-3">Day 3: trang này đã chuyển sang PHP.</p>
-
             <div class="table-responsive">
               <table class="table align-middle">                            
                 <thead>
@@ -69,7 +91,7 @@ $result = $conn->query($sql);
                     <th>Gói tập</th>
                     <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
-                      <th>Hành động</th>        
+                      
                   </tr>
                 </thead>
                 <tbody>
@@ -92,16 +114,21 @@ $result = $conn->query($sql);
                           ?>
                         </td>
                         <td class="text-end">
-                          <a class="btn btn-warning btn-sm" href="php/members/edit-member.php?id=<?php echo (int) $row['id']; ?>">
+                          <?php if ($row['status'] === 'active'): ?>
+                            <a class="btn btn-success btn-sm" href="php/checkins/quick-checkin.php?member_id=<?php echo (int) $row['id']; ?>" title="Check-in nhanh">
+                              <i class="bi bi-check-circle me-1"></i>Check-in
+                            </a>
+                          <?php endif; ?>
+                          <a class="btn btn-warning btn-sm ms-1" href="php/members/edit-member.php?id=<?php echo (int) $row['id']; ?>">
                             <i class="bi bi-pencil"></i>
                           </a>
-                          <a
-                            class="btn btn-danger btn-sm ms-1"
-                            href="php/members/delete-member.php?id=<?php echo (int) $row['id']; ?>"
-                            onclick="return confirm('Xóa hội viên này?');"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </a>
+                          <form class="d-inline-block ms-1" method="POST" action="php/members/delete-member.php" onsubmit="return confirm('Xóa hội viên này?');">
+                            <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </form>
                         </td>
                       </tr>
                     <?php endwhile; ?>

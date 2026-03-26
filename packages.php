@@ -89,13 +89,13 @@ $card_result = $conn->query($card_sql);
                       <a class="btn btn-warning w-100" href="php/packages/edit-package.php?id=<?php echo (int) $card['id']; ?>">
                         <i class="bi bi-pencil me-1"></i>Sửa
                       </a>
-                      <a
-                        class="btn btn-danger w-100"
-                        href="php/packages/delete-package.php?id=<?php echo (int) $card['id']; ?>"
-                        onclick="return confirm('Bạn có chắc muốn xóa gói tập này không?');"
-                      >
-                        <i class="bi bi-trash me-1"></i>Xóa
-                      </a>
+                      <form class="w-100" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Bạn có chắc muốn xóa gói tập này không?');">
+                        <input type="hidden" name="id" value="<?php echo (int) $card['id']; ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                        <button type="submit" class="btn btn-danger w-100">
+                          <i class="bi bi-trash me-1"></i>Xóa
+                        </button>
+                      </form>
                     </div>
                   </div>
                 </div>
@@ -117,10 +117,10 @@ $card_result = $conn->query($card_sql);
               <table class="table align-middle">
                 <thead>
                   <tr>
+                    <th>ID</th>
                     <th>Tên gói</th>
                     <th>Thời hạn</th>
                     <th>Giá</th>
-                    <th>Ưu đãi</th>
                     <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
                   </tr>
@@ -144,13 +144,13 @@ $card_result = $conn->query($card_sql);
                           <a href="php/packages/edit-package.php?id=<?php echo (int) $row['id']; ?>" class="btn btn-sm btn-warning">
                             <i class="bi bi-pencil-square"></i> Sửa
                           </a>
-                          <a
-                            href="php/packages/delete-package.php?id=<?php echo (int) $row['id']; ?>"
-                            class="btn btn-sm btn-danger"
-                            onclick="return confirm('Bạn có chắc muốn xóa gói tập này không?');"
-                          >
-                            <i class="bi bi-trash"></i> Xóa
-                          </a>
+                          <form class="d-inline-block ms-1" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Bạn có chắc muốn xóa gói tập này không?');">
+                            <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                              <i class="bi bi-trash"></i> Xóa
+                            </button>
+                          </form>
                         </td>
                       </tr>
                     <?php endwhile; ?>

@@ -1,11 +1,11 @@
 ﻿<?php
 include 'includes/auth-check.php';
 $page_title = "Tổng quan";
-
+// Biến này sẽ được dùng trong sidebar.php để đánh dấu menu nào đang active
 $total_members = 0;
 $active_packages = 0;
 $today_members = 0;
-$ai_pending = 15;
+$ai_pending = 0;
 $member_active = 0;
 $member_expired = 0;
 $member_inactive = 0;
@@ -30,6 +30,13 @@ if (isset($conn)) {
         $row = $result->fetch_assoc();
         $today_members = (int) ($row['total'] ?? 0);
     }
+    // Lấy số lượng lịch tập AI đang chờ duyệt trong 7 ngày gần nhất
+
+    $result = $conn->query("SELECT COUNT(*) AS total FROM workout_plans WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $ai_pending = (int) ($row['total'] ?? 0);
+    }
 
     $result = $conn->query("SELECT status, COUNT(*) AS total FROM members GROUP BY status");
     if ($result) {
@@ -43,7 +50,7 @@ if (isset($conn)) {
             }
         }
     }
-
+// Lấy số lượng hội viên mới theo ngày trong 7 ngày gần nhất
     $result = $conn->query("SELECT DATE(start_date) AS day, COUNT(*) AS total FROM members WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) GROUP BY DATE(start_date) ORDER BY day");
     $map = [];
     if ($result) {
@@ -51,7 +58,7 @@ if (isset($conn)) {
             $map[$row['day']] = (int) $row['total'];
         }
     }
-
+// Điền dữ liệu cho 7 ngày gần nhất, nếu ngày nào không có thì để 0
     $date = new DateTime();
     $date->setTime(0, 0, 0);
     $date->modify('-6 days');

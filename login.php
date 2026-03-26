@@ -110,10 +110,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <button type="submit" class="btn btn-primary w-100 mb-3">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
               </button>
-
-              <button type="button" class="btn btn-outline-dark w-100">
-                <i class="bi bi-camera-video me-2"></i>Đăng nhập bằng khuôn mặt
-              </button>
             </form>
 
             <p class="text-center mt-4 mb-0 text-muted small">

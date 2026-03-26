@@ -2,9 +2,15 @@
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../';
 
-$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: " . $base_path . "packages.php");
+    exit();
+}
 
-if ($id <= 0) {
+$id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+$token = $_POST['csrf_token'] ?? '';
+
+if ($id <= 0 || $token === '' || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
     header("Location: " . $base_path . "packages.php");
     exit();
 }

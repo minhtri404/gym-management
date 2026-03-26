@@ -1,5 +1,6 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
+$base_path = '';
 ?>
 
 <aside class="sidebar p-3">
@@ -15,32 +16,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
   <ul class="nav flex-column sidebar-menu">
     <li class="nav-item">
-      <a href="dashboard.php" class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>dashboard.php" class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
         <i class="bi bi-house-door me-2"></i>Dashboard
       </a>
     </li>
     <li class="nav-item">
-      <a href="members.php" class="nav-link <?php echo ($current_page == 'members.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>members.php" class="nav-link <?php echo ($current_page == 'members.php') ? 'active' : ''; ?>">
         <i class="bi bi-people me-2"></i>Hội viên
       </a>
     </li>
     <li class="nav-item">
-      <a href="packages.php" class="nav-link <?php echo ($current_page == 'packages.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>packages.php" class="nav-link <?php echo ($current_page == 'packages.php') ? 'active' : ''; ?>">
         <i class="bi bi-box-seam me-2"></i>Gói tập
       </a>
     </li>
     <li class="nav-item">
-      <a href="ai-workout.php" class="nav-link <?php echo ($current_page == 'ai-workout.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>ai-workout.php" class="nav-link <?php echo ($current_page == 'ai-workout.php') ? 'active' : ''; ?>">
         <i class="bi bi-clipboard2-pulse me-2"></i>AI lịch tập
       </a>
     </li>
     <li class="nav-item">
-      <a href="face-login.php" class="nav-link <?php echo ($current_page == 'face-login.php') ? 'active' : ''; ?>">
-        <i class="bi bi-camera me-2"></i>Face Login
+      <a href="<?php echo $base_path; ?>checkins.php" class="nav-link <?php echo ($current_page == 'checkins.php') ? 'active' : ''; ?>">
+        <i class="bi bi-check-circle me-2"></i>Check-in
       </a>
     </li>
     <li class="nav-item mt-3">
-      <a href="logout.php" class="nav-link text-warning">
+      <a href="<?php echo $base_path; ?>logout.php" class="nav-link text-warning">
         <i class="bi bi-box-arrow-left me-2"></i>Logout
       </a>
     </li>
