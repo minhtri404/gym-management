@@ -1,6 +1,6 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
-$base_path = '';
+$base_path = $base_path ?? '';
 ?>
 
 <aside class="sidebar p-3">

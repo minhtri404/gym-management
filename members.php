@@ -68,21 +68,21 @@ $result = $conn->query($sql);
           </div>
         <?php endif; ?>
 
-        
+
 
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-white border-0 pt-4 px-4">
             <div class="d-flex justify-content-between align-items-center">
               <h5 class="mb-0">Danh sách hội viên</h5>
               <a class="btn btn-primary btn-sm" href="php/members/add-member.php">
-                
+
                 <i class="bi bi-plus-circle me-2"></i>Thêm hội viên
               </a>
             </div>
           </div>
           <div class="card-body px-4 pb-4">
             <div class="table-responsive">
-              <table class="table align-middle">                            
+              <table class="table align-middle">
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -91,7 +91,7 @@ $result = $conn->query($sql);
                     <th>Gói tập</th>
                     <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
-                      
+
                   </tr>
                 </thead>
                 <tbody>
@@ -112,16 +112,21 @@ $result = $conn->query($sql);
                             echo '<span class="badge bg-secondary">Ngưng hoạt động</span>';
                           }
                           ?>
-                        </td>
                         <td class="text-end">
                           <?php if ($row['status'] === 'active'): ?>
                             <a class="btn btn-success btn-sm" href="php/checkins/quick-checkin.php?member_id=<?php echo (int) $row['id']; ?>" title="Check-in nhanh">
                               <i class="bi bi-check-circle me-1"></i>Check-in
                             </a>
                           <?php endif; ?>
+
+                          <a class="btn btn-info btn-sm ms-1" href="php/members/view-member.php?id=<?php echo (int) $row['id']; ?>" title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                          </a>
+
                           <a class="btn btn-warning btn-sm ms-1" href="php/members/edit-member.php?id=<?php echo (int) $row['id']; ?>">
                             <i class="bi bi-pencil"></i>
                           </a>
+
                           <form class="d-inline-block ms-1" method="POST" action="php/members/delete-member.php" onsubmit="return confirm('Xóa hội viên này?');">
                             <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">

@@ -7,58 +7,135 @@ $success = "";
 $error = "";
 
 $packages = [];
-$sql_packages = "SELECT id, package_name FROM packages WHERE status = 'active' ORDER BY id DESC";
+$sql_packages = "SELECT id, package_name, duration_months FROM packages WHERE status = 'active' ORDER BY id DESC";
 $result_packages = $conn->query($sql_packages);
 
 if ($result_packages && $result_packages->num_rows > 0) {
-    while ($row = $result_packages->fetch_assoc()) {
-        $packages[] = $row;
-    }
+  while ($row = $result_packages->fetch_assoc()) {
+    $packages[] = $row;
+  }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = trim($_POST['full_name'] ?? '');
-    $gender = trim($_POST['gender'] ?? 'Nam');
-    $phone = trim($_POST['phone'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $date_of_birth = trim($_POST['date_of_birth'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $package_id = trim($_POST['package_id'] ?? '');
-    $start_date = trim($_POST['start_date'] ?? '');
-    $end_date = trim($_POST['end_date'] ?? '');
-    $status = trim($_POST['status'] ?? 'active');
+  $full_name = trim($_POST['full_name'] ?? '');
+  $gender = trim($_POST['gender'] ?? 'Nam');
+  $phone = trim($_POST['phone'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $date_of_birth = trim($_POST['date_of_birth'] ?? '');
+  $address = trim($_POST['address'] ?? '');
+  $package_id = trim($_POST['package_id'] ?? '');
+  $start_date = trim($_POST['start_date'] ?? '');
+  $end_date = '';
+  $status = trim($_POST['status'] ?? 'active');
 
-    if ($full_name === '' || $phone === '' || $package_id === '' || $start_date === '' || $end_date === '') {
-        $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+  if ($full_name === '' || $phone === '' || $package_id === '' || $start_date === '') {
+    $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+  } else {
+    $stmt_package = $conn->prepare("SELECT duration_months FROM packages WHERE id = ? LIMIT 1");
+    $stmt_package->bind_param("i", $package_id);
+    $stmt_package->execute();
+    $result_package = $stmt_package->get_result();
+
+    if (!$result_package || $result_package->num_rows === 0) {
+      $error = "Gói tập không tồn tại.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO members (full_name, gender, phone, email, date_of_birth, address, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param(
-            "ssssssisss",
-            $full_name,
-            $gender,
-            $phone,
-            $email,
-            $date_of_birth,
-            $address,
-            $package_id,
-            $start_date,
-            $end_date,
-            $status
-        );
+      $package = $result_package->fetch_assoc();
+      $duration_months = (int)$package['duration_months'];
 
-        if ($stmt->execute()) {
-            header("Location: " . $base_path . "members.php?add=success");
-            exit();
-        } else {
-            $error = "Thêm hội viên thất bại: " . $stmt->error;
-        }
-
-        $stmt->close();
+      try {
+        $start = new DateTime($start_date);
+        $end = clone $start;
+        $end->modify("+{$duration_months} months");
+        $end_date = $end->format('Y-m-d');
+      } catch (Exception $e) {
+        $error = "Ngày bắt đầu không hợp lệ.";
+      }
     }
+
+    $stmt_package->close();
+    $stmt = $conn->prepare("INSERT INTO members (full_name, gender, phone, email, date_of_birth, address, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param(
+      "ssssssisss",
+      $full_name,
+      $gender,
+      $phone,
+      $email,
+      $date_of_birth,
+      $address,
+      $package_id,
+      $start_date,
+      $end_date,
+      $status
+    );
+    if ($stmt->execute()) {
+      $member_id = $conn->insert_id;
+      $stmt->close();
+
+      /* Lấy giá gói để lưu lịch sử */
+      $package_price = 0;
+      $stmt_package = $conn->prepare("SELECT price FROM packages WHERE id = ? LIMIT 1");
+      $stmt_package->bind_param("i", $package_id);
+      $stmt_package->execute();
+      $result_package = $stmt_package->get_result();
+
+      if ($result_package && $result_package->num_rows > 0) {
+        $package_row = $result_package->fetch_assoc();
+        $package_price = (float)$package_row['price'];
+      }
+      $stmt_package->close();
+
+      /* Lưu lịch sử gói tập */
+      $history_status = 'active';
+      if ($status === 'expired') {
+        $history_status = 'expired';
+      } elseif ($status === 'inactive') {
+        $history_status = 'cancelled';
+      }
+
+      $history_note = 'Tạo hội viên mới';
+
+      $stmt_history = $conn->prepare("
+        INSERT INTO member_package_history (
+            member_id,
+            package_id,
+            action_type,
+            start_date,
+            end_date,
+            price,
+            paid_amount,
+            remaining_amount,
+            status,
+            note
+        ) VALUES (?, ?, 'new', ?, ?, ?, ?, 0, ?, ?)
+    ");
+      $stmt_history->bind_param(
+        "iissddss",
+        $member_id,
+        $package_id,
+        $start_date,
+        $end_date,
+        $package_price,
+        $package_price,
+        $history_status,
+        $history_note
+      );
+      $stmt_history->execute();
+      $stmt_history->close();
+
+      header("Location: " . $base_path . "members.php?add=success");
+      exit();
+    } else {
+      $error = "Thêm hội viên thất bại: " . $stmt->error;
+      $stmt->close();
+    }
+
+    $stmt->close();
+  }
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -67,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
 </head>
+
 <body>
   <div class="d-flex">
     <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
@@ -121,11 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="col-md-6">
                   <label class="form-label">Gói tập <span class="text-danger">*</span></label>
-                  <select name="package_id" class="form-select" required>
+                  <select name="package_id" id="package_id" class="form-select" required>
                     <option value="">-- Chọn gói tập --</option>
                     <?php foreach ($packages as $package): ?>
-                      <option value="<?php echo $package['id']; ?>">
-                        <?php echo htmlspecialchars($package['package_name']); ?>
+                      <option value="<?php echo $package['id']; ?>" data-duration="<?php echo $package['duration_months']; ?>">
+                        <?php echo htmlspecialchars($package['package_name']); ?> (<?php echo $package['duration_months']; ?> tháng)
                       </option>
                     <?php endforeach; ?>
                   </select>
@@ -138,12 +216,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="col-md-4">
                   <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
-                  <input type="date" name="start_date" class="form-control" required>
+                  <input type="date" name="start_date" id="start_date" class="form-control" required>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                  <input type="date" name="end_date" class="form-control" required>
+                  <label class="form-label">Ngày kết thúc</label>
+                  <input type="date" id="end_date_display" class="form-control" readonly placeholder="Tự động tính">
                 </div>
 
                 <div class="col-md-4">
@@ -169,5 +247,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function calculateEndDate() {
+      const packageSelect = document.getElementById('package_id');
+      const startDateInput = document.getElementById('start_date');
+      const endDateDisplay = document.getElementById('end_date_display');
+
+      const selectedOption = packageSelect.options[packageSelect.selectedIndex];
+      const duration = selectedOption ? parseInt(selectedOption.getAttribute('data-duration')) : 0;
+      const startDate = startDateInput.value;
+
+      if (duration > 0 && startDate) {
+        const start = new Date(startDate);
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + duration);
+        endDateDisplay.value = end.toISOString().split('T')[0];
+      } else {
+        endDateDisplay.value = '';
+      }
+    }
+
+    document.getElementById('package_id').addEventListener('change', calculateEndDate);
+    document.getElementById('start_date').addEventListener('change', calculateEndDate);
+  </script>
 </body>
+
 </html>

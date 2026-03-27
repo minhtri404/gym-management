@@ -7,7 +7,7 @@ $host = "127.0.0.1";
 $port = 3307;
 $dbname = "gym_management";
 $username = "root";
-$password = "";
+$password = "123";
 
 $session_token = $_SESSION['csrf_token'] ?? '';
 if ($session_token === '') {
