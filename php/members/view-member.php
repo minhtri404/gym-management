@@ -10,6 +10,37 @@ if ($id <= 0) {
     exit();
 }
 
+// Xử lý thêm ghi chú
+$note_success = "";
+$note_error = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
+    $note_content = trim($_POST['note'] ?? '');
+
+    if (empty($note_content)) {
+        $note_error = "Vui lòng nhập nội dung ghi chú.";
+    } else {
+        $stmt_note = $conn->prepare("INSERT INTO member_notes (member_id, note, created_by_name) VALUES (?, ?, ?)");
+        $created_by = "Admin"; // Có thể lấy từ session nếu có
+        $stmt_note->bind_param("iss", $id, $note_content, $created_by);
+
+        if ($stmt_note->execute()) {
+            $note_success = "Đã thêm ghi chú thành công.";
+            // Refresh để hiển thị ghi chú mới
+            header("Location: " . $_SERVER['REQUEST_URI'] . "&note_success=1");
+            exit();
+        } else {
+            $note_error = "Lỗi khi thêm ghi chú: " . $stmt_note->error;
+        }
+        $stmt_note->close();
+    }
+}
+
+// Kiểm tra thông báo từ URL
+if (isset($_GET['note_success']) && $_GET['note_success'] === '1') {
+    $note_success = "Đã thêm ghi chú thành công.";
+}
+
 /* Lấy thông tin hội viên + gói tập hiện tại */
 $stmt = $conn->prepare("
     SELECT 
@@ -55,6 +86,24 @@ if ($result_history && $result_history->num_rows > 0) {
     }
 }
 $stmt_history->close();
+// Lấy ghi chú hội viên
+$notes = [];
+$stmt_notes = $conn->prepare("
+    SELECT *
+    FROM member_notes
+    WHERE member_id = ?
+    ORDER BY id DESC
+");
+$stmt_notes->bind_param("i", $id);
+$stmt_notes->execute();
+$result_notes = $stmt_notes->get_result();
+
+if ($result_notes && $result_notes->num_rows > 0) {
+    while ($row = $result_notes->fetch_assoc()) {
+        $notes[] = $row;
+    }
+}
+$stmt_notes->close();
 
 function formatMemberStatus($status)
 {
@@ -88,6 +137,17 @@ function formatHistoryStatus($status)
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
+    <style>
+        .notes-list .note-item:last-child {
+            border-bottom: none !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .note-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
 </head>
 
 <body>
@@ -151,6 +211,39 @@ function formatHistoryStatus($status)
                                     <div class="text-muted small">Ngày tạo</div>
                                     <div><?php echo htmlspecialchars($member['created_at'] ?? ''); ?></div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Form thêm ghi chú -->
+                        <div class="card shadow-sm border-0 mt-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4">
+                                <h5 class="mb-0">Thêm ghi chú</h5>
+                            </div>
+                            <div class="card-body px-4 pb-4">
+                                <?php if (!empty($note_success)): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-check-circle me-2"></i><?php echo htmlspecialchars($note_success); ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($note_error)): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-exclamation-triangle me-2"></i><?php echo htmlspecialchars($note_error); ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+
+                                <form method="POST" action="">
+                                    <input type="hidden" name="add_note" value="1">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nội dung ghi chú</label>
+                                        <textarea name="note" class="form-control" rows="3" placeholder="Nhập ghi chú về hội viên..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle me-1"></i>Thêm ghi chú
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -255,11 +348,46 @@ function formatHistoryStatus($status)
                             </div>
                         </div>
 
+                        <!-- Danh sách ghi chú -->
+                        <div class="card shadow-sm border-0 mt-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4">
+                                <h5 class="mb-0">Danh sách ghi chú</h5>
+                            </div>
+                            <div class="card-body px-4 pb-4">
+                                <?php if (!empty($notes)): ?>
+                                    <div class="notes-list">
+                                        <?php foreach ($notes as $note): ?>
+                                            <div class="note-item border-bottom pb-3 mb-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div class="fw-semibold">
+                                                        <?php echo htmlspecialchars($note['created_by_name'] ?: 'Admin'); ?>
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        <?php echo !empty($note['created_at']) ? date('d/m/Y H:i', strtotime($note['created_at'])) : ''; ?>
+                                                    </small>
+                                                </div>
+                                                <div class="note-content">
+                                                    <?php echo nl2br(htmlspecialchars($note['note'])); ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-sticky-note fs-1 mb-2"></i>
+                                        <div>Chưa có ghi chú nào.</div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

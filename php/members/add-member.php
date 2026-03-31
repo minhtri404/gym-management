@@ -53,6 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt_package->close();
+
+    if ($error === '') {
     $stmt = $conn->prepare("INSERT INTO members (full_name, gender, phone, email, date_of_birth, address, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param(
       "ssssssisss",
@@ -129,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->close();
     }
 
-    $stmt->close();
+    }
   }
 }
 ?>
@@ -250,25 +252,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    function addMonthsSafe(date, monthsToAdd) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+
+      const targetMonth = month + monthsToAdd;
+      const targetDate = new Date(year, targetMonth, 1);
+      const lastDayOfTargetMonth = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth() + 1,
+        0
+      ).getDate();
+
+      const safeDay = Math.min(day, lastDayOfTargetMonth);
+      return new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        safeDay
+      );
+    }
+
     function calculateEndDate() {
       const packageSelect = document.getElementById('package_id');
       const startDateInput = document.getElementById('start_date');
       const endDateDisplay = document.getElementById('end_date_display');
 
       const selectedOption = packageSelect.options[packageSelect.selectedIndex];
-      const duration = selectedOption ? parseInt(selectedOption.getAttribute('data-duration')) : 0;
+      const duration = selectedOption ? parseInt(selectedOption.getAttribute('data-duration'), 10) : 0;
       const startDate = startDateInput.value;
 
       if (duration > 0 && startDate) {
         const start = new Date(startDate);
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + duration);
-        endDateDisplay.value = end.toISOString().split('T')[0];
+        const end = addMonthsSafe(start, duration);
+        endDateDisplay.value = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
       } else {
         endDateDisplay.value = '';
       }
     }
 
+    document.addEventListener('DOMContentLoaded', function () {
+      calculateEndDate();
+    });
     document.getElementById('package_id').addEventListener('change', calculateEndDate);
     document.getElementById('start_date').addEventListener('change', calculateEndDate);
   </script>
