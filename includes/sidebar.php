@@ -30,9 +30,15 @@ $base_path = $base_path ?? '';
         <i class="bi bi-box-seam me-2"></i>Gói tập
       </a>
     </li>
+
+     <li class="nav-item">
+      <a href="<?php echo $base_path; ?>workout-plans.php" class="nav-link <?php echo ($current_page == 'workout-plans.php') ? 'active' : ''; ?>">
+        <i class="bi bi-clipboard2-pulse me-2"></i>Kế hoạch tập luyện
+      </a>
+    </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>ai-workout.php" class="nav-link <?php echo ($current_page == 'ai-workout.php') ? 'active' : ''; ?>">
-        <i class="bi bi-clipboard2-pulse me-2"></i>AI lịch tập
+      <a href="<?php echo $base_path; ?>meal-plans.php" class="nav-link <?php echo ($current_page == 'meal-plans.php') ? 'active' : ''; ?>">
+        <i class="bi bi-egg-fried me-2"></i>Kế hoạch dinh dưỡng
       </a>
     </li>
     <li class="nav-item">

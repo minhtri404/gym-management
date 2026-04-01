@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = "Gia hạn gói tập";
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../';
@@ -34,7 +34,7 @@ if (!$result_member || $result_member->num_rows === 0) {
 $member = $result_member->fetch_assoc();
 $stmt_member->close();
 
-/* Lấy danh sách gói */
+// Lấy danh sách gói tập để hiển thị trong form
 $packages = [];
 $result_packages = $conn->query("SELECT id, package_name, price, duration_months FROM packages ORDER BY id DESC");
 if ($result_packages && $result_packages->num_rows > 0) {
@@ -49,12 +49,13 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $package_id = isset($_POST['package_id']) ? (int)$_POST['package_id'] : 0;
     $start_date = trim($_POST['start_date'] ?? '');
+    $paid_amount_input = trim($_POST['paid_amount'] ?? '');
     $note = trim($_POST['note'] ?? '');
 
     if ($package_id <= 0 || empty($start_date)) {
         $error = "Vui lòng chọn gói và ngày bắt đầu.";
     } else {
-        /* Lấy thông tin gói mới */
+        /* Láº¥y thÃ´ng tin gÃ³i má»›i */
         $stmt_package = $conn->prepare("
             SELECT id, package_name, price, duration_months
             FROM packages
@@ -101,30 +102,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     /* Lưu lịch sử gia hạn */
                     $history_note = !empty($note) ? $note : 'Gia hạn gói tập';
+                    $paid_amount = 0.0;
+                    if ($paid_amount_input !== '') {
+                      $paid_amount = (float) str_replace([',', ' '], '', $paid_amount_input);
+                    }
+                    if ($paid_amount < 0) {
+                      $paid_amount = 0.0;
+                    }
+                    if ($paid_amount > $price) {
+                      $paid_amount = $price;
+                    }
+                    $remaining_amount = max(0, $price - $paid_amount);
 
                     $stmt_history = $conn->prepare("
-                        INSERT INTO member_package_history (
-                            member_id,
-                            package_id,
-                            action_type,
-                            start_date,
-                            end_date,
-                            price,
-                            paid_amount,
-                            remaining_amount,
-                            status,
-                            note
-                        ) VALUES (?, ?, 'renew', ?, ?, ?, ?, 0, 'active', ?)
+                      INSERT INTO member_package_history (
+                        member_id,
+                        package_id,
+                        action_type,
+                        start_date,
+                        end_date,
+                        price,
+                        paid_amount,
+                        remaining_amount,
+                        status,
+                        note
+                      ) VALUES (?, ?, 'renew', ?, ?, ?, ?, ?, 'active', ?)
                     ");
+                    if ($stmt_history === false) {
+                      throw new Exception('Prepare failed: ' . $conn->error);
+                    }
                     $stmt_history->bind_param(
-                        "iissdds",
-                        $member_id,
-                        $package_id,
-                        $start_date,
-                        $end_date,
-                        $price,
-                        $price,
-                        $history_note
+                      "iissddds",
+                      $member_id,
+                      $package_id,
+                      $start_date,
+                      $end_date,
+                      $price,
+                      $paid_amount,
+                      $remaining_amount,
+                      $history_note
                     );
                     $stmt_history->execute();
                     $stmt_history->close();
@@ -135,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
                 } catch (Exception $e) {
                     $conn->rollback();
-                    $error = "Gia hạn thất bại: " . $e->getMessage();
+                    $error = "Gia háº¡n tháº¥t báº¡i: " . $e->getMessage();
                 }
             }
         }
@@ -163,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="fw-bold mb-0">Gia hạn gói tập</h2>
           <a href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member_id; ?>" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+            <i class="bi bi-arrow-left me-1"></i> Quay láº¡i
           </a>
         </div>
 
@@ -185,17 +201,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                   <div class="mb-2">
                     <div class="text-muted small">Gói hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['package_name'] ?: 'Chưa có'); ?></div>
+                    <div><?php echo htmlspecialchars($member['package_name'] ?: 'ChÆ°a cÃ³'); ?></div>
                   </div>
 
                   <div class="mb-2">
                     <div class="text-muted small">Ngày bắt đầu hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['start_date'] ?: 'Chưa có'); ?></div>
+                    <div><?php echo htmlspecialchars($member['start_date'] ?: 'ChÆ°a cÃ³'); ?></div>
                   </div>
 
                   <div class="mb-0">
                     <div class="text-muted small">Ngày kết thúc hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['end_date'] ?: 'Chưa có'); ?></div>
+                    <div><?php echo htmlspecialchars($member['end_date'] ?: 'ChÆ°a cÃ³'); ?></div>
                   </div>
                 </div>
               </div>
@@ -222,6 +238,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="form-label">Ngày bắt đầu</label>
                     <input type="date" name="start_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label">Số tiền đã trả</label>
+                    <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" placeholder="0">
+                    <small class="text-muted">Hệ thống tự tính còn nợ.</small>
+                  </div>
 
                   <div class="mb-3">
                     <label class="form-label">Ghi chú</label>
@@ -229,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
 
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i>Lưu gia hạn
+                    <i class="bi bi-save me-1"></i> Lưu gia hạn
                   </button>
                 </form>
               </div>
@@ -242,3 +263,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </body>
 </html>
+

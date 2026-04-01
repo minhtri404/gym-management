@@ -235,7 +235,7 @@ function formatPlanToText($plan)
 
   return trim($text);
 }
-//
+// Hàm này sẽ gọi Gemini API để tạo kế hoạch tập luyện dựa trên thông tin đầu vào. Nó sẽ trả về một mảng kết quả đã được parse, hoặc ném lỗi nếu có vấn đề với API.
 function callGeminiWorkoutPlan($apiKey, $memberName, $goal, $level, $daysPerWeek, $notes = '', $model = 'gemini-2.5-flash')
 {
   $goalLabel = getGoalLabel($goal);

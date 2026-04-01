@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = "Chi tiết hội viên";
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../';
@@ -10,9 +10,11 @@ if ($id <= 0) {
     exit();
 }
 
-// Xử lý thêm ghi chú
+// Xử lý thêm/sửa/xóa ghi chú
 $note_success = "";
 $note_error = "";
+$edit_note_id = isset($_GET['edit_note_id']) ? (int) $_GET['edit_note_id'] : 0;
+$filter_note_date = isset($_GET['note_date']) ? trim($_GET['note_date']) : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
     $note_content = trim($_POST['note'] ?? '');
@@ -26,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
 
         if ($stmt_note->execute()) {
             $note_success = "Đã thêm ghi chú thành công.";
-            // Refresh để hiển thị ghi chú mới
             header("Location: " . $_SERVER['REQUEST_URI'] . "&note_success=1");
             exit();
         } else {
@@ -36,9 +37,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_note'])) {
+    $note_id = isset($_POST['note_id']) ? (int) $_POST['note_id'] : 0;
+    $note_content = trim($_POST['note'] ?? '');
+
+    if ($note_id <= 0 || $note_content === '') {
+        $note_error = "Vui lòng nhập nội dung ghi chú.";
+    } else {
+        $stmt_update = $conn->prepare("UPDATE member_notes SET note = ? WHERE id = ? AND member_id = ?");
+        $stmt_update->bind_param("sii", $note_content, $note_id, $id);
+        if ($stmt_update->execute()) {
+            header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?id=" . $id . "&note_updated=1");
+            exit();
+        } else {
+            $note_error = "Lỗi khi cập nhật ghi chú: " . $stmt_update->error;
+        }
+        $stmt_update->close();
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_note'])) {
+    $note_id = isset($_POST['note_id']) ? (int) $_POST['note_id'] : 0;
+    if ($note_id > 0) {
+        $stmt_delete = $conn->prepare("DELETE FROM member_notes WHERE id = ? AND member_id = ?");
+        $stmt_delete->bind_param("ii", $note_id, $id);
+        if ($stmt_delete->execute()) {
+            header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?id=" . $id . "&note_deleted=1");
+            exit();
+        } else {
+            $note_error = "Lỗi khi xóa ghi chú: " . $stmt_delete->error;
+        }
+        $stmt_delete->close();
+    }
+}
+
 // Kiểm tra thông báo từ URL
 if (isset($_GET['note_success']) && $_GET['note_success'] === '1') {
     $note_success = "Đã thêm ghi chú thành công.";
+}
+if (isset($_GET['note_updated']) && $_GET['note_updated'] === '1') {
+    $note_success = "Đã cập nhật ghi chú thành công.";
+}
+if (isset($_GET['note_deleted']) && $_GET['note_deleted'] === '1') {
+    $note_success = "Đã xóa ghi chú thành công.";
 }
 
 /* Lấy thông tin hội viên + gói tập hiện tại */
@@ -86,15 +127,25 @@ if ($result_history && $result_history->num_rows > 0) {
     }
 }
 $stmt_history->close();
-// Lấy ghi chú hội viên
+
+// Lấy ghi chú hội viên (có lọc theo ngày nếu có)
 $notes = [];
-$stmt_notes = $conn->prepare("
+$sql_notes = "
     SELECT *
     FROM member_notes
     WHERE member_id = ?
-    ORDER BY id DESC
-");
-$stmt_notes->bind_param("i", $id);
+";
+if ($filter_note_date !== '') {
+    $sql_notes .= " AND DATE(created_at) = ?";
+}
+$sql_notes .= " ORDER BY id DESC";
+
+$stmt_notes = $conn->prepare($sql_notes);
+if ($filter_note_date !== '') {
+    $stmt_notes->bind_param("is", $id, $filter_note_date);
+} else {
+    $stmt_notes->bind_param("i", $id);
+}
 $stmt_notes->execute();
 $result_notes = $stmt_notes->get_result();
 
@@ -104,6 +155,20 @@ if ($result_notes && $result_notes->num_rows > 0) {
     }
 }
 $stmt_notes->close();
+
+$total_debt = 0.0;
+$stmt_debt = $conn->prepare("
+    SELECT COALESCE(SUM(remaining_amount), 0) AS total_debt
+    FROM member_package_history
+    WHERE member_id = ? AND remaining_amount > 0
+");
+$stmt_debt->bind_param("i", $id);
+$stmt_debt->execute();
+$result_debt = $stmt_debt->get_result();
+if ($result_debt && $row_debt = $result_debt->fetch_assoc()) {
+    $total_debt = (float) ($row_debt['total_debt'] ?? 0);
+}
+$stmt_debt->close();
 
 function formatMemberStatus($status)
 {
@@ -126,8 +191,7 @@ function formatHistoryStatus($status)
     }
     return '<span class="badge bg-secondary">Đã hủy</span>';
 }
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -207,6 +271,13 @@ function formatHistoryStatus($status)
                                     <div><?php echo formatMemberStatus($member['status']); ?></div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <div class="text-muted small">Tổng nợ</div>
+                                    <div class="fw-semibold text-danger">
+                                        <?php echo number_format((float)$total_debt, 0, ',', '.'); ?> VNĐ
+                                    </div>
+                                </div>
+
                                 <div class="mb-0">
                                     <div class="text-muted small">Ngày tạo</div>
                                     <div><?php echo htmlspecialchars($member['created_at'] ?? ''); ?></div>
@@ -215,7 +286,7 @@ function formatHistoryStatus($status)
                         </div>
 
                         <!-- Form thêm ghi chú -->
-                        <div class="card shadow-sm border-0 mt-4">
+                        <div class="card shadow-sm border-0 mt-4" id="member-notes">
                             <div class="card-header bg-white border-0 pt-4 px-4">
                                 <h5 class="mb-0">Thêm ghi chú</h5>
                             </div>
@@ -294,6 +365,12 @@ function formatHistoryStatus($status)
                                             <a href="<?php echo $base_path; ?>php/members/renew-package.php?id=<?php echo (int)$member['id']; ?>" class="btn btn-primary btn-sm">
                                                 <i class="bi bi-arrow-repeat me-1"></i>Gia hạn gói
                                             </a>
+                                            <a href="<?php echo $base_path; ?>workout-plans.php?member_id=<?php echo (int)$member['id']; ?>" class="btn btn-success btn-sm">
+                                                <i class="bi bi-clipboard2-pulse me-1"></i>Kế hoạch tập luyện
+                                            </a>
+                                            <a href="<?php echo $base_path; ?>meal-plans.php?member_id=<?php echo (int)$member['id']; ?>" class="btn btn-outline-success btn-sm">
+                                                <i class="bi bi-egg-fried me-1"></i>Kế hoạch dinh dưỡng
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -351,7 +428,17 @@ function formatHistoryStatus($status)
                         <!-- Danh sách ghi chú -->
                         <div class="card shadow-sm border-0 mt-4">
                             <div class="card-header bg-white border-0 pt-4 px-4">
-                                <h5 class="mb-0">Danh sách ghi chú</h5>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <h5 class="mb-0">Danh sách ghi chú</h5>
+                                    <form method="GET" action="" class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="id" value="<?php echo (int)$member['id']; ?>">
+                                        <input type="date" name="note_date" class="form-control form-control-sm"
+                                               value="<?php echo htmlspecialchars($filter_note_date); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
+                                        <a class="btn btn-sm btn-outline-secondary"
+                                           href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>#member-notes">Reset</a>
+                                    </form>
+                                </div>
                             </div>
                             <div class="card-body px-4 pb-4">
                                 <?php if (!empty($notes)): ?>
@@ -362,13 +449,48 @@ function formatHistoryStatus($status)
                                                     <div class="fw-semibold">
                                                         <?php echo htmlspecialchars($note['created_by_name'] ?: 'Admin'); ?>
                                                     </div>
-                                                    <small class="text-muted">
-                                                        <?php echo !empty($note['created_at']) ? date('d/m/Y H:i', strtotime($note['created_at'])) : ''; ?>
-                                                    </small>
+                                                    <div class="text-end">
+                                                        <small class="text-muted d-block">
+                                                            <?php echo !empty($note['created_at']) ? date('d/m/Y H:i', strtotime($note['created_at'])) : ''; ?>
+                                                        </small>
+                                                        <div class="mt-2 d-flex gap-2 justify-content-end">
+                                                            <a class="btn btn-outline-secondary btn-sm"
+                                                               href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>&edit_note_id=<?php echo (int)$note['id']; ?>#member-notes">
+                                                                <i class="bi bi-pencil-square me-1"></i>Sửa
+                                                            </a>
+                                                            <form method="POST" action=""
+                                                                  onsubmit="return confirm('Xóa ghi chú này?');">
+                                                                <input type="hidden" name="delete_note" value="1">
+                                                                <input type="hidden" name="note_id" value="<?php echo (int)$note['id']; ?>">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                    <i class="bi bi-trash me-1"></i>Xóa
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="note-content">
-                                                    <?php echo nl2br(htmlspecialchars($note['note'])); ?>
-                                                </div>
+                                                <?php if ($edit_note_id === (int)$note['id']): ?>
+                                                    <form method="POST" action="" class="mb-3">
+                                                        <input type="hidden" name="update_note" value="1">
+                                                        <input type="hidden" name="note_id" value="<?php echo (int)$note['id']; ?>">
+                                                        <div class="mb-2">
+                                                            <textarea name="note" class="form-control" rows="3" required><?php echo htmlspecialchars($note['note']); ?></textarea>
+                                                        </div>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                <i class="bi bi-check-circle me-1"></i>Lưu
+                                                            </button>
+                                                            <a class="btn btn-outline-secondary btn-sm"
+                                                               href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>#member-notes">
+                                                                Hủy
+                                                            </a>
+                                                        </div>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <div class="note-content">
+                                                        <?php echo nl2br(htmlspecialchars($note['note'])); ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>

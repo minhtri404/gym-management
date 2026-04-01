@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = "Thêm hội viên";
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../';
@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $address = trim($_POST['address'] ?? '');
   $package_id = trim($_POST['package_id'] ?? '');
   $start_date = trim($_POST['start_date'] ?? '');
+  $paid_amount_input = trim($_POST['paid_amount'] ?? '');
   $end_date = '';
   $status = trim($_POST['status'] ?? 'active');
 
@@ -86,6 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $stmt_package->close();
 
+      $paid_amount = 0.0;
+      if ($paid_amount_input !== '') {
+        $paid_amount = (float) str_replace([',', ' '], '', $paid_amount_input);
+      }
+      if ($paid_amount < 0) {
+        $paid_amount = 0.0;
+      }
+      if ($paid_amount > $package_price) {
+        $paid_amount = $package_price;
+      }
+      $remaining_amount = max(0, $package_price - $paid_amount);
+
       /* Lưu lịch sử gói tập */
       $history_status = 'active';
       if ($status === 'expired') {
@@ -108,16 +121,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             remaining_amount,
             status,
             note
-        ) VALUES (?, ?, 'new', ?, ?, ?, ?, 0, ?, ?)
+        ) VALUES (?, ?, 'new', ?, ?, ?, ?, ?, ?, ?)
     ");
       $stmt_history->bind_param(
-        "iissddss",
+        "iissdddss",
         $member_id,
         $package_id,
         $start_date,
         $end_date,
         $package_price,
-        $package_price,
+        $paid_amount,
+        $remaining_amount,
         $history_status,
         $history_note
       );
@@ -158,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="fw-bold">Thêm hội viên</h2>
           <a href="<?php echo $base_path; ?>members.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+            <i class="bi bi-arrow-left me-1"></i> Quay láº¡i
           </a>
         </div>
 
@@ -222,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Ngày kết thúc</label>
+                  <label class="form-label">NgÃ y káº¿t thÃºc</label>
                   <input type="date" id="end_date_display" class="form-control" readonly placeholder="Tự động tính">
                 </div>
 
@@ -234,12 +248,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="inactive">Ngưng hoạt động</option>
                   </select>
                 </div>
+                <div class="col-md-4">
+                  <label class="form-label">Số tiền đã trả</label>
+                  <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" placeholder="0">
+                  <small class="text-muted">Hệ thống tự tính còn nợ.</small>
+                </div>
 
                 <div class="col-12 mt-4">
                   <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save me-1"></i> Lưu hội viên
                   </button>
-                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">Hủy</a>
+                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">Há»§y</a>
                 </div>
               </div>
             </form>

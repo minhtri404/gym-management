@@ -15,10 +15,13 @@ if (isset($_GET['id'])) {
         ");
         $stmt->bind_param("i", $id);
         $stmt->execute();
+        $affected_rows = $stmt->affected_rows;
         $stmt->close();
 
-        header("Location: " . $base_path . "checkins.php?checkout=1");
-        exit;
+        if ($affected_rows > 0) {
+            header("Location: " . $base_path . "checkins.php?checkout=1&feedback_checkin_id=" . $id);
+            exit;
+        }
     }
 }
 
