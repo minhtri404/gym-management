@@ -51,6 +51,11 @@ $base_path = $base_path ?? '';
         <i class="bi bi-telephone me-2"></i>Liên hệ
       </a>
     </li>
+    <li class="nav-item">
+  <a href="<?php echo $base_path; ?>package-registrations.php" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
+    <i class="bi bi-bag-check me-2"></i>Đăng ký gói
+  </a>
+</li>
     <li class="nav-item mt-3">
       <a href="<?php echo $base_path; ?>logout.php" class="nav-link text-warning">
         <i class="bi bi-box-arrow-left me-2"></i>Logout

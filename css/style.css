@@ -33,6 +33,17 @@ body {
   font-size: 32px;
 }
 
+/* Logo image on login page */
+.login-logo {
+  width: 80px;
+  height: 80px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff;
+}
+
 /* =========================
    DASHBOARD
 ========================= */

@@ -1,17 +1,17 @@
 <?php
 include __DIR__ . '/config.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    $project_root = realpath(__DIR__ . '/..');
-    $doc_root = isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : '';
-    $base_uri = '';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-    if ($doc_root && $project_root && strpos($project_root, $doc_root) === 0) {
-        $base_uri = str_replace('\\', '/', substr($project_root, strlen($doc_root)));
-    }
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
-    $base_uri = rtrim($base_uri, '/');
-    header("Location: " . ($base_uri === '' ? '/login.php' : $base_uri . '/login.php'));
+if (($_SESSION['user_role'] ?? '') !== 'admin') {
+    header('Location: user/home.php');
     exit;
 }
 ?>

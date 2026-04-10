@@ -30,7 +30,7 @@ $base_path = '../';
 
                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
                     <a href="<?php echo $base_path; ?>user/contact.php" class="btn btn-hero-primary">Join now</a>
-                    <a href="#pricing" class="btn btn-hero-outline">Xem gói tập</a>
+                   <a href="<?php echo $base_path; ?>user/packages.php" class="btn btn-hero-outline">Xem gói tập</a>
                 </div>
 
                 <div class="brand-logos d-flex flex-wrap justify-content-center gap-5">
