@@ -1,8 +1,28 @@
-<?php
+﻿<?php
+if (!isset($conn)) {
+    include __DIR__ . '/../../includes/config.php';
+}
+
 $base_path = $base_path ?? '../';
 $is_logged_in = isset($_SESSION['user_id']);
 $user_name = $_SESSION['user_name'] ?? '';
 $user_role = $_SESSION['user_role'] ?? '';
+$user_avatar = $_SESSION['user_avatar'] ?? '';
+
+if ($is_logged_in && $user_avatar === '' && isset($conn)) {
+    $avatar_stmt = $conn->prepare("SELECT avatar FROM users WHERE id = ? LIMIT 1");
+    if ($avatar_stmt) {
+        $avatar_user_id = (int) $_SESSION['user_id'];
+        $avatar_stmt->bind_param('i', $avatar_user_id);
+        $avatar_stmt->execute();
+        $avatar_result = $avatar_stmt->get_result()->fetch_assoc();
+        $user_avatar = $avatar_result['avatar'] ?? '';
+        $_SESSION['user_avatar'] = $user_avatar;
+        $avatar_stmt->close();
+    }
+}
+
+$avatar_url = $user_avatar !== '' ? $base_path . 'uploads/avatars/' . $user_avatar : '';
 ?>
 <nav class="navbar navbar-expand-lg navbar-dark user-navbar fixed-top">
     <div class="container">
@@ -21,7 +41,7 @@ $user_role = $_SESSION['user_role'] ?? '';
                     <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#about">About Us</a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" href="<?php echo $base_path; ?>user/packages.php">Pricing</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/package/index.php">Pricing</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#gallery">Gallery</a>
@@ -30,7 +50,7 @@ $user_role = $_SESSION['user_role'] ?? '';
                     <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#trainers">Trainers</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/contact.php">Contact</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>contact-form.php">Contact</a>
                 </li>
 
                 <?php if ($is_logged_in && $user_role === 'admin'): ?>
@@ -49,10 +69,14 @@ $user_role = $_SESSION['user_role'] ?? '';
                 </a>
 
                 <?php if ($is_logged_in): ?>
-                    <span class="user-greeting">
-                        <i class="bi bi-person-circle me-1"></i>
+                    <a href="<?php echo $base_path; ?>user/profile.php" class="user-greeting text-decoration-none">
+                        <?php if ($avatar_url !== ''): ?>
+                            <img src="<?php echo htmlspecialchars($avatar_url); ?>" alt="Avatar" class="user-avatar me-2">
+                        <?php else: ?>
+                            <i class="bi bi-person-circle me-1"></i>
+                        <?php endif; ?>
                         <?php echo htmlspecialchars($user_name); ?>
-                    </span>
+                    </a>
 
                     <a href="<?php echo $base_path; ?>logout.php" class="btn btn-user-outline btn-sm">
                         <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
@@ -69,3 +93,4 @@ $user_role = $_SESSION['user_role'] ?? '';
         </div>
     </div>
 </nav>
+

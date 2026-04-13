@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 include __DIR__ . '/../../includes/config.php';
 
 $base_path = '../../';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ' . $base_path . 'user/packages.php');
+    header('Location: ' . $base_path . 'user/package/index.php');
     exit;
 }
 
@@ -14,7 +14,7 @@ if (
     $csrf_token === '' ||
     !hash_equals($_SESSION['csrf_token'], $csrf_token)
 ) {
-    header('Location: ' . $base_path . 'user/packages.php');
+    header('Location: ' . $base_path . 'user/package/index.php');
     exit;
 }
 
@@ -27,12 +27,12 @@ $address = trim($_POST['address'] ?? '');
 $note = trim($_POST['note'] ?? '');
 
 if ($package_id <= 0 || $full_name === '' || $phone === '') {
-    header('Location: ' . $base_path . 'user/package-register.php?package_id=' . $package_id . '&error=' . urlencode('Vui lòng nhập đầy đủ thông tin bắt buộc.'));
+    header('Location: ' . $base_path . 'user/package/register.php?package_id=' . $package_id . '&error=' . urlencode('Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin báº¯t buá»™c.'));
     exit;
 }
 
 if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header('Location: ' . $base_path . 'user/package-register.php?package_id=' . $package_id . '&error=' . urlencode('Email không hợp lệ.'));
+    header('Location: ' . $base_path . 'user/package/register.php?package_id=' . $package_id . '&error=' . urlencode('Email khÃ´ng há»£p lá»‡.'));
     exit;
 }
 
@@ -44,7 +44,7 @@ $package = $result->fetch_assoc();
 $stmt->close();
 
 if (!$package) {
-    header('Location: ' . $base_path . 'user/packages.php');
+    header('Location: ' . $base_path . 'user/package/index.php');
     exit;
 }
 
@@ -54,9 +54,10 @@ $stmt = $conn->prepare("
     INSERT INTO package_registrations (full_name, phone, email, date_of_birth, address, package_id, note, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ");
-$stmt->bind_param("ssssisss", $full_name, $phone, $email, $date_of_birth, $address, $package_id, $note, $status);
+$stmt->bind_param("sssssiss", $full_name, $phone, $email, $date_of_birth, $address, $package_id, $note, $status);
 $stmt->execute();
 $stmt->close();
 
-header('Location: ' . $base_path . 'user/package-register.php?package_id=' . $package_id . '&success=1');
+header('Location: ' . $base_path . 'user/package/register.php?package_id=' . $package_id . '&success=1');
 exit;
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include __DIR__ . '/../includes/config.php';
 $base_path = '../';
 ?>
@@ -29,8 +29,8 @@ $base_path = '../';
                 </p>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                    <a href="<?php echo $base_path; ?>user/contact.php" class="btn btn-hero-primary">Join now</a>
-                   <a href="<?php echo $base_path; ?>user/packages.php" class="btn btn-hero-outline">Xem gói tập</a>
+                    <a href="<?php echo $base_path; ?>contact-form.php" class="btn btn-hero-primary">Join now</a>
+                    <a href="<?php echo $base_path; ?>user/package/index.php" class="btn btn-hero-outline">Xem gói tập</a>
                 </div>
 
                 <div class="brand-logos d-flex flex-wrap justify-content-center gap-5">
@@ -191,3 +191,4 @@ $base_path = '../';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

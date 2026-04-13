@@ -14,6 +14,9 @@ body.user-body {
     background: var(--bg-dark);
     color: var(--text-white);
     font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .user-navbar {
@@ -90,6 +93,14 @@ body.user-body {
     font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-user-outline {
@@ -175,12 +186,30 @@ body.user-body {
 
 .section-dark {
     background: var(--bg-dark);
-    padding: 90px 0;
+    padding: 90px 0 160px;
+    flex: 1 1 auto;
+}
+
+.package-register-section {
+    padding-top: 130px;
+    padding-bottom: 140px;
+    min-height: auto;
+    flex: 0 0 auto;
+    overflow: visible;
 }
 
 .section-soft {
     background: var(--bg-section);
     padding: 90px 0;
+}
+
+.user-footer {
+    background: var(--bg-section);
+    border-top: 1px solid var(--border-soft);
+    margin-top: 0;
+    position: relative;
+    clear: both;
+    flex-shrink: 0;
 }
 
 .section-title {
@@ -387,6 +416,16 @@ body.user-body {
     transform: translateY(-8px);
     border-color: rgba(33, 183, 255, 0.35);
     box-shadow: 0 22px 50px rgba(0,0,0,0.34);
+}
+
+.package-register-section .package-card,
+.package-register-section .package-card-modern {
+    height: auto;
+    min-height: 0;
+}
+
+.package-register-section .package-card-modern:hover {
+    transform: none;
 }
 
 .package-top {
@@ -603,9 +642,50 @@ body.user-body {
     color: var(--text-soft);
 }
 
+.package-detail-hero {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 245, 252, 0.96));
+}
+
+.package-detail-badge {
+    background: #121826;
+    color: #fff;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+}
+
+.package-detail-title {
+    color: #0f172a;
+    font-size: clamp(2.4rem, 4vw, 4rem);
+    line-height: 1.05;
+}
+
+.package-detail-subtitle {
+    color: #475569;
+    font-size: 1.2rem;
+    line-height: 1.75;
+    max-width: 720px;
+}
+
+.package-detail-summary {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.package-detail-price {
+    color: #0ea5e9;
+}
+
+.package-detail-meta {
+    color: #64748b;
+}
+
 @media (max-width: 767px) {
     .packages-title { font-size: 2rem; }
     .packages-subtitle { padding: 0 12px; }
     .packages-hero { padding-top: 36px; }
+    .package-detail-subtitle { font-size: 1.05rem; }
 }
 

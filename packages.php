@@ -1,5 +1,5 @@
-<?php
-$page_title = "Quản lý gói tập";
+﻿<?php
+$page_title = "Quáº£n lÃ½ gÃ³i táº­p";
 include 'includes/auth-check.php';
 
 $sql = "SELECT id, package_name, duration_months, price, status 
@@ -40,21 +40,21 @@ $card_result = $conn->query($card_sql);
 
       <div class="container-fluid p-4">
         <?php if (isset($_GET['add']) && $_GET['add'] === 'success'): ?>
-          <div class="alert alert-success">Thêm gói tập thành công.</div>
+          <div class="alert alert-success">ThÃªm gÃ³i táº­p thÃ nh cÃ´ng.</div>
         <?php endif; ?>
 
         <?php if (isset($_GET['edit']) && $_GET['edit'] === 'success'): ?>
-          <div class="alert alert-success">Cập nhật gói tập thành công.</div>
+          <div class="alert alert-success">Cáº­p nháº­t gÃ³i táº­p thÃ nh cÃ´ng.</div>
         <?php endif; ?>
 
         <?php if (isset($_GET['delete']) && $_GET['delete'] === 'success'): ?>
-          <div class="alert alert-success">Xóa gói tập thành công.</div>
+          <div class="alert alert-success">XÃ³a gÃ³i táº­p thÃ nh cÃ´ng.</div>
         <?php endif; ?>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h4 class="mb-0">Danh sách gói tập</h4>
+          <h4 class="mb-0">Danh sÃ¡ch gÃ³i táº­p</h4>
           <a href="php/packages/add-package.php" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Thêm gói tập
+            <i class="bi bi-plus-circle me-1"></i> ThÃªm gÃ³i táº­p
           </a>
         </div>
 
@@ -67,33 +67,36 @@ $card_result = $conn->query($card_sql);
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <h5 class="mb-0"><?php echo htmlspecialchars($card['package_name']); ?></h5>
                       <?php if ($card['status'] === 'active'): ?>
-                        <span class="badge bg-success">Đang hoạt động</span>
+                        <span class="badge bg-success">Äang hoáº¡t Ä‘á»™ng</span>
                       <?php else: ?>
-                        <span class="badge bg-secondary">Ngưng hoạt động</span>
+                        <span class="badge bg-secondary">NgÆ°ng hoáº¡t Ä‘á»™ng</span>
                       <?php endif; ?>
                     </div>
                     <h3 class="fw-bold mb-3">
-                      <?php echo number_format($card['price'], 0, ',', '.'); ?>đ
+                      <?php echo number_format($card['price'], 0, ',', '.'); ?>Ä‘
                     </h3>
                     <ul class="list-unstyled package-features mb-4">
                       <li>
                         <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        Thời hạn: <?php echo (int) $card['duration_months']; ?> tháng
+                        Thá»i háº¡n: <?php echo (int) $card['duration_months']; ?> thÃ¡ng
                       </li>
                       <li>
                         <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        <?php echo htmlspecialchars($card['description'] ?: 'Chưa có mô tả'); ?>
+                        <?php echo htmlspecialchars($card['description'] ?: 'ChÆ°a cÃ³ mÃ´ táº£'); ?>
                       </li>
                     </ul>
                     <div class="d-flex gap-2">
+                        <a class="btn btn-info w-100" href="user/package/detail.php?id=<?php echo (int) $card['id']; ?>" target="_blank">
+    <i class="bi bi-eye me-1"></i>Xem chi tiáº¿t
+  </a>
                       <a class="btn btn-warning w-100" href="php/packages/edit-package.php?id=<?php echo (int) $card['id']; ?>">
-                        <i class="bi bi-pencil me-1"></i>Sửa
+                        <i class="bi bi-pencil me-1"></i>Sá»­a
                       </a>
-                      <form class="w-100" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Bạn có chắc muốn xóa gói tập này không?');">
+                      <form class="w-100" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a gÃ³i táº­p nÃ y khÃ´ng?');">
                         <input type="hidden" name="id" value="<?php echo (int) $card['id']; ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <button type="submit" class="btn btn-danger w-100">
-                          <i class="bi bi-trash me-1"></i>Xóa
+                          <i class="bi bi-trash me-1"></i>XÃ³a
                         </button>
                       </form>
                     </div>
@@ -103,14 +106,14 @@ $card_result = $conn->query($card_sql);
             <?php endwhile; ?>
           <?php else: ?>
             <div class="col-12">
-              <div class="text-center text-muted">Chưa có gói tập nào.</div>
+              <div class="text-center text-muted">ChÆ°a cÃ³ gÃ³i táº­p nÃ o.</div>
             </div>
           <?php endif; ?>
         </div>
 
         <div class="card border-0 shadow-sm mt-4">
           <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="mb-0">Bảng tóm tắt gói tập</h5>
+            <h5 class="mb-0">Báº£ng tÃ³m táº¯t gÃ³i táº­p</h5>
           </div>
           <div class="card-body px-4 pb-4">
             <div class="table-responsive">
@@ -118,11 +121,11 @@ $card_result = $conn->query($card_sql);
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Tên gói</th>
-                    <th>Thời hạn</th>
-                    <th>Giá</th>
-                    <th>Trạng thái</th>
-                    <th class="text-end">Thao tác</th>
+                    <th>TÃªn gÃ³i</th>
+                    <th>Thá»i háº¡n</th>
+                    <th>GiÃ¡</th>
+                    <th>Tráº¡ng thÃ¡i</th>
+                    <th class="text-end">Thao tÃ¡c</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,24 +134,24 @@ $card_result = $conn->query($card_sql);
                       <tr>
                         <td>#<?php echo str_pad($row['id'], 3, '0', STR_PAD_LEFT); ?></td>
                         <td><?php echo htmlspecialchars($row['package_name']); ?></td>
-                        <td><?php echo (int) $row['duration_months']; ?> tháng</td>
-                        <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
+                        <td><?php echo (int) $row['duration_months']; ?> thÃ¡ng</td>
+                        <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNÄ</td>
                         <td>
                           <?php if ($row['status'] === 'active'): ?>
-                            <span class="badge bg-success">Đang hoạt động</span>
+                            <span class="badge bg-success">Äang hoáº¡t Ä‘á»™ng</span>
                           <?php else: ?>
-                            <span class="badge bg-secondary">Ngưng hoạt động</span>
+                            <span class="badge bg-secondary">NgÆ°ng hoáº¡t Ä‘á»™ng</span>
                           <?php endif; ?>
                         </td>
                         <td class="text-end">
                           <a href="php/packages/edit-package.php?id=<?php echo (int) $row['id']; ?>" class="btn btn-sm btn-warning">
-                            <i class="bi bi-pencil-square"></i> Sửa
+                            <i class="bi bi-pencil-square"></i> Sá»­a
                           </a>
-                          <form class="d-inline-block ms-1" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Bạn có chắc muốn xóa gói tập này không?');">
+                          <form class="d-inline-block ms-1" method="POST" action="php/packages/delete-package.php" onsubmit="return confirm('Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a gÃ³i táº­p nÃ y khÃ´ng?');">
                             <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                             <button type="submit" class="btn btn-sm btn-danger">
-                              <i class="bi bi-trash"></i> Xóa
+                              <i class="bi bi-trash"></i> XÃ³a
                             </button>
                           </form>
                         </td>
@@ -156,7 +159,7 @@ $card_result = $conn->query($card_sql);
                     <?php endwhile; ?>
                   <?php else: ?>
                     <tr>
-                      <td colspan="6" class="text-center text-muted">Chưa có gói tập nào.</td>
+                      <td colspan="6" class="text-center text-muted">ChÆ°a cÃ³ gÃ³i táº­p nÃ o.</td>
                     </tr>
                   <?php endif; ?>
                 </tbody>
@@ -171,3 +174,4 @@ $card_result = $conn->query($card_sql);
   <script src="js/main.js"></script>
 </body>
 </html>
+

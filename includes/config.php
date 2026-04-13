@@ -20,7 +20,7 @@ if ($conn->connect_error) {
     die("Kết nối database thất bại: " . $conn->connect_error);
 }
 
-$conn->set_charset("utf8");
+$conn->set_charset("utf8mb4");
 // OpenAI API key
 $openai_api_key = $_SERVER['OPENAI_API_KEY'] ?? $_ENV['OPENAI_API_KEY'] ?? getenv('OPENAI_API_KEY') ?: '';
 $openai_api_key = trim($openai_api_key);

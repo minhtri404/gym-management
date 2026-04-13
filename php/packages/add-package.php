@@ -6,31 +6,36 @@ $base_path = '../../';
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $package_name = trim($_POST['package_name'] ?? '');
-    $duration_months = trim($_POST['duration_months'] ?? '');
-    $price = trim($_POST['price'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $status = trim($_POST['status'] ?? 'active');
+  $package_name = trim($_POST['package_name'] ?? '');
+  $duration_months = trim($_POST['duration_months'] ?? '');
+  $price = trim($_POST['price'] ?? '');
+  $description = trim($_POST['description'] ?? '');
+  $short_description = trim($_POST['short_description'] ?? '');
+  $detail_content = trim($_POST['detail_content'] ?? '');
+  $benefits = trim($_POST['benefits'] ?? '');
+  $suitable_for = trim($_POST['suitable_for'] ?? '');
+  $status = trim($_POST['status'] ?? 'active');
 
-    if ($package_name === '' || $duration_months === '' || $price === '') {
-        $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+  if ($package_name === '' || $duration_months === '' || $price === '') {
+    $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+  } else {
+    $stmt = $conn->prepare("INSERT INTO packages (package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sidssssss", $package_name, $duration_months, $price, $description, $short_description, $detail_content, $benefits, $suitable_for, $status);
+
+    if ($stmt->execute()) {
+      $stmt->close();
+      header("Location: " . $base_path . "packages.php?add=success");
+      exit();
     } else {
-        $stmt = $conn->prepare("INSERT INTO packages (package_name, duration_months, price, description, status) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sidss", $package_name, $duration_months, $price, $description, $status);
-
-        if ($stmt->execute()) {
-            $stmt->close();
-            header("Location: " . $base_path . "packages.php?add=success");
-            exit();
-        } else {
-            $error = "Thêm gói tập thất bại: " . $stmt->error;
-            $stmt->close();
-        }
+      $error = "Thêm gói tập thất bại: " . $stmt->error;
+      $stmt->close();
     }
+  }
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
 </head>
+
 <body>
   <div class="d-flex">
     <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
@@ -81,7 +87,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <label class="form-label">Mô tả</label>
                   <textarea name="description" class="form-control" rows="4"></textarea>
                 </div>
+                <div class="col-12">
+                  <label class="form-label">Mô tả ngắn</label>
+                  <input type="text" name="short_description" class="form-control" maxlength="255" placeholder="Ví dụ: Gói phù hợp cho người mới bắt đầu tập gym">
+                </div>
 
+                <div class="col-12">
+                  <label class="form-label">Nội dung chi tiết</label>
+                  <textarea name="detail_content" class="form-control" rows="5" placeholder="Nhập nội dung mô tả chi tiết về gói tập..."></textarea>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Quyền lợi</label>
+                  <textarea name="benefits" class="form-control" rows="4" placeholder="- Tập không giới hạn&#10;- Hỗ trợ HLV cơ bản&#10;- Theo dõi tiến độ"></textarea>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-label">Phù hợp cho</label>
+                  <input type="text" name="suitable_for" class="form-control" placeholder="Ví dụ: Người mới tập, người muốn giảm mỡ, dân văn phòng">
+                </div>
                 <div class="col-md-4">
                   <label class="form-label">Trạng thái</label>
                   <select name="status" class="form-select">
@@ -105,4 +129,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 </body>
+
 </html>
