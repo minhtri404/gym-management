@@ -2,18 +2,58 @@
 include __DIR__ . '/../../includes/auth-check.php';
 include __DIR__ . '/../../includes/config.php';
 
-$base_path = '../../';
+$base_path = '../../admin/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
     $note = trim($_POST['note'] ?? '');
+    $premium_checkin_min_price = 1000000;
 
     if ($member_id > 0) {
+        $stmtMember = $conn->prepare("
+            SELECT 
+                m.id,
+                m.status,
+                m.end_date,
+                m.package_id,
+                p.package_name,
+                p.price
+            FROM members m
+            LEFT JOIN packages p ON m.package_id = p.id
+            WHERE m.id = ?
+            LIMIT 1
+        ");
+        $stmtMember->bind_param("i", $member_id);
+        $stmtMember->execute();
+        $resultMember = $stmtMember->get_result();
+        $member = $resultMember->fetch_assoc();
+        $stmtMember->close();
+
+        if (!$member) {
+            header("Location: " . $base_path . "checkins.php?error=1");
+            exit;
+        }
+
+        if (($member['status'] ?? '') !== 'active') {
+            header("Location: " . $base_path . "checkins.php?inactive=1");
+            exit;
+        }
+
+        if (empty($member['package_id']) || (float)($member['price'] ?? 0) < $premium_checkin_min_price) {
+            header("Location: " . $base_path . "checkins.php?not_premium=1");
+            exit;
+        }
+
+        if (!empty($member['end_date']) && $member['end_date'] < date('Y-m-d')) {
+            header("Location: " . $base_path . "checkins.php?expired=1");
+            exit;
+        }
+
         $stmtCheck = $conn->prepare("
-            SELECT id 
-            FROM checkins 
-            WHERE member_id = ? 
-              AND DATE(checkin_time) = CURDATE()
+            SELECT id
+            FROM checkins
+            WHERE member_id = ?
+              AND checkin_date = CURDATE()
             LIMIT 1
         ");
         $stmtCheck->bind_param("i", $member_id);
@@ -27,8 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $stmt = $conn->prepare("INSERT INTO checkins (member_id, note) VALUES (?, ?)");
-        $stmt->bind_param("is", $member_id, $note);
+        $status = 'checked_in';
+        $checkin_method = 'manual';
+
+        $stmt = $conn->prepare("
+            INSERT INTO checkins (member_id, checkin_date, checkin_time, status, checkin_method, note)
+            VALUES (?, CURDATE(), NOW(), ?, ?, ?)
+        ");
+        $stmt->bind_param("isss", $member_id, $status, $checkin_method, $note);
         $stmt->execute();
         $stmt->close();
 
@@ -39,3 +85,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 header("Location: " . $base_path . "checkins.php?error=1");
 exit;
+

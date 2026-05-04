@@ -1,7 +1,7 @@
 <?php
-$page_title = "Thêm gói tập";
+$page_title = "Th�m g�i t?p";
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 $error = "";
 
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $status = trim($_POST['status'] ?? 'active');
 
   if ($package_name === '' || $duration_months === '' || $price === '') {
-    $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+    $error = "Vui l�ng nh?p d?y d? c�c tru?ng b?t bu?c.";
   } else {
     $stmt = $conn->prepare("INSERT INTO packages (package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sidssssss", $package_name, $duration_months, $price, $description, $short_description, $detail_content, $benefits, $suitable_for, $status);
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: " . $base_path . "packages.php?add=success");
       exit();
     } else {
-      $error = "Thêm gói tập thất bại: " . $stmt->error;
+      $error = "Th�m g�i t?p th?t b?i: " . $stmt->error;
       $stmt->close();
     }
   }
@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -44,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
 </head>
-
 <body>
   <div class="d-flex">
     <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
@@ -54,9 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold">Thêm gói tập</h2>
+          <h2 class="fw-bold">Th�m g�i t?p</h2>
           <a href="<?php echo $base_path; ?>packages.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+            <i class="bi bi-arrow-left me-1"></i> Quay l?i
           </a>
         </div>
 
@@ -69,65 +67,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" action="">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Tên gói tập <span class="text-danger">*</span></label>
+                  <label class="form-label">T�n g�i t?p <span class="text-danger">*</span></label>
                   <input type="text" name="package_name" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
-                  <label class="form-label">Thời hạn (tháng) <span class="text-danger">*</span></label>
+                  <label class="form-label">Th?i h?n (th�ng) <span class="text-danger">*</span></label>
                   <input type="number" name="duration_months" class="form-control" min="1" required>
                 </div>
 
                 <div class="col-md-3">
-                  <label class="form-label">Giá <span class="text-danger">*</span></label>
+                  <label class="form-label">Gi� <span class="text-danger">*</span></label>
                   <input type="number" name="price" class="form-control" min="0" step="0.01" required>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Mô tả</label>
+                  <label class="form-label">M� t?</label>
                   <textarea name="description" class="form-control" rows="4"></textarea>
                 </div>
+
                 <div class="col-12">
-                  <label class="form-label">Mô tả ngắn</label>
-                  <input type="text" name="short_description" class="form-control" maxlength="255" placeholder="Ví dụ: Gói phù hợp cho người mới bắt đầu tập gym">
+                  <label class="form-label">M� t? ng?n</label>
+                  <input type="text" name="short_description" class="form-control" maxlength="255" placeholder="V� d?: G�i ph� h?p cho ngu?i m?i b?t d?u t?p gym">
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Nội dung chi tiết</label>
-                  <textarea name="detail_content" class="form-control" rows="5" placeholder="Nhập nội dung mô tả chi tiết về gói tập..."></textarea>
+                  <label class="form-label">N?i dung chi ti?t</label>
+                  <textarea name="detail_content" class="form-control" rows="5" placeholder="Nh?p n?i dung m� t? chi ti?t v? g�i t?p..."></textarea>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Quyền lợi</label>
-                  <textarea name="benefits" class="form-control" rows="4" placeholder="- Tập không giới hạn&#10;- Hỗ trợ HLV cơ bản&#10;- Theo dõi tiến độ"></textarea>
+                  <label class="form-label">Quy?n l?i</label>
+                  <textarea name="benefits" class="form-control" rows="4" placeholder="- T?p kh�ng gi?i h?n&#10;- H? tr? HLV co b?n&#10;- Theo d�i ti?n d?"></textarea>
                 </div>
 
                 <div class="col-md-12">
-                  <label class="form-label">Phù hợp cho</label>
-                  <input type="text" name="suitable_for" class="form-control" placeholder="Ví dụ: Người mới tập, người muốn giảm mỡ, dân văn phòng">
+                  <label class="form-label">Ph� h?p cho</label>
+                  <input type="text" name="suitable_for" class="form-control" placeholder="V� d?: Ngu?i m?i t?p, ngu?i mu?n gi?m m?, d�n van ph�ng">
                 </div>
+
                 <div class="col-md-4">
-                  <label class="form-label">Trạng thái</label>
+                  <label class="form-label">Tr?ng th�i</label>
                   <select name="status" class="form-select">
-                    <option value="active">Đang hoạt động</option>
-                    <option value="inactive">Ngưng hoạt động</option>
+                    <option value="active">�ang ho?t d?ng</option>
+                    <option value="inactive">Ngung ho?t d?ng</option>
                   </select>
                 </div>
 
                 <div class="col-12 mt-4">
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Lưu gói tập
+                    <i class="bi bi-save me-1"></i> Luu g�i t?p
                   </button>
-                  <a href="<?php echo $base_path; ?>packages.php" class="btn btn-outline-secondary ms-2">Hủy</a>
+                  <a href="<?php echo $base_path; ?>packages.php" class="btn btn-outline-secondary ms-2">H?y</a>
                 </div>
               </div>
             </form>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </body>
-
 </html>
+
+

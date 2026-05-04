@@ -4,7 +4,7 @@ include __DIR__ . '/../../includes/config.php';
 $base_path = '../../';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: " . $base_path . "checkins.php");
+    header("Location: " . $base_path . "admin/checkins.php");
     exit();
 }
 
@@ -81,3 +81,4 @@ $stmt_insert->close();
 
 header("Location: " . $base_path . "feedback.php?checkin_id=" . $checkin_id);
 exit();
+

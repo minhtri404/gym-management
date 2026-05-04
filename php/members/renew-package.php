@@ -1,7 +1,7 @@
-﻿<?php
-$page_title = "Gia hạn gói tập";
+<?php
+$page_title = "Gia h?n g�i t?p";
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 $member_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -13,7 +13,7 @@ if ($member_id <= 0) {
     exit();
 }
 
-/* Lấy thông tin hội viên */
+/* L?y th�ng tin h?i vi�n */
 $stmt_member = $conn->prepare("
     SELECT m.*, p.package_name
     FROM members m
@@ -34,7 +34,7 @@ if (!$result_member || $result_member->num_rows === 0) {
 $member = $result_member->fetch_assoc();
 $stmt_member->close();
 
-// Lấy danh sách gói tập để hiển thị trong form
+// L?y danh s�ch g�i t?p d? hi?n th? trong form
 $packages = [];
 $result_packages = $conn->query("SELECT id, package_name, price, duration_months FROM packages ORDER BY id DESC");
 if ($result_packages && $result_packages->num_rows > 0) {
@@ -53,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $note = trim($_POST['note'] ?? '');
 
     if ($package_id <= 0 || empty($start_date)) {
-        $error = "Vui lòng chọn gói và ngày bắt đầu.";
+        $error = "Vui l�ng ch?n g�i v� ng�y b?t d?u.";
     } else {
-        /* Láº¥y thÃ´ng tin gÃ³i má»›i */
+        /* Lấy thông tin gói mới */
         $stmt_package = $conn->prepare("
             SELECT id, package_name, price, duration_months
             FROM packages
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result_package = $stmt_package->get_result();
 
         if (!$result_package || $result_package->num_rows === 0) {
-            $error = "Gói tập không tồn tại.";
+            $error = "G�i t?p kh�ng t?n t?i.";
         } else {
             $package = $result_package->fetch_assoc();
             $stmt_package->close();
@@ -81,27 +81,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $end->modify("+{$duration_months} months");
                 $end_date = $end->format('Y-m-d');
             } catch (Exception $e) {
-                $error = "Ngày bắt đầu không hợp lệ.";
+                $error = "Ng�y b?t d?u kh�ng h?p l?.";
             }
 
-            if (empty($error)) {
-                $conn->begin_transaction();
-
                 try {
-                    /* Cập nhật gói hiện tại trong members */
+                    /* H?T G�I CU: mark previous member_packages as expired */
+                    $stmtExpire = $conn->prepare("\n                        UPDATE member_packages\n                        SET status = 'expired'\n                        WHERE member_id = ? AND status = 'active'\n                    ");
+                    $stmtExpire->bind_param("i", $member_id);
+                    $stmtExpire->execute();
+                    $stmtExpire->close();
+
+                    /* LUU L?CH G�I: insert new active member_packages row */
+                    $stmtHistory = $conn->prepare("\n                        INSERT INTO member_packages (member_id, package_id, start_date, end_date, status)\n                        VALUES (?, ?, ?, ?, 'active')\n                    ");
+                    if ($stmtHistory === false) {
+                        throw new Exception('Prepare failed (member_packages): ' . $conn->error);
+                    }
+                    $stmtHistory->bind_param("iiss", $member_id, $package_id, $start_date, $end_date);
+                    $stmtHistory->execute();
+                    $stmtHistory->close();
+
+                    /* C?p nh?t g�i hi?n t?i trong members */
                     $new_status = 'active';
 
-                    $stmt_update = $conn->prepare("
-                        UPDATE members
-                        SET package_id = ?, start_date = ?, end_date = ?, status = ?
-                        WHERE id = ?
-                    ");
+                    $stmt_update = $conn->prepare("\n                        UPDATE members\n                        SET package_id = ?, start_date = ?, end_date = ?, status = ?\n                        WHERE id = ?\n                    ");
                     $stmt_update->bind_param("isssi", $package_id, $start_date, $end_date, $new_status, $member_id);
                     $stmt_update->execute();
                     $stmt_update->close();
 
-                    /* Lưu lịch sử gia hạn */
-                    $history_note = !empty($note) ? $note : 'Gia hạn gói tập';
+                    /* Luu l?ch s? gia h?n */
+                    $history_note = !empty($note) ? $note : 'Gia h?n g�i t?p';
                     $paid_amount = 0.0;
                     if ($paid_amount_input !== '') {
                       $paid_amount = (float) str_replace([',', ' '], '', $paid_amount_input);
@@ -114,20 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $remaining_amount = max(0, $price - $paid_amount);
 
-                    $stmt_history = $conn->prepare("
-                      INSERT INTO member_package_history (
-                        member_id,
-                        package_id,
-                        action_type,
-                        start_date,
-                        end_date,
-                        price,
-                        paid_amount,
-                        remaining_amount,
-                        status,
-                        note
-                      ) VALUES (?, ?, 'renew', ?, ?, ?, ?, ?, 'active', ?)
-                    ");
+                    $stmt_history = $conn->prepare("\n                      INSERT INTO member_package_history (\n                        member_id,\n                        package_id,\n                        action_type,\n                        start_date,\n                        end_date,\n                        price,\n                        paid_amount,\n                        remaining_amount,\n                        status,\n                        note\n                      ) VALUES (?, ?, 'renew', ?, ?, ?, ?, ?, 'active', ?)\n                    ");
                     if ($stmt_history === false) {
                       throw new Exception('Prepare failed: ' . $conn->error);
                     }
@@ -151,7 +146,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
                 } catch (Exception $e) {
                     $conn->rollback();
-                    $error = "Gia háº¡n tháº¥t báº¡i: " . $e->getMessage();
+                    $error = "Gia h?n th?t b?i: " . $e->getMessage();
+                }
+                      $member_id,
+                      $package_id,
+                      $start_date,
+                      $end_date,
+                      $price,
+                      $paid_amount,
+                      $remaining_amount,
+                      $history_note
+                    );
+                    $stmt_history->execute();
+                    $stmt_history->close();
+
+                    $conn->commit();
+
+                    header("Location: " . $base_path . "php/members/view-member.php?id=" . $member_id . "&renew=success");
+                    exit();
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $error = "Gia hạn thất bại: " . $e->getMessage();
                 }
             }
         }
@@ -177,9 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold mb-0">Gia hạn gói tập</h2>
+          <h2 class="fw-bold mb-0">Gia h?n g�i t?p</h2>
           <a href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member_id; ?>" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay láº¡i
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
           </a>
         </div>
 
@@ -192,26 +207,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="row g-4">
               <div class="col-lg-5">
                 <div class="border rounded p-3 bg-light">
-                  <h5 class="mb-3">Thông tin hội viên</h5>
+                  <h5 class="mb-3">Th�ng tin h?i vi�n</h5>
 
                   <div class="mb-2">
-                    <div class="text-muted small">Họ và tên</div>
+                    <div class="text-muted small">H? v� t�n</div>
                     <div class="fw-semibold"><?php echo htmlspecialchars($member['full_name']); ?></div>
                   </div>
 
                   <div class="mb-2">
-                    <div class="text-muted small">Gói hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['package_name'] ?: 'ChÆ°a cÃ³'); ?></div>
+                    <div class="text-muted small">G�i hi?n t?i</div>
+                    <div><?php echo htmlspecialchars($member['package_name'] ?: 'Chưa có'); ?></div>
                   </div>
 
                   <div class="mb-2">
-                    <div class="text-muted small">Ngày bắt đầu hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['start_date'] ?: 'ChÆ°a cÃ³'); ?></div>
+                    <div class="text-muted small">Ng�y b?t d?u hi?n t?i</div>
+                    <div><?php echo htmlspecialchars($member['start_date'] ?: 'Chưa có'); ?></div>
                   </div>
 
                   <div class="mb-0">
-                    <div class="text-muted small">Ngày kết thúc hiện tại</div>
-                    <div><?php echo htmlspecialchars($member['end_date'] ?: 'ChÆ°a cÃ³'); ?></div>
+                    <div class="text-muted small">Ng�y k?t th�c hi?n t?i</div>
+                    <div><?php echo htmlspecialchars($member['end_date'] ?: 'Chưa có'); ?></div>
                   </div>
                 </div>
               </div>
@@ -221,36 +236,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <input type="hidden" name="member_id" value="<?php echo (int)$member_id; ?>">
 
                   <div class="mb-3">
-                    <label class="form-label">Chọn gói mới</label>
+                    <label class="form-label">Ch?n g�i m?i</label>
                     <select name="package_id" class="form-select" required>
-                      <option value="">-- Chọn gói --</option>
+                      <option value="">-- Ch?n g�i --</option>
                       <?php foreach ($packages as $package): ?>
                         <option value="<?php echo (int)$package['id']; ?>">
                           <?php echo htmlspecialchars($package['package_name']); ?>
-                          - <?php echo number_format((float)$package['price'], 0, ',', '.'); ?> VNĐ
-                          - <?php echo (int)$package['duration_months']; ?> tháng
+                          - <?php echo number_format((float)$package['price'], 0, ',', '.'); ?> VN�
+                          - <?php echo (int)$package['duration_months']; ?> th�ng
                         </option>
                       <?php endforeach; ?>
                     </select>
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">Ngày bắt đầu</label>
+                    <label class="form-label">Ng�y b?t d?u</label>
                     <input type="date" name="start_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Số tiền đã trả</label>
+                    <label class="form-label">S? ti?n d� tr?</label>
                     <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" placeholder="0">
-                    <small class="text-muted">Hệ thống tự tính còn nợ.</small>
+                    <small class="text-muted">H? th?ng t? t�nh c�n n?.</small>
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">Ghi chú</label>
-                    <textarea name="note" class="form-control" rows="3" placeholder="Ví dụ: Gia hạn thêm 12 tháng"></textarea>
+                    <label class="form-label">Ghi ch�</label>
+                    <textarea name="note" class="form-control" rows="3" placeholder="V� d?: Gia h?n th�m 12 th�ng"></textarea>
                   </div>
 
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Lưu gia hạn
+                    <i class="bi bi-save me-1"></i> Luu gia h?n
                   </button>
                 </form>
               </div>
@@ -263,4 +278,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </body>
 </html>
+
+
 

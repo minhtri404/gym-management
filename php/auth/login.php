@@ -53,17 +53,31 @@ if (!password_verify($password, $user['password'])) {
     exit;
 }
 
-session_regenerate_id(true);
+// Create OTP and save it for verification
+$otp = rand(100000, 999999);
 
-$_SESSION['user_id'] = (int)$user['id'];
-$_SESSION['user_name'] = $user['full_name'];
-$_SESSION['user_email'] = $user['email'];
-$_SESSION['user_role'] = $user['role'];
+$stmtOtp = $conn->prepare("
+    INSERT INTO otp_codes (user_id, email, otp_code, expires_at, is_used)
+    VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE), 0)
+");
+$stmtOtp->bind_param("iss", $user['id'], $user['email'], $otp);
+$stmtOtp->execute();
+$stmtOtp->close();
 
-if ($user['role'] === 'admin') {
-    header('Location: ' . $base_path . 'dashboard.php');
+// Send OTP email
+require_once __DIR__ . '/../../includes/mailer.php';
+try {
+    sendOTP($user['email'], $otp);
+} catch (Exception $e) {
+    error_log('OTP mail send failed: ' . $e->getMessage());
+    header('Location: ' . $base_path . 'login.php?error=' . urlencode('Khong gui duoc ma OTP. Kiem tra cau hinh email SMTP.'));
     exit;
 }
 
-header('Location: ' . $base_path . 'user/home.php');
+// store temporary session info for OTP verification
+$_SESSION['otp_user_id'] = (int)$user['id'];
+$_SESSION['otp_user_email'] = $user['email'];
+
+// Redirect to OTP verification page
+header('Location: ' . $base_path . 'php/auth/verify-otp.php');
 exit;

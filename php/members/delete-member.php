@@ -1,6 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: " . $base_path . "members.php");
@@ -27,3 +27,5 @@ if ($stmt->execute()) {
 $stmt->close();
 header("Location: " . $base_path . "members.php");
 exit();
+
+

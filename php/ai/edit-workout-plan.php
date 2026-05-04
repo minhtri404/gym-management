@@ -2,7 +2,7 @@
 $page_title = "Chỉnh sửa kế hoạch tập luyện";
 include __DIR__ . '/../../includes/auth-check.php';
 
-$base_path = '../../';
+$base_path = '../../admin/';
 
 function h($value)
 {
@@ -216,3 +216,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </body>
 </html>
+

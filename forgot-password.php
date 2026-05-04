@@ -3,7 +3,7 @@ include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
     if (($_SESSION['user_role'] ?? '') === 'admin') {
-        header('Location: dashboard.php');
+        header('Location: admin/dashboard.php');
         exit;
     }
 

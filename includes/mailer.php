@@ -1,0 +1,75 @@
+<?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+function get_mail_config_value($key, $default = '')
+{
+    $value = $_SERVER[$key] ?? $_ENV[$key] ?? getenv($key);
+    if ($value !== false && $value !== null && trim((string)$value) !== '') {
+        return trim((string)$value);
+    }
+
+    $envPath = __DIR__ . '/../.env';
+    if (is_file($envPath)) {
+        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines !== false) {
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#')) {
+                    continue;
+                }
+
+                $parts = explode('=', $line, 2);
+                if (count($parts) !== 2) {
+                    continue;
+                }
+
+                if (trim($parts[0]) !== $key) {
+                    continue;
+                }
+
+                return trim(trim($parts[1]), "\"'");
+            }
+        }
+    }
+
+    return $default;
+}
+
+function sendOTP($toEmail, $otp)
+{
+    $mailHost = get_mail_config_value('MAIL_HOST', 'smtp.gmail.com');
+    $mailPort = (int)get_mail_config_value('MAIL_PORT', '587');
+    $mailUsername = get_mail_config_value('MAIL_USERNAME');
+    $mailPassword = get_mail_config_value('MAIL_PASSWORD');
+    $mailEncryption = strtolower(get_mail_config_value('MAIL_ENCRYPTION', 'tls'));
+    $mailFromAddress = get_mail_config_value('MAIL_FROM_ADDRESS', $mailUsername);
+    $mailFromName = get_mail_config_value('MAIL_FROM_NAME', 'Gym System');
+
+    if ($mailUsername === '' || $mailPassword === '' || $mailFromAddress === '') {
+        throw new Exception('MAIL_USERNAME, MAIL_PASSWORD hoặc MAIL_FROM_ADDRESS chưa được cấu hình.');
+    }
+
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $mailHost;
+    $mail->SMTPAuth = true;
+    $mail->CharSet = 'UTF-8';
+
+    $mail->Username = $mailUsername;
+    $mail->Password = $mailPassword;
+
+    $mail->SMTPSecure = $mailEncryption;
+    $mail->Port = $mailPort;
+
+    $mail->setFrom($mailFromAddress, $mailFromName);
+    $mail->addAddress($toEmail);
+
+    $mail->Subject = 'Ma OTP dang nhap';
+    $mail->Body = "Ma OTP cua ban la: $otp (co hieu luc 5 phut)";
+
+    $mail->send();
+}

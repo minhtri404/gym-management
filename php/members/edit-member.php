@@ -1,7 +1,7 @@
-﻿<?php
-$page_title = "Sửa hội viên";
+<?php
+$page_title = "S?a h?i vi�n";
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 $error = "";
 $member = null;
@@ -14,7 +14,7 @@ if ($id <= 0) {
     exit();
 }
 
-/* Lấy danh sách gói tập */
+/* L?y danh s�ch g�i t?p */
 $sql_packages = "SELECT id, package_name, duration_months FROM packages WHERE status = 'active' ORDER BY id DESC";
 $result_packages = $conn->query($sql_packages);
 
@@ -24,7 +24,7 @@ if ($result_packages && $result_packages->num_rows > 0) {
     }
 }
 
-/* Lấy thông tin hội viên theo id */
+/* L?y th�ng tin h?i vi�n theo id */
 $stmt = $conn->prepare("SELECT * FROM members WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -39,7 +39,7 @@ if ($result_member->num_rows === 0) {
 $member = $result_member->fetch_assoc();
 $stmt->close();
 
-/* Xử lý update */
+/* X? l� update */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $gender = trim($_POST['gender'] ?? 'Nam');
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = trim($_POST['status'] ?? 'active');
 
     if ($full_name === '' || $phone === '' || $package_id === '' || $start_date === '') {
-        $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+        $error = "Vui l�ng nh?p d?y d? c�c tru?ng b?t bu?c.";
     } else {
         $stmt_package = $conn->prepare("SELECT duration_months FROM packages WHERE id = ? LIMIT 1");
         $stmt_package->bind_param("i", $package_id);
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result_package = $stmt_package->get_result();
 
         if (!$result_package || $result_package->num_rows === 0) {
-            $error = "Gói tập không tồn tại.";
+            $error = "G�i t?p kh�ng t?n t?i.";
         } else {
             $package = $result_package->fetch_assoc();
             $duration_months = (int)$package['duration_months'];
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $end->modify("+{$duration_months} months");
                 $end_date = $end->format('Y-m-d');
             } catch (Exception $e) {
-                $error = "Ngày bắt đầu không hợp lệ.";
+                $error = "Ng�y b?t d?u kh�ng h?p l?.";
             }
         }
 
@@ -102,12 +102,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: " . $base_path . "members.php?edit=success");
                 exit();
             } else {
-                $error = "Cập nhật thất bại: " . $stmt->error;
+                $error = "C?p nh?t th?t b?i: " . $stmt->error;
                 $stmt->close();
             }
         }
 
-        /* Giữ lại dữ liệu vừa nhập nếu có lỗi */
+        /* Gi? l?i d? li?u v?a nh?p n?u c� l?i */
         $member = [
             'id' => $id,
             'full_name' => $full_name,
@@ -143,9 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold">Sửa hội viên</h2>
+          <h2 class="fw-bold">S?a h?i vi�n</h2>
           <a href="<?php echo $base_path; ?>members.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+            <i class="bi bi-arrow-left me-1"></i> Quay l?i
           </a>
         </div>
 
@@ -158,22 +158,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" action="">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                  <label class="form-label">H? v� t�n <span class="text-danger">*</span></label>
                   <input type="text" name="full_name" class="form-control"
                          value="<?php echo htmlspecialchars($member['full_name']); ?>" required>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Giới tính</label>
+                  <label class="form-label">Gi?i t�nh</label>
                   <select name="gender" class="form-select">
                     <option value="Nam" <?php echo ($member['gender'] === 'Nam') ? 'selected' : ''; ?>>Nam</option>
-                    <option value="Nữ" <?php echo ($member['gender'] === 'Nữ') ? 'selected' : ''; ?>>Nữ</option>
-                    <option value="Khác" <?php echo ($member['gender'] === 'Khác') ? 'selected' : ''; ?>>Khác</option>
+                    <option value="N?" <?php echo ($member['gender'] === 'N?') ? 'selected' : ''; ?>>N?</option>
+                    <option value="Kh�c" <?php echo ($member['gender'] === 'Kh�c') ? 'selected' : ''; ?>>Kh�c</option>
                   </select>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                  <label class="form-label">S? di?n tho?i <span class="text-danger">*</span></label>
                   <input type="text" name="phone" class="form-control"
                          value="<?php echo htmlspecialchars($member['phone']); ?>" required>
                 </div>
@@ -185,57 +185,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Ngày sinh</label>
+                  <label class="form-label">Ng�y sinh</label>
                   <input type="date" name="date_of_birth" class="form-control"
                          value="<?php echo htmlspecialchars($member['date_of_birth'] ?? ''); ?>">
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Gói tập <span class="text-danger">*</span></label>
+                  <label class="form-label">G�i t?p <span class="text-danger">*</span></label>
                   <select name="package_id" id="package_id" class="form-select" required>
-                    <option value="">-- Chọn gói tập --</option>
+                    <option value="">-- Ch?n g�i t?p --</option>
                     <?php foreach ($packages as $package): ?>
                       <option value="<?php echo $package['id']; ?>"
                         data-duration="<?php echo $package['duration_months']; ?>"
                         <?php echo ((int)$member['package_id'] === (int)$package['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($package['package_name']); ?> (<?php echo $package['duration_months']; ?> tháng)
+                        <?php echo htmlspecialchars($package['package_name']); ?> (<?php echo $package['duration_months']; ?> th�ng)
                       </option>
                     <?php endforeach; ?>
                   </select>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Địa chỉ</label>
+                  <label class="form-label">�?a ch?</label>
                   <input type="text" name="address" class="form-control"
                          value="<?php echo htmlspecialchars($member['address'] ?? ''); ?>">
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                  <label class="form-label">Ng�y b?t d?u <span class="text-danger">*</span></label>
                   <input type="date" name="start_date" id="start_date" class="form-control"
                          value="<?php echo htmlspecialchars($member['start_date']); ?>" required>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Ngày kết thúc</label>
+                  <label class="form-label">Ng�y k?t th�c</label>
                   <input type="date" id="end_date_display" class="form-control" readonly
-                         value="<?php echo htmlspecialchars($member['end_date']); ?>" placeholder="Tự động tính">
+                         value="<?php echo htmlspecialchars($member['end_date']); ?>" placeholder="T? d?ng t�nh">
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Trạng thái</label>
+                  <label class="form-label">Tr?ng th�i</label>
                   <select name="status" class="form-select">
-                    <option value="active" <?php echo ($member['status'] === 'active') ? 'selected' : ''; ?>>Đang hoạt động</option>
-                    <option value="expired" <?php echo ($member['status'] === 'expired') ? 'selected' : ''; ?>>Hết hạn</option>
-                    <option value="inactive" <?php echo ($member['status'] === 'inactive') ? 'selected' : ''; ?>>Ngưng hoạt động</option>
+                    <option value="active" <?php echo ($member['status'] === 'active') ? 'selected' : ''; ?>>�ang ho?t d?ng</option>
+                    <option value="expired" <?php echo ($member['status'] === 'expired') ? 'selected' : ''; ?>>H?t h?n</option>
+                    <option value="inactive" <?php echo ($member['status'] === 'inactive') ? 'selected' : ''; ?>>Ngung ho?t d?ng</option>
                   </select>
                 </div>
 
                 <div class="col-12 mt-4">
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Cập nhật hội viên
+                    <i class="bi bi-save me-1"></i> C?p nh?t h?i vi�n
                   </button>
-                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">Hủy</a>
+                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">H?y</a>
                 </div>
               </div>
             </form>
@@ -294,3 +294,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </script>
 </body>
 </html>
+
+

@@ -1,19 +1,19 @@
 <?php
 include __DIR__ . '/../../includes/auth-check.php';
 
-$base_path = '../../';
+$base_path = '../../admin/';
 
 function getGoalLabel($goal)
 {
     switch ($goal) {
         case 'weight-loss':
-            return 'Gi·∫£m c√¢n';
+            return 'Gi?m c‚n';
         case 'muscle-gain':
-            return 'TƒÉng c∆°';
+            return 'Tang co';
         case 'maintain':
-            return 'Gi·ªØ d√°ng';
+            return 'Gi? d·ng';
         default:
-            return 'Ch∆∞a x√°c ƒë·ªãnh';
+            return 'Chua x·c d?nh';
     }
 }
 
@@ -21,39 +21,198 @@ function getLevelLabel($level)
 {
     switch ($level) {
         case 'beginner':
-            return 'M·ªõi b·∫Øt ƒë·∫ßu';
+            return 'M?i b?t d?u';
         case 'intermediate':
-            return 'Trung b√¨nh';
+            return 'Trung bÏnh';
         case 'advanced':
-            return 'N√¢ng cao';
+            return 'N‚ng cao';
         default:
-            return 'Ch∆∞a x√°c ƒë·ªãnh';
+            return 'Chua x·c d?nh';
     }
+}
+
+function detectHealthAdjustments($healthNote)
+{
+    $note = mb_strtolower(trim((string)$healthNote), 'UTF-8');
+
+    $adjustments = [
+        'warmup' => 'Kh?i d?ng 8-10 ph˙t di b? nhanh, xoay kh?p v‡ kÌch ho?t co',
+        'rest' => '45-60 gi‚y',
+        'cardio' => 'Cardio nh? 10-15 ph˙t',
+        'focus_note' => 'Uu tiÍn k? thu?t d˙ng v‡ tang t?i t? t?.',
+        'avoid' => [],
+        'replacements' => [],
+    ];
+
+    if ($note === '') {
+        return $adjustments;
+    }
+
+    if (preg_match('/dau g?i|g?i|kh?p g?i/u', $note)) {
+        $adjustments['avoid'][] = 'h?n ch? squat qu· s‚u, jumping jack v‡ HIIT b?t nh?y';
+        $adjustments['replacements'][] = 'uu tiÍn leg press nh?, glute bridge, di b? d?c th?p v‡ d?p xe nh?';
+        $adjustments['cardio'] = '–i b? m·y ho?c d?p xe nh? 10-12 ph˙t';
+        $adjustments['rest'] = '60-75 gi‚y';
+    }
+
+    if (preg_match('/dau lung|lung du?i|tho·t v?|c?t s?ng/u', $note)) {
+        $adjustments['avoid'][] = 'tr·nh deadlift n?ng, good morning v‡ c·c b‡i g?p lung s‚u';
+        $adjustments['replacements'][] = 'uu tiÍn chest-supported row, bird dog, plank v‡ hip thrust nh?';
+        $adjustments['focus_note'] = 'Gi? c?t s?ng trung l?p, si?t core v‡ b? qua b‡i g‚y dau.';
+    }
+
+    if (preg_match('/vai|dau vai|kh?p vai/u', $note)) {
+        $adjustments['avoid'][] = 'gi?m b‡i overhead press n?ng v‡ d?ng t·c dang tay qu· r?ng';
+        $adjustments['replacements'][] = 'uu tiÍn incline press nh?, cable row, face pull v‡ lateral raise nh?';
+    }
+
+    if (preg_match('/tim m?ch|huy?t ·p|cao huy?t ·p|ti?n dÏnh/u', $note)) {
+        $adjustments['avoid'][] = 'tr·nh HIIT cu?ng d? cao v‡ nÌn th? khi g?ng s?c';
+        $adjustments['replacements'][] = 'uu tiÍn cardio ?n d?nh, m?c v?a, theo dıi nh?p tim';
+        $adjustments['cardio'] = 'Cardio ?n d?nh 12-20 ph˙t ? m?c v?a';
+        $adjustments['rest'] = '60-90 gi‚y';
+    }
+
+    if (preg_match('/m?i t?p|Ìt v?n d?ng|l‚u khÙng t?p/u', $note)) {
+        $adjustments['focus_note'] = 'Gi? m?c t? nh?, d?ng tru?c khi qu· m?i v‡ uu tiÍn h?c k? thu?t.';
+        $adjustments['rest'] = '60-90 gi‚y';
+    }
+
+    if (preg_match('/th?a c‚n|bÈo|gi?m m?/u', $note)) {
+        $adjustments['cardio'] = '–i b? d?c nh? ho?c xe d?p 15-20 ph˙t';
+    }
+
+    return $adjustments;
+}
+
+function buildFallbackDayTemplates($goal, $daysPerWeek)
+{
+    $plans = [
+        'weight-loss' => [
+            3 => ['Full Body d?t m?', 'Th‚n du?i v‡ core', 'Lung vai k?t h?p cardio'],
+            4 => ['Ng?c vai tay sau', 'Ch‚n v‡ mÙng', 'Lung tay tru?c', 'Full Body v‡ cardio'],
+            5 => ['Ng?c tay sau', 'Ch‚n mÙng', 'Lung tay tru?c', 'Vai core', 'Cardio v‡ chuy?n hÛa']
+        ],
+        'muscle-gain' => [
+            3 => ['Ng?c tay sau', 'Lung tay tru?c', 'Ch‚n vai'],
+            4 => ['Ng?c tay sau', 'Lung tay tru?c', 'Ch‚n mÙng', 'Vai core'],
+            5 => ['Ng?c', 'Lung', 'Ch‚n', 'Vai', 'Tay v‡ b?ng']
+        ],
+        'maintain' => [
+            3 => ['Full Body', 'Cardio v‡ core', 'Th‚n trÍn th‚n du?i nh?'],
+            4 => ['Th‚n trÍn', 'Th‚n du?i', 'Cardio v‡ b?ng', 'Full Body nh?'],
+            5 => ['Ng?c tay', 'Ch‚n', 'Lung vai', 'Cardio core', 'Full Body']
+        ],
+    ];
+
+    $dayKey = in_array($daysPerWeek, [3, 4], true) ? $daysPerWeek : 5;
+    return $plans[$goal][$dayKey] ?? $plans['maintain'][$dayKey];
+}
+
+function buildExercisesForFocus($focus, $goal, $level, $adjustments)
+{
+    $focusLower = mb_strtolower($focus, 'UTF-8');
+    $sets = $level === 'advanced' ? '4 hi?p' : '3 hi?p';
+    $compoundReps = $goal === 'muscle-gain' ? '8-10 l?n' : '10-12 l?n';
+    $accessoryReps = $goal === 'muscle-gain' ? '10-12 l?n' : '12-15 l?n';
+
+    if (str_contains($focusLower, 'ng?c')) {
+        return [
+            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- –?y ng?c m·y ho?c dumbbell press: {$sets} x {$compoundReps}",
+            "- Incline dumbbell press: {$sets} x {$compoundReps}",
+            "- Cable fly ho?c pec deck: 3 hi?p x {$accessoryReps}",
+            "- …p tay sau c·p: 3 hi?p x 12-15 l?n",
+            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        ];
+    }
+
+    if (str_contains($focusLower, 'lung')) {
+        return [
+            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- Lat pulldown: {$sets} x {$compoundReps}",
+            "- Seated row ho?c chest-supported row: {$sets} x {$compoundReps}",
+            "- One arm dumbbell row: 3 hi?p x 10-12 l?n m?i bÍn",
+            "- Curl tay tru?c: 3 hi?p x 12 l?n",
+            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        ];
+    }
+
+    if (str_contains($focusLower, 'ch‚n') || str_contains($focusLower, 'mÙng')) {
+        return [
+            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- Goblet squat ho?c leg press nh?: {$sets} x {$compoundReps}",
+            "- Romanian deadlift nh? ho?c hip hinge m·y: {$sets} x 10-12 l?n",
+            "- Glute bridge ho?c hip thrust nh?: 3 hi?p x 12 l?n",
+            "- Leg curl: 3 hi?p x 12-15 l?n",
+            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        ];
+    }
+
+    if (str_contains($focusLower, 'vai')) {
+        return [
+            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- Dumbbell shoulder press nh?: {$sets} x {$compoundReps}",
+            "- Lateral raise: 3 hi?p x 12-15 l?n",
+            "- Rear delt fly ho?c face pull: 3 hi?p x 12-15 l?n",
+            "- Plank: 3 hi?p x 30-45 gi‚y",
+            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        ];
+    }
+
+    if (str_contains($focusLower, 'cardio') || str_contains($focusLower, 'd?t m?') || str_contains($focusLower, 'chuy?n hÛa')) {
+        return [
+            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- Walking lunge ho?c step-up th?p: 3 hi?p x 10-12 l?n m?i bÍn",
+            "- Push-up trÍn gh? ho?c chest press m·y: 3 hi?p x 10-12 l?n",
+            "- Seated row: 3 hi?p x 10-12 l?n",
+            "- {$adjustments['cardio']}",
+            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        ];
+    }
+
+    return [
+        "- Kh?i d?ng: {$adjustments['warmup']}",
+        "- Leg press ho?c squat goblet nh?: {$sets} x {$compoundReps}",
+        "- Chest press m·y: {$sets} x {$compoundReps}",
+        "- Lat pulldown: {$sets} x {$compoundReps}",
+        "- Plank: 3 hi?p x 30-45 gi‚y",
+        "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+    ];
 }
 
 function buildFallbackPlan($memberName, $goal, $level, $daysPerWeek, $healthNote = '')
 {
     $goalLabel = getGoalLabel($goal);
     $levelLabel = getLevelLabel($level);
+    $adjustments = detectHealthAdjustments($healthNote);
+    $focuses = buildFallbackDayTemplates($goal, $daysPerWeek);
 
-    $text = "K·∫ø ho·∫°ch t·∫≠p luy·ªán cho {$memberName}\n";
-    $text .= "M·ª•c ti√™u: {$goalLabel}\n";
-    $text .= "Tr√¨nh ƒë·ªô: {$levelLabel}\n";
-    $text .= "S·ªë bu·ªïi/tu·∫ßn: {$daysPerWeek}\n\n";
+    $text = '';
+    foreach ($focuses as $index => $focus) {
+        $text .= "Ng‡y " . ($index + 1) . ": {$focus}\n";
+        $text .= implode("\n", buildExercisesForFocus($focus, $goal, $level, $adjustments)) . "\n\n";
+    }
 
-    for ($i = 1; $i <= $daysPerWeek; $i++) {
-        $text .= "Bu·ªïi {$i}:\n";
-        $text .= "- Kh·ªüi ƒë·ªông 10 ph√∫t\n";
-        $text .= "- 4 ƒë·∫øn 5 b√†i t·∫≠p ch√≠nh\n";
-        $text .= "- Cardio nh·∫π 10 ƒë·∫øn 15 ph√∫t\n";
-        $text .= "- Gi√£n c∆° cu·ªëi bu·ªïi\n\n";
+    $extraNotes = [
+        "- M?c tiÍu: {$goalLabel}",
+        "- TrÏnh d?: {$levelLabel}",
+        "- {$adjustments['focus_note']}",
+    ];
+
+    foreach ($adjustments['avoid'] as $avoid) {
+        $extraNotes[] = "- Tr·nh: {$avoid}";
+    }
+
+    foreach ($adjustments['replacements'] as $replacement) {
+        $extraNotes[] = "- Thay th? ph˘ h?p: {$replacement}";
     }
 
     if ($healthNote !== '') {
-        $text .= "L∆∞u √Ω s·ª©c kh·ªèe: {$healthNote}\n";
+        $extraNotes[] = "- Ghi ch˙ s?c kh?e d„ ·p d?ng: {$healthNote}";
     }
 
-    $text .= "∆Øu ti√™n k·ªπ thu·∫≠t ƒë√∫ng, tƒÉng d·∫ßn c∆∞·ªùng ƒë·ªô theo kh·∫£ nƒÉng.";
+    $text .= implode("\n", $extraNotes);
     return trim($text);
 }
 
@@ -62,16 +221,46 @@ function callGeminiWorkoutPlan($apiKey, $memberName, $goal, $level, $daysPerWeek
     $goalLabel = getGoalLabel($goal);
     $levelLabel = getLevelLabel($level);
 
-    $prompt = "H√£y t·∫°o k·∫ø ho·∫°ch t·∫≠p gym b·∫±ng ti·∫øng Vi·ªát cho h·ªôi vi√™n t√™n {$memberName}. "
-        . "M·ª•c ti√™u l√† {$goalLabel}. "
-        . "Tr√¨nh ƒë·ªô {$levelLabel}. "
-        . "T·∫≠p {$daysPerWeek} bu·ªïi m·ªói tu·∫ßn. ";
+    $prompt = "
+B?n l‡ hu?n luy?n viÍn gym chuyÍn nghi?p.
 
-    if ($healthNote !== '') {
-        $prompt .= "L∆∞u √Ω s·ª©c kh·ªèe: {$healthNote}. ";
-    }
+H„y t?o k? ho?ch t?p luy?n b?ng ti?ng Vi?t cho h?i viÍn v?i thÙng tin sau:
+- H? tÍn: {$memberName}
+- M?c tiÍu: {$goalLabel}
+- TrÏnh d?: {$levelLabel}
+- S? ng‡y t?p m?i tu?n: {$daysPerWeek}
+- Ghi ch˙ s?c kh?e: {$healthNote}
 
-    $prompt .= "H√£y tr·∫£ l·ªùi d·∫°ng vƒÉn b·∫£n d·ªÖ ƒë·ªçc, chia theo t·ª´ng bu·ªïi, m·ªói bu·ªïi c√≥ nh√≥m c∆°, b√†i t·∫≠p, s·ªë set, s·ªë rep, v√† l∆∞u √Ω an to√†n. Kh√¥ng d√πng markdown ph·ª©c t·∫°p.";
+YÍu c?u b?t bu?c:
+1. Chia l?ch theo t?ng ng‡y rı r‡ng.
+2. M?i ng‡y ph?i b?t d?u d˙ng d?nh d?ng: Ng‡y 1:, Ng‡y 2:, Ng‡y 3:...
+3. Sau tiÍu d? m?i ng‡y, li?t kÍ c·c b‡i t?p b?ng d?u g?ch d?u dÚng '-'.
+4. M?i b‡i t?p ghi rı s? hi?p v‡ s? l?n, vÌ d?: 4 hi?p x 10 l?n.
+5. CÛ dÚng kh?i d?ng n?u ph˘ h?p.
+6. CÛ dÚng ngh? gi?a hi?p n?u ph˘ h?p.
+7. N?i dung th?c t?, d? hi?u, ph˘ h?p ngu?i t?p gym.
+8. KhÙng vi?t m? d?u d‡i dÚng, khÙng vi?t k?t lu?n d‡i.
+9. KhÙng d˘ng b?ng markdown.
+10. KhÙng d˘ng k˝ hi?u l?, ch? d˘ng van b?n thu?n d? hi?n th? trÍn website.
+
+M?u b?t bu?c ph?i gi?ng nhu sau:
+
+Ng‡y 1: TÍn nhÛm co ho?c m?c tiÍu bu?i t?p
+- Kh?i d?ng: ...
+- B‡i t?p 1: 4 hi?p x 10 l?n
+- B‡i t?p 2: 3 hi?p x 12 l?n
+- B‡i t?p 3: 3 hi?p x 12 l?n
+- Ngh? gi?a hi?p: 45-60 gi‚y
+
+Ng‡y 2: TÍn nhÛm co ho?c m?c tiÍu bu?i t?p
+- Kh?i d?ng: ...
+- B‡i t?p 1: 4 hi?p x 10 l?n
+- B‡i t?p 2: 3 hi?p x 12 l?n
+- B‡i t?p 3: 3 hi?p x 12 l?n
+- Ngh? gi?a hi?p: 45-60 gi‚y
+
+Ch? tr? v? n?i dung k? ho?ch t?p luy?n d˙ng format trÍn.
+";
 
     $payload = [
         'contents' => [
@@ -105,20 +294,20 @@ function callGeminiWorkoutPlan($apiKey, $memberName, $goal, $level, $daysPerWeek
     curl_close($ch);
 
     if ($response === false || $curlError !== '') {
-        throw new Exception('Kh√¥ng g·ªçi ƒë∆∞·ª£c Gemini API.');
+        throw new Exception('KhÙng g?i du?c Gemini API.');
     }
 
     $decoded = json_decode($response, true);
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        throw new Exception('Gemini API l·ªói.');
+        throw new Exception('Gemini API l?i.');
     }
 
     $text = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
     $text = trim($text);
 
     if ($text === '') {
-        throw new Exception('Gemini kh√¥ng tr·∫£ v·ªÅ n·ªôi dung h·ª£p l·ªá.');
+        throw new Exception('Gemini khÙng tr? v? n?i dung h?p l?.');
     }
 
     return $text;
@@ -135,7 +324,7 @@ if (
     $csrf_token === '' ||
     !hash_equals($_SESSION['csrf_token'], $csrf_token)
 ) {
-    die('CSRF token kh√¥ng h·ª£p l·ªá.');
+    die('CSRF token khÙng h?p l?.');
 }
 
 $member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
@@ -161,10 +350,10 @@ if (!$member) {
     exit();
 }
 
-$ai_prompt = "M·ª•c ti√™u: " . getGoalLabel($goal)
-    . " | Tr√¨nh ƒë·ªô: " . getLevelLabel($level)
-    . " | S·ªë bu·ªïi/tu·∫ßn: " . $days_per_week
-    . " | L∆∞u √Ω s·ª©c kh·ªèe: " . $health_note;
+$ai_prompt = "M?c tiÍu: " . getGoalLabel($goal)
+    . " | TrÏnh d?: " . getLevelLabel($level)
+    . " | S? bu?i/tu?n: " . $days_per_week
+    . " | Luu ˝ s?c kh?e: " . $health_note;
 
 $ai_response = '';
 
@@ -228,3 +417,5 @@ $stmtInsert->close();
 
 header("Location: " . $base_path . "workout-plans.php?success=1&member_id=" . $member_id);
 exit();
+
+

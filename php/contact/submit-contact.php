@@ -1,6 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
-
+include __DIR__ . '/../../includes/functions/contact-functions.php';
 $base_path = '../../';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -27,14 +27,11 @@ $preferred_contact_method = trim($_POST['preferred_contact_method'] ?? 'phone');
 
 $allowed_methods = ['phone', 'zalo', 'email', 'facebook'];
 
-if (
-    $full_name === '' ||
-    $phone === '' ||
-    $subject === '' ||
-    $message === ''
-) {
-    header("Location: " . $base_path . "contact-form.php?error=" . urlencode('Vui lòng nhập đầy đủ thông tin bắt buộc.'));
-    exit();
+$errors = validateContactInput($full_name, $phone, $message);
+
+if (!empty($errors)) {
+    header('Location: ' . $base_path . 'contact-form.php?error=' . urlencode($errors[0]));
+    exit;
 }
 
 if (!in_array($preferred_contact_method, $allowed_methods, true)) {
@@ -46,20 +43,8 @@ if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-$stmt = $conn->prepare("
-    INSERT INTO contact_messages (
-        full_name,
-        phone,
-        email,
-        subject,
-        message,
-        preferred_contact_method,
-        status
-    ) VALUES (?, ?, ?, ?, ?, ?, 'new')
-");
-
-$stmt->bind_param(
-    "ssssss",
+$created = createContact(
+    $conn,
     $full_name,
     $phone,
     $email,
@@ -68,7 +53,13 @@ $stmt->bind_param(
     $preferred_contact_method
 );
 
-$stmt->execute();
+if ($created) {
+    header('Location: ' . $base_path . 'contact-form.php?success=1');
+    exit;
+}
+
+header('Location: ' . $base_path . 'contact-form.php?error=' . urlencode('Không thể gửi liên hệ.'));
+exit;
 $stmt->close();
 
 header("Location: " . $base_path . "contact-form.php?success=1");

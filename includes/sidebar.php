@@ -1,6 +1,7 @@
-<?php
+﻿<?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $base_path = $base_path ?? '';
+$logout_path = $logout_path ?? ($base_path !== '' ? rtrim(dirname(rtrim($base_path, '/')), '/') . '/logout.php' : '../logout.php');
 ?>
 
 <aside class="sidebar p-3">
@@ -30,8 +31,7 @@ $base_path = $base_path ?? '';
         <i class="bi bi-box-seam me-2"></i>Gói tập
       </a>
     </li>
-
-     <li class="nav-item">
+    <li class="nav-item">
       <a href="<?php echo $base_path; ?>workout-plans.php" class="nav-link <?php echo ($current_page == 'workout-plans.php') ? 'active' : ''; ?>">
         <i class="bi bi-clipboard2-pulse me-2"></i>Kế hoạch tập luyện
       </a>
@@ -46,18 +46,18 @@ $base_path = $base_path ?? '';
         <i class="bi bi-check-circle me-2"></i>Check-in
       </a>
     </li>
-       <li class="nav-item">
+    <li class="nav-item">
       <a href="<?php echo $base_path; ?>contacts.php" class="nav-link <?php echo ($current_page == 'contacts.php') ? 'active' : ''; ?>">
         <i class="bi bi-telephone me-2"></i>Liên hệ
       </a>
     </li>
     <li class="nav-item">
-  <a href="<?php echo $base_path; ?>package-registrations.php" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
-    <i class="bi bi-bag-check me-2"></i>Đăng ký gói
-  </a>
-</li>
+      <a href="<?php echo $base_path; ?>package-registrations.php" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
+        <i class="bi bi-bag-check me-2"></i>Đăng ký gói
+      </a>
+    </li>
     <li class="nav-item mt-3">
-      <a href="<?php echo $base_path; ?>logout.php" class="nav-link text-warning">
+      <a href="<?php echo $logout_path; ?>" class="nav-link text-warning">
         <i class="bi bi-box-arrow-left me-2"></i>Logout
       </a>
     </li>

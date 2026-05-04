@@ -3,7 +3,7 @@ include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
     if (($_SESSION['user_role'] ?? '') === 'admin') {
-        header('Location: dashboard.php');
+        header('Location: admin/dashboard.php');
         exit;
     }
 
@@ -34,7 +34,7 @@ $error = trim($_GET['error'] ?? '');
           <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4">
               <div class="logo-circle mb-3">
-                <i class="bi bi-barbell"></i>
+                <img src="assets/images/1.png" alt="logo" class="login-logo">
               </div>
               <h2 class="fw-bold">Gym Management</h2>
               <p class="text-muted mb-0">Đăng nhập hệ thống</p>

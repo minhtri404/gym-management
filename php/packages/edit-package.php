@@ -1,7 +1,7 @@
 <?php
-$page_title = "Sửa gói tập";
+$page_title = "S?a g�i t?p";
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 $error = "";
 $package = null;
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = trim($_POST['status'] ?? 'active');
 
     if ($package_name === '' || $duration_months <= 0 || $price < 0) {
-        $error = "Vui lòng nhập đầy đủ và đúng định dạng các trường bắt buộc.";
+        $error = "Vui l�ng nh?p d?y d? v� d�ng d?nh d?ng c�c tru?ng b?t bu?c.";
     } else {
         $stmt = $conn->prepare("UPDATE packages SET package_name = ?, duration_months = ?, price = ?, description = ?, short_description = ?, detail_content = ?, benefits = ?, suitable_for = ?, status = ? WHERE id = ?");
         $stmt->bind_param("sidssssssi", $package_name, $duration_months, $price, $description, $short_description, $detail_content, $benefits, $suitable_for, $status, $id);
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        $error = "Cập nhật gói tập thất bại: " . $stmt->error;
+        $error = "C?p nh?t g�i t?p th?t b?i: " . $stmt->error;
         $stmt->close();
     }
 }
@@ -74,9 +74,9 @@ $stmt->close();
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold">Sửa gói tập</h2>
+          <h2 class="fw-bold">S?a g�i t?p</h2>
           <a href="<?php echo $base_path; ?>packages.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+            <i class="bi bi-arrow-left me-1"></i> Quay l?i
           </a>
         </div>
 
@@ -89,58 +89,58 @@ $stmt->close();
             <form method="POST" action="">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Tên gói tập <span class="text-danger">*</span></label>
+                  <label class="form-label">T�n g�i t?p <span class="text-danger">*</span></label>
                   <input type="text" name="package_name" class="form-control" required value="<?php echo htmlspecialchars($package['package_name'] ?? ''); ?>">
                 </div>
 
                 <div class="col-md-3">
-                  <label class="form-label">Thời hạn (tháng) <span class="text-danger">*</span></label>
+                  <label class="form-label">Th?i h?n (th�ng) <span class="text-danger">*</span></label>
                   <input type="number" name="duration_months" class="form-control" min="1" required value="<?php echo htmlspecialchars((string) ($package['duration_months'] ?? '')); ?>">
                 </div>
 
                 <div class="col-md-3">
-                  <label class="form-label">Giá <span class="text-danger">*</span></label>
+                  <label class="form-label">Gi� <span class="text-danger">*</span></label>
                   <input type="number" name="price" class="form-control" min="0" step="0.01" required value="<?php echo htmlspecialchars((string) ($package['price'] ?? '')); ?>">
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Mô tả</label>
+                  <label class="form-label">M� t?</label>
                   <textarea name="description" class="form-control" rows="4"><?php echo htmlspecialchars($package['description'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Mô tả ngắn</label>
+                  <label class="form-label">M� t? ng?n</label>
                   <input type="text" name="short_description" class="form-control" maxlength="255" value="<?php echo htmlspecialchars($package['short_description'] ?? ''); ?>">
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Nội dung chi tiết</label>
+                  <label class="form-label">N?i dung chi ti?t</label>
                   <textarea name="detail_content" class="form-control" rows="5"><?php echo htmlspecialchars($package['detail_content'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Quyền lợi</label>
+                  <label class="form-label">Quy?n l?i</label>
                   <textarea name="benefits" class="form-control" rows="4"><?php echo htmlspecialchars($package['benefits'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="col-md-12">
-                  <label class="form-label">Phù hợp cho</label>
+                  <label class="form-label">Ph� h?p cho</label>
                   <input type="text" name="suitable_for" class="form-control" value="<?php echo htmlspecialchars($package['suitable_for'] ?? ''); ?>">
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Trạng thái</label>
+                  <label class="form-label">Tr?ng th�i</label>
                   <select name="status" class="form-select">
-                    <option value="active" <?php echo (($package['status'] ?? '') === 'active') ? 'selected' : ''; ?>>Đang hoạt động</option>
-                    <option value="inactive" <?php echo (($package['status'] ?? '') === 'inactive') ? 'selected' : ''; ?>>Ngưng hoạt động</option>
+                    <option value="active" <?php echo (($package['status'] ?? '') === 'active') ? 'selected' : ''; ?>>�ang ho?t d?ng</option>
+                    <option value="inactive" <?php echo (($package['status'] ?? '') === 'inactive') ? 'selected' : ''; ?>>Ngung ho?t d?ng</option>
                   </select>
                 </div>
 
                 <div class="col-12 mt-4">
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Cập nhật gói tập
+                    <i class="bi bi-save me-1"></i> C?p nh?t g�i t?p
                   </button>
-                  <a href="<?php echo $base_path; ?>packages.php" class="btn btn-outline-secondary ms-2">Hủy</a>
+                  <a href="<?php echo $base_path; ?>packages.php" class="btn btn-outline-secondary ms-2">H?y</a>
                 </div>
               </div>
             </form>
@@ -151,3 +151,5 @@ $stmt->close();
   </div>
 </body>
 </html>
+
+

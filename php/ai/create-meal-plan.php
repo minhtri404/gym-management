@@ -1,21 +1,21 @@
 <?php
 include __DIR__ . '/../../includes/auth-check.php';
 
-$base_path = '../../';
+$base_path = '../../admin/';
 
 function getMealGoalLabel($goal)
 {
     switch ($goal) {
         case 'weight-loss':
-            return 'Giảm cân';
+            return 'Gi?m c�n';
         case 'muscle-gain':
-            return 'Tăng cơ';
+            return 'Tang co';
         case 'weight-gain':
-            return 'Tăng cân';
+            return 'Tang c�n';
         case 'maintain':
-            return 'Giữ dáng';
+            return 'Gi? d�ng';
         default:
-            return 'Chưa xác định';
+            return 'Chua x�c d?nh';
     }
 }
 
@@ -23,13 +23,13 @@ function getBodyTypeLabel($bodyType)
 {
     switch ($bodyType) {
         case 'thin':
-            return 'Gầy';
+            return 'G?y';
         case 'normal':
-            return 'Bình thường';
+            return 'B�nh thu?ng';
         case 'overweight':
-            return 'Thừa cân';
+            return 'Th?a c�n';
         default:
-            return 'Chưa xác định';
+            return 'Chua x�c d?nh';
     }
 }
 
@@ -38,53 +38,85 @@ function buildFallbackMealPlan($memberName, $goal, $bodyType, $mealsPerDay, $hea
     $goalLabel = getMealGoalLabel($goal);
     $bodyTypeLabel = getBodyTypeLabel($bodyType);
 
-    $text = "Kế hoạch dinh dưỡng cho {$memberName}\n";
-    $text .= "Mục tiêu: {$goalLabel}\n";
-    $text .= "Thể trạng: {$bodyTypeLabel}\n";
-    $text .= "Số bữa/ngày: {$mealsPerDay}\n\n";
+    $text = "K? ho?ch dinh du?ng cho {$memberName}\n";
+    $text .= "M?c ti�u: {$goalLabel}\n";
+    $text .= "Th? tr?ng: {$bodyTypeLabel}\n";
+    $text .= "S? b?a/ng�y: {$mealsPerDay}\n\n";
 
-    $mealNames = ['Bữa sáng', 'Bữa trưa', 'Bữa tối', 'Bữa phụ 1', 'Bữa phụ 2', 'Bữa nhẹ'];
+    $mealNames = ['B?a s�ng', 'B?a trua', 'B?a t?i', 'B?a ph? 1', 'B?a ph? 2', 'B?a nh?'];
     for ($i = 0; $i < $mealsPerDay; $i++) {
-        $label = $mealNames[$i] ?? ('Bữa ' . ($i + 1));
+        $label = $mealNames[$i] ?? ('B?a ' . ($i + 1));
         $text .= $label . ":\n";
-        $text .= "- 1 nguồn đạm sạch\n";
-        $text .= "- 1 phần tinh bột phù hợp\n";
-        $text .= "- Rau xanh hoặc trái cây\n";
-        $text .= "- Uống đủ nước\n\n";
+        $text .= "- 1 ngu?n d?m s?ch\n";
+        $text .= "- 1 ph?n tinh b?t ph� h?p\n";
+        $text .= "- Rau xanh ho?c tr�i c�y\n";
+        $text .= "- U?ng d? nu?c\n\n";
     }
 
     if ($healthNote !== '') {
-        $text .= "Lưu ý sức khỏe / ăn uống: {$healthNote}\n";
+        $text .= "Luu � s?c kh?e / an u?ng: {$healthNote}\n";
     }
 
     if ($goal === 'weight-loss') {
-        $text .= "Ưu tiên giảm đồ ngọt, đồ chiên, nước có gas.\n";
+        $text .= "Uu ti�n gi?m d? ng?t, d? chi�n, nu?c c� gas.\n";
     } elseif ($goal === 'muscle-gain') {
-        $text .= "Ưu tiên tăng đạm, chia đều các bữa và ăn đủ sau tập.\n";
+        $text .= "Uu ti�n tang d?m, chia d?u c�c b?a v� an d? sau t?p.\n";
     } elseif ($goal === 'weight-gain') {
-        $text .= "Ưu tiên tăng tổng năng lượng lành mạnh và thêm bữa phụ.\n";
+        $text .= "Uu ti�n tang t?ng nang lu?ng l�nh m?nh v� th�m b?a ph?.\n";
     } else {
-        $text .= "Ưu tiên ăn cân bằng, duy trì đều và ngủ nghỉ hợp lý.\n";
+        $text .= "Uu ti�n an c�n b?ng, duy tr� d?u v� ng? ngh? h?p l�.\n";
     }
 
     return trim($text);
 }
 
-function callGeminiMealPlan($apiKey, $memberName, $goal, $bodyType, $mealsPerDay, $healthNote = '')
+function callGeminiMealPlan($apiKey, $memberName, $goal, $bodyType, $mealsPerDay, $healthNote = '', $model = 'gemini-2.5-flash')
 {
     $goalLabel = getMealGoalLabel($goal);
     $bodyTypeLabel = getBodyTypeLabel($bodyType);
 
-    $prompt = "Hãy tạo kế hoạch dinh dưỡng bằng tiếng Việt cho hội viên tên {$memberName}. "
-        . "Mục tiêu là {$goalLabel}. "
-        . "Thể trạng {$bodyTypeLabel}. "
-        . "Ăn {$mealsPerDay} bữa mỗi ngày. ";
+    $prompt = "
+B?n l� chuy�n gia dinh du?ng cho ph�ng gym.
 
-    if ($healthNote !== '') {
-        $prompt .= "Lưu ý sức khỏe / ăn uống: {$healthNote}. ";
-    }
+H�y t?o k? ho?ch an u?ng b?ng ti?ng Vi?t cho h?i vi�n v?i th�ng tin sau:
+- H? t�n: {$memberName}
+- M?c ti�u: {$goalLabel}
+- Th? tr?ng: {$bodyTypeLabel}
+- S? b?a m?i ng�y: {$mealsPerDay}
+- Luu � s?c kh?e / an u?ng: {$healthNote}
 
-    $prompt .= "Hãy trả lời dạng văn bản dễ đọc, chia theo từng bữa trong ngày, có món gợi ý, lưu ý nên ăn gì và nên hạn chế gì. Không dùng markdown phức tạp.";
+Y�u c?u b?t bu?c:
+1. Chia r� theo t?ng b?a trong ng�y.
+2. M?i b?a ph?i b?t d?u d�ng d?nh d?ng: B?a 1:, B?a 2:, B?a 3:...
+3. Sau ti�u d? m?i b?a, li?t k� m�n an b?ng d?u g?ch d?u d�ng '-'.
+4. M?i m�n n�n ghi kh?u ph?n tuong d?i, v� d?: 150g ?c g�, 1 ch�n com, 1 qu? chu?i.
+5. C� th? th�m 1 d�ng ghi ch� ng?n cho t?ng b?a n?u c?n.
+6. N?i dung th?c t?, d? mua, d? �p d?ng ? Vi?t Nam.
+7. Ph� h?p m?c ti�u tang co / gi?m m? / gi? d�ng c?a h?i vi�n.
+8. N?u c� luu � s?c kh?e ho?c d? ?ng th� ph?i di?u ch?nh th?c don theo luu � d�.
+9. Kh�ng vi?t m? d?u d�i d�ng, kh�ng vi?t k?t lu?n d�i.
+10. Kh�ng d�ng b?ng markdown.
+11. Kh�ng d�ng k� hi?u l?, ch? d�ng van b?n thu?n d? hi?n th? tr�n website.
+
+M?u b?t bu?c ph?i gi?ng nhu sau:
+
+B?a 1: B?a s�ng
+- Y?n m?ch: 50g
+- Tr?ng lu?c: 2 qu?
+- Chu?i: 1 qu?
+- Ghi ch�: Uu ti�n d?m v� tinh b?t h?p thu ch?m
+
+B?a 2: B?a ph?
+- S?a chua kh�ng du?ng: 1 hu
+- H?nh nh�n: 15g
+
+B?a 3: B?a trua
+- ?c g� �p ch?o: 150g
+- Com g?o l?t: 1 ch�n
+- Rau lu?c: 1 dia
+
+Ch? tr? v? n?i dung k? ho?ch dinh du?ng d�ng format tr�n.
+";
 
     $payload = [
         'contents' => [
@@ -99,7 +131,7 @@ function callGeminiMealPlan($apiKey, $memberName, $goal, $bodyType, $mealsPerDay
         ]
     ];
 
-    $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=' . urlencode($apiKey);
+    $url = 'https://generativelanguage.googleapis.com/v1/models/' . $model . ':generateContent?key=' . urlencode($apiKey);
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -118,23 +150,67 @@ function callGeminiMealPlan($apiKey, $memberName, $goal, $bodyType, $mealsPerDay
     curl_close($ch);
 
     if ($response === false || $curlError !== '') {
-        throw new Exception('Không gọi được Gemini API.');
+        throw new Exception('Kh�ng g?i du?c Gemini API: ' . $curlError);
     }
 
     $decoded = json_decode($response, true);
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        throw new Exception('Gemini API lỗi.');
+        $message = 'Gemini API l?i';
+        if (!empty($decoded['error']['message'])) {
+            $message .= ': ' . $decoded['error']['message'];
+        }
+        $message .= ' (HTTP ' . $httpCode . ')';
+        throw new Exception($message);
     }
 
     $text = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
     $text = trim($text);
 
     if ($text === '') {
-        throw new Exception('Gemini không trả về nội dung hợp lệ.');
+        throw new Exception('Gemini kh�ng tr? v? n?i dung h?p l?.');
     }
 
     return $text;
+}
+
+function callGeminiMealPlanWithRetry($apiKey, $memberName, $goal, $bodyType, $mealsPerDay, $healthNote = '')
+{
+    $models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+    $retryable = [429, 500, 502, 503, 504];
+    $lastError = 'Unknown Gemini error';
+
+    foreach ($models as $model) {
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            try {
+                return callGeminiMealPlan(
+                    $apiKey,
+                    $memberName,
+                    $goal,
+                    $bodyType,
+                    $mealsPerDay,
+                    $healthNote,
+                    $model
+                );
+            } catch (Exception $e) {
+                $lastError = $e->getMessage();
+                $httpCode = 0;
+                if (preg_match('/HTTP\s+(\d{3})/', $lastError, $matches)) {
+                    $httpCode = (int) $matches[1];
+                }
+
+                if ($httpCode !== 0 && !in_array($httpCode, $retryable, true)) {
+                    throw $e;
+                }
+
+                if ($attempt < 2) {
+                    sleep($attempt + 1);
+                }
+            }
+        }
+    }
+
+    throw new Exception($lastError);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -148,7 +224,7 @@ if (
     $csrf_token === '' ||
     !hash_equals($_SESSION['csrf_token'], $csrf_token)
 ) {
-    die('CSRF token không hợp lệ.');
+    die('CSRF token kh�ng h?p l?.');
 }
 
 $member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
@@ -174,10 +250,10 @@ if (!$member) {
     exit();
 }
 
-$ai_prompt = "Mục tiêu: " . getMealGoalLabel($goal)
-    . " | Thể trạng: " . getBodyTypeLabel($body_type)
-    . " | Số bữa/ngày: " . $meals_per_day
-    . " | Lưu ý ăn uống: " . $health_note;
+$ai_prompt = "M?c ti�u: " . getMealGoalLabel($goal)
+    . " | Th? tr?ng: " . getBodyTypeLabel($body_type)
+    . " | S? b?a/ng�y: " . $meals_per_day
+    . " | Luu � an u?ng: " . $health_note;
 
 $ai_response = '';
 
@@ -187,7 +263,7 @@ try {
         exit();
     }
 
-    $ai_response = callGeminiMealPlan(
+    $ai_response = callGeminiMealPlanWithRetry(
         $gemini_api_key,
         $member['full_name'],
         $goal,
@@ -196,7 +272,8 @@ try {
         $health_note
     );
 } catch (Exception $e) {
-    $ai_response = buildFallbackMealPlan(
+    error_log('Gemini meal error: ' . $e->getMessage());
+    $ai_response = "[K? ho?ch d? ph�ng]\n" . buildFallbackMealPlan(
         $member['full_name'],
         $goal,
         $body_type,
@@ -241,3 +318,5 @@ $stmtInsert->close();
 
 header("Location: " . $base_path . "meal-plans.php?success=1&member_id=" . $member_id);
 exit();
+
+

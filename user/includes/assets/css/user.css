@@ -689,3 +689,64 @@ body.user-body {
     .package-detail-subtitle { font-size: 1.05rem; }
 }
 
+/* ===== USER NAVBAR CLEAN ===== */
+.user-nav-trigger {
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem !important;
+    transition: all 0.2s ease;
+}
+
+.user-nav-trigger:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.user-nav-avatar {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+}
+
+.user-nav-name {
+    max-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-dropdown-menu {
+    min-width: 240px;
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    padding: 0.5rem;
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.08);
+}
+
+.user-dropdown-menu .dropdown-item {
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    font-weight: 500;
+}
+
+.user-dropdown-menu .dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+@media (max-width: 991.98px) {
+    .user-nav-trigger {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .user-nav-name {
+        max-width: none;
+    }
+
+    .user-dropdown-menu {
+        min-width: 100%;
+        margin-top: 0.5rem;
+    }
+}

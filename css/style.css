@@ -12,43 +12,82 @@ body {
    LOGIN PAGE
 ========================= */
 .login-page {
-  background: linear-gradient(135deg, #ff4d00, #010101);
+  background: linear-gradient(135deg, #0f172a 10%, #0b1220 60%);
   min-height: 100vh;
-}
-
-.login-card {
-  border-radius: 20px;
-}
-
-.logo-circle {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  border-radius: 50%;
-  background-color: #fd0d0d;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+}
+
+.login-card {
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.logo-circle {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
 }
 
 /* Logo image on login page */
 .login-logo {
-  width: 80px;
-  height: 80px;
+  width: 76px;
+  height: 76px;
   display: block;
-  margin: 0 auto;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #fff;
+  background-color: transparent;
+}
+
+/* Inputs and buttons */
+.login-card .form-control {
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: #e6eef8;
+}
+.login-card .form-control:focus {
+  box-shadow: 0 6px 18px rgba(13,110,253,0.12);
+  border-color: rgba(13,110,253,0.6);
+}
+.input-group-text {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+}
+.login-card .btn-primary {
+  border-radius: 12px;
+  background: linear-gradient(90deg, #06b6d4, #0ea5a3);
+  border: none;
+  box-shadow: 0 8px 20px rgba(6,182,212,0.18);
+}
+.login-card .btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.login-card .card-body {
+  color: #dbeafe;
+}
+
+.login-card .text-muted {
+  color: #9fb0c8 !important;
 }
 
 /* =========================
    DASHBOARD
 ========================= */
 .dashboard-page {
-  background-color: #f5f7fb;
+  background: linear-gradient(180deg, #fbf8f2 0%, #f7f4eb 60%);
 }
 
 .dashboard-wrapper {
@@ -58,7 +97,7 @@ body {
 .sidebar {
   width: 260px;
   min-height: 100vh;
-  background: #1f2937;
+  background: #2b3236;
   color: #fff;
   position: sticky;
   top: 0;
@@ -74,11 +113,12 @@ body {
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  background: #0d6efd;
+  background: linear-gradient(135deg,#ffd9b3,#ffeedd);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  color: #1f2937;
 }
 
 .sidebar small {
@@ -104,21 +144,22 @@ body {
 }
 
 .topbar {
-  background-color: #fff;
+  background-color: #2f3438;
   min-height: 70px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 .admin-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #0d6efd;
-  color: #fff;
+  background: linear-gradient(135deg,#ffd9b3,#fff1e0);
+  color: #1f2937;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.12);
 }
 
 .notification-dot {
@@ -135,6 +176,11 @@ body {
   border-radius: 16px;
 }
 
+.stat-card {
+  border-radius: 16px;
+  background: linear-gradient(180deg,#fffaf2,#fff6ec);
+  border: 1px solid rgba(15,23,42,0.04);
+}
 .stat-icon {
   width: 55px;
   height: 55px;
@@ -143,11 +189,22 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  background: rgba(13,110,253,0.06);
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* Make generic cards softer (cream) */
+.card {
+  background: #fffaf2;
+  border: 1px solid rgba(15,23,42,0.04);
+}
+
+/* Hero banner / header inside dashboard */
+.dashboard-hero {
+  background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(250,250,245,0.6));
+  padding: 36px 24px;
+  border-bottom: 1px solid rgba(15,23,42,0.03);
+}
+
 @media (max-width: 991px) {
   .sidebar {
     width: 220px;
@@ -169,3 +226,77 @@ body {
     width: 100%;
   }
 }
+
+/* ===== CHECKIN PROFESSIONAL UI (added for checkins.php) ===== */
+.checkin-search-card,
+.checkin-member-card,
+.checkin-history-card,
+.checkin-kpi-card {
+  border: 1px solid #e9ecef;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.05);
+}
+
+.checkin-member-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f1f3f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #0d6efd;
+  font-size: 1.4rem;
+}
+
+.checkin-info-item {
+  background: #f8f9fa;
+  border: 1px solid #eef1f4;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  height: 100%;
+}
+
+.checkin-info-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.checkin-info-value {
+  font-weight: 600;
+  color: #212529;
+}
+
+.checkin-kpi-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d6efd;
+}
+
+.checkin-action-btn {
+  border-radius: 14px;
+  min-width: 140px;
+}
+
+.checkin-table thead th {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.checkin-table td,
+.checkin-table th {
+  vertical-align: middle;
+}
+
+.checkin-status-badge {
+  font-size: 0.85rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* End of checkin styles */

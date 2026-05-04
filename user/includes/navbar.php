@@ -36,61 +36,85 @@ $avatar_url = $user_avatar !== '' ? $base_path . 'uploads/avatars/' . $user_avat
         </button>
 
         <div class="collapse navbar-collapse" id="userNavbar">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#about">About Us</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/home.php">Home</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/package/index.php">Pricing</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/package/index.php">Packages</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#gallery">Gallery</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/plans/index.php">Plans</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/home.php#trainers">Trainers</a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="<?php echo $base_path; ?>contact-form.php">Contact</a>
                 </li>
 
-                <?php if ($is_logged_in && $user_role === 'admin'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo $base_path; ?>dashboard.php">Admin</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/dashboard/index.php">Dashboard</a>
+                </li>
+
+                <?php if (!empty($_SESSION['user_id'])): ?>
+                    <?php
+                    $nav_avatar = !empty($_SESSION['user_avatar'])
+                        ? $base_path . 'uploads/avatars/' . $_SESSION['user_avatar']
+                        : 'https://via.placeholder.com/40x40.png?text=U';
+
+                    $nav_user_name = $_SESSION['user_name'] ?? 'Tài khoản';
+                    ?>
+                    <li class="nav-item dropdown ms-lg-3">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 user-nav-trigger"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <img src="<?php echo htmlspecialchars($nav_avatar); ?>"
+                                alt="Avatar"
+                                class="user-nav-avatar">
+                            <span class="user-nav-name"><?php echo htmlspecialchars($nav_user_name); ?></span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/profile.php">
+                                    <i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/my-package/index.php">
+                                    <i class="bi bi-box-seam me-2"></i>Gói của bạn
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/registrations/index.php">
+                                    <i class="bi bi-card-checklist me-2"></i>Lịch sử đăng ký
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/checkins/index.php">
+                                    <i class="bi bi-calendar-check me-2"></i>Lịch sử check-in
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="<?php echo $base_path; ?>logout.php">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn btn-hero-primary btn-sm" href="<?php echo $base_path; ?>login.php">Đăng nhập</a>
                     </li>
                 <?php endif; ?>
             </ul>
-
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <a href="#" class="social-link" aria-label="Facebook">
-                    <i class="bi bi-facebook"></i>
-                </a>
-                <a href="#" class="social-link" aria-label="Instagram">
-                    <i class="bi bi-instagram"></i>
-                </a>
-
-                <?php if ($is_logged_in): ?>
-                    <a href="<?php echo $base_path; ?>user/profile.php" class="user-greeting text-decoration-none">
-                        <?php if ($avatar_url !== ''): ?>
-                            <img src="<?php echo htmlspecialchars($avatar_url); ?>" alt="Avatar" class="user-avatar me-2">
-                        <?php else: ?>
-                            <i class="bi bi-person-circle me-1"></i>
-                        <?php endif; ?>
-                        <?php echo htmlspecialchars($user_name); ?>
-                    </a>
-
-                    <a href="<?php echo $base_path; ?>logout.php" class="btn btn-user-outline btn-sm">
-                        <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
-                    </a>
-                <?php else: ?>
-                    <a href="<?php echo $base_path; ?>login.php" class="btn btn-user-outline btn-sm">
-                        Đăng nhập
-                    </a>
-                    <a href="<?php echo $base_path; ?>register.php" class="btn btn-hero-primary btn-sm">
-                        Đăng ký
-                    </a>
-                <?php endif; ?>
-            </div>
         </div>
     </div>
+    </div>
 </nav>
-

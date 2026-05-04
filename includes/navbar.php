@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = $page_title ?? 'Dashboard';
 $admin_name = $_SESSION['admin_full_name'] ?? 'Admin';
 ?>
@@ -8,7 +8,7 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Admin';
     <span class="navbar-brand fw-bold mb-0"><?php echo $page_title; ?></span>
 
     <div class="d-flex align-items-center gap-3">
-      <button class="btn btn-light position-relative">
+      <button class="btn btn-light position-relative" type="button">
         <i class="bi bi-bell"></i>
         <span class="notification-dot"></span>
       </button>

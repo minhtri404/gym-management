@@ -1,9 +1,8 @@
 ﻿<?php
 include __DIR__ . '/../../includes/config.php';
 $base_path = '../../';
-
-$sql = "SELECT * FROM packages ORDER BY id DESC";
-$result = $conn->query($sql);
+include __DIR__ . '/../../includes/functions/package-functions.php';
+$packages = getActivePackages($conn);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -36,8 +35,8 @@ $result = $conn->query($sql);
     <section class="section-dark packages-section">
         <div class="container">
             <div class="row g-4 justify-content-center">
-                <?php if ($result && $result->num_rows > 0): ?>
-                    <?php while ($pkg = $result->fetch_assoc()): ?>
+           <?php if (!empty($packages)): ?>
+    <?php foreach ($packages as $pkg): ?>
                         <?php
                         $package_name = $pkg['name'] ?? $pkg['package_name'] ?? 'Gói tập';
                         $price = $pkg['price'] ?? $pkg['package_price'] ?? 0;
@@ -83,7 +82,7 @@ $result = $conn->query($sql);
                                     </p>
 
                                     <div class="package-actions mt-auto">
-                                        <a href="<?php echo $base_path; ?>user/package/detail.php?id=<?php echo (int) $pkg['id']; ?>" class="btn btn-user-outline w-100 mb-2">Chi tiết gói</a>
+                                       <a href="<?php echo $base_path; ?>user/package/detail.php?id=<?php echo (int) $pkg['id']; ?>" class="btn btn-user-outline w-100 mb-2">Chi tiết gói</a>
                                         <a href="<?php echo $base_path; ?>contact-form.php" class="btn btn-hero-primary w-100 mb-2">Đăng ký tư vấn</a>
                                         <a href="<?php echo $base_path; ?>user/package/register.php?package_id=<?php echo (int) $pkg['id']; ?>" class="btn btn-hero-primary w-100 mb-2">Đăng ký gói này</a>
                                         <a href="<?php echo $base_path; ?>contact-form.php" class="btn btn-user-outline w-100">Liên hệ ngay</a>
@@ -91,7 +90,7 @@ $result = $conn->query($sql);
                                 </div>
                             </div>
                         <?php endif; ?>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 <?php else: ?>
                     <div class="col-12">
                         <div class="empty-package-box text-center reveal-up">

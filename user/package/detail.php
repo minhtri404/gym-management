@@ -1,19 +1,15 @@
 ﻿<?php
 include __DIR__ . '/../../includes/config.php';
 $base_path = '../../';
+include __DIR__ . '/../../includes/functions/package-functions.php';
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 if ($id <= 0) {
-    header('Location: ' . $base_path . 'user/package/index.php');
+   header('Location: ' . $base_path . 'user/package/index.php');
     exit;
 }
 
-$stmt = $conn->prepare("SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, status FROM packages WHERE id = ? LIMIT 1");
-$stmt->bind_param('i', $id);
-$stmt->execute();
-$result = $stmt->get_result();
-$package = $result->fetch_assoc();
-$stmt->close();
+$package = getPackageById($conn, $id);
 
 if (!$package || $package['status'] !== 'active') {
     header('Location: ' . $base_path . 'user/package/index.php');

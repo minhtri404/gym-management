@@ -1,7 +1,7 @@
-﻿<?php
-$page_title = "Thêm hội viên";
+<?php
+$page_title = "Th�m h?i vi�n";
 include __DIR__ . '/../../includes/auth-check.php';
-$base_path = '../../';
+$base_path = '../../admin/';
 
 $success = "";
 $error = "";
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $status = trim($_POST['status'] ?? 'active');
 
   if ($full_name === '' || $phone === '' || $package_id === '' || $start_date === '') {
-    $error = "Vui lòng nhập đầy đủ các trường bắt buộc.";
+    $error = "Vui l�ng nh?p d?y d? c�c tru?ng b?t bu?c.";
   } else {
     $stmt_package = $conn->prepare("SELECT duration_months FROM packages WHERE id = ? LIMIT 1");
     $stmt_package->bind_param("i", $package_id);
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result_package = $stmt_package->get_result();
 
     if (!$result_package || $result_package->num_rows === 0) {
-      $error = "Gói tập không tồn tại.";
+      $error = "G�i t?p kh�ng t?n t?i.";
     } else {
       $package = $result_package->fetch_assoc();
       $duration_months = (int)$package['duration_months'];
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $end->modify("+{$duration_months} months");
         $end_date = $end->format('Y-m-d');
       } catch (Exception $e) {
-        $error = "Ngày bắt đầu không hợp lệ.";
+        $error = "Ng�y b?t d?u kh�ng h?p l?.";
       }
     }
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $member_id = $conn->insert_id;
       $stmt->close();
 
-      /* Lấy giá gói để lưu lịch sử */
+      /* L?y gi� g�i d? luu l?ch s? */
       $package_price = 0;
       $stmt_package = $conn->prepare("SELECT price FROM packages WHERE id = ? LIMIT 1");
       $stmt_package->bind_param("i", $package_id);
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $remaining_amount = max(0, $package_price - $paid_amount);
 
-      /* Lưu lịch sử gói tập */
+      /* Luu l?ch s? g�i t?p */
       $history_status = 'active';
       if ($status === 'expired') {
         $history_status = 'expired';
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $history_status = 'cancelled';
       }
 
-      $history_note = 'Tạo hội viên mới';
+      $history_note = 'T?o h?i vi�n m?i';
 
       $stmt_history = $conn->prepare("
         INSERT INTO member_package_history (
@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: " . $base_path . "members.php?add=success");
       exit();
     } else {
-      $error = "Thêm hội viên thất bại: " . $stmt->error;
+      $error = "Th�m h?i vi�n th?t b?i: " . $stmt->error;
       $stmt->close();
     }
 
@@ -170,9 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold">Thêm hội viên</h2>
+          <h2 class="fw-bold">Th�m h?i vi�n</h2>
           <a href="<?php echo $base_path; ?>members.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay láº¡i
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
           </a>
         </div>
 
@@ -185,21 +185,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" action="">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                  <label class="form-label">H? v� t�n <span class="text-danger">*</span></label>
                   <input type="text" name="full_name" class="form-control" required>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Giới tính</label>
+                  <label class="form-label">Gi?i t�nh</label>
                   <select name="gender" class="form-select">
                     <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
+                    <option value="N?">N?</option>
+                    <option value="Kh�c">Kh�c</option>
                   </select>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                  <label class="form-label">S? di?n tho?i <span class="text-danger">*</span></label>
                   <input type="text" name="phone" class="form-control" required>
                 </div>
 
@@ -209,56 +209,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Ngày sinh</label>
+                  <label class="form-label">Ng�y sinh</label>
                   <input type="date" name="date_of_birth" class="form-control">
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label">Gói tập <span class="text-danger">*</span></label>
+                  <label class="form-label">G�i t?p <span class="text-danger">*</span></label>
                   <select name="package_id" id="package_id" class="form-select" required>
-                    <option value="">-- Chọn gói tập --</option>
+                    <option value="">-- Ch?n g�i t?p --</option>
                     <?php foreach ($packages as $package): ?>
                       <option value="<?php echo $package['id']; ?>" data-duration="<?php echo $package['duration_months']; ?>">
-                        <?php echo htmlspecialchars($package['package_name']); ?> (<?php echo $package['duration_months']; ?> tháng)
+                        <?php echo htmlspecialchars($package['package_name']); ?> (<?php echo $package['duration_months']; ?> th�ng)
                       </option>
                     <?php endforeach; ?>
                   </select>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label">Địa chỉ</label>
+                  <label class="form-label">�?a ch?</label>
                   <input type="text" name="address" class="form-control">
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                  <label class="form-label">Ng�y b?t d?u <span class="text-danger">*</span></label>
                   <input type="date" name="start_date" id="start_date" class="form-control" required>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">NgÃ y káº¿t thÃºc</label>
-                  <input type="date" id="end_date_display" class="form-control" readonly placeholder="Tự động tính">
+                  <label class="form-label">Ngày kết thúc</label>
+                  <input type="date" id="end_date_display" class="form-control" readonly placeholder="T? d?ng t�nh">
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Trạng thái</label>
+                  <label class="form-label">Tr?ng th�i</label>
                   <select name="status" class="form-select">
-                    <option value="active">Đang hoạt động</option>
-                    <option value="expired">Hết hạn</option>
-                    <option value="inactive">Ngưng hoạt động</option>
+                    <option value="active">�ang ho?t d?ng</option>
+                    <option value="expired">H?t h?n</option>
+                    <option value="inactive">Ngung ho?t d?ng</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">Số tiền đã trả</label>
+                  <label class="form-label">S? ti?n d� tr?</label>
                   <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" placeholder="0">
-                  <small class="text-muted">Hệ thống tự tính còn nợ.</small>
+                  <small class="text-muted">H? th?ng t? t�nh c�n n?.</small>
                 </div>
 
                 <div class="col-12 mt-4">
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Lưu hội viên
+                    <i class="bi bi-save me-1"></i> Luu h?i vi�n
                   </button>
-                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">Há»§y</a>
+                  <a href="<?php echo $base_path; ?>members.php" class="btn btn-outline-secondary ms-2">Hủy</a>
                 </div>
               </div>
             </form>
@@ -319,3 +319,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+
+

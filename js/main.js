@@ -13,6 +13,6 @@ if (loginForm) {
     }
 
     // Day 1 chỉ demo giao diện                       
-    window.location.href = "dashboard.php";
+    window.location.href = "admin/dashboard.php";
   });
 }
