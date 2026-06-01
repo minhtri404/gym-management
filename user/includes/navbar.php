@@ -106,6 +106,16 @@ $avatar_url = resolve_user_avatar_url($user_avatar, $base_path, $user_name !== '
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/trainers/my-bookings.php">
+                                    <i class="bi bi-person-badge me-2"></i>L&#7883;ch s&#7917; HLV
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo $base_path; ?>user/contacts/index.php">
+                                    <i class="bi bi-chat-left-text me-2"></i>L&#7883;ch s&#7917; li&ecirc;n h&#7879;
+                                </a>
+                            </li>
+                            <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>

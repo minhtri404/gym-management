@@ -148,7 +148,7 @@ $avatar_path = resolve_user_avatar_url(
     <title>H&#7891; s&#417; c&aacute; nh&acirc;n - FLEXZONE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="includes/assets/css/user.css">
+    <link rel="stylesheet" href="includes/assets/css/user.css?v=light-1">
 </head>
 <body class="user-body">
 
@@ -237,4 +237,3 @@ $avatar_path = resolve_user_avatar_url(
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

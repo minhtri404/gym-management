@@ -1,0 +1,260 @@
+/* Light home tone: white surface, blue accents, dark readable text. */
+.home-page-body {
+    background: #ffffff;
+    color: #303640;
+}
+
+.home-page-body .user-navbar {
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06);
+}
+
+.home-page-body .navbar-brand,
+.home-page-body .user-navbar .nav-link,
+.home-page-body .user-navbar .navbar-brand:focus,
+.home-page-body .user-navbar .navbar-brand:hover {
+    color: #303640;
+}
+
+.home-page-body .user-navbar .nav-link:hover {
+    color: #0ea5e9;
+}
+
+.home-page-body .navbar-toggler {
+    border-color: rgba(15, 23, 42, 0.16);
+    filter: invert(1);
+}
+
+.home-page-body .home-hero {
+    min-height: 86vh;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.93) 43%, rgba(255, 255, 255, 0.2) 100%),
+        url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1800&q=85') center right/cover no-repeat;
+}
+
+.home-page-body .home-hero::after {
+    display: none;
+}
+
+.home-page-body .hero-kicker {
+    background: rgba(14, 165, 233, 0.09);
+    border-color: rgba(14, 165, 233, 0.22);
+    color: #0284c7;
+}
+
+.home-page-body .home-hero .hero-title,
+.home-page-body .section-title,
+.home-page-body .workflow-card h5,
+.home-page-body .program-card h5 {
+    color: #303640;
+}
+
+.home-page-body .home-hero .hero-text,
+.home-page-body .section-text,
+.home-page-body .workflow-card p,
+.home-page-body .program-card p {
+    color: #5b6675;
+}
+
+.home-page-body .hero-trust-row span {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+    color: #303640;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+}
+
+.home-page-body .btn-hero-outline,
+.home-page-body .btn-user-outline {
+    border-color: rgba(15, 23, 42, 0.14);
+    color: #303640;
+    background: #ffffff;
+}
+
+.home-page-body .btn-hero-outline:hover,
+.home-page-body .btn-user-outline:hover {
+    border-color: rgba(14, 165, 233, 0.45);
+    color: #0ea5e9;
+    background: rgba(14, 165, 233, 0.06);
+}
+
+.home-page-body .why-section,
+.home-page-body .section-soft,
+.home-page-body .section-dark,
+.home-page-body .home-program-section,
+.home-page-body .home-packages-section,
+.home-page-body #gallery,
+.home-page-body #trainers {
+    background: #ffffff;
+    color: #303640;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.home-page-body .section-soft,
+.home-page-body .home-workflow-section,
+.home-page-body .home-packages-section,
+.home-page-body #trainers {
+    background: #f6f9fc;
+}
+
+.home-page-body .section-badge {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0284c7;
+}
+
+.home-page-body .why-header h2,
+.home-page-body .why-detail-title,
+.home-page-body .why-side-panel h3,
+.home-page-body .why-tab-card h3,
+.home-page-body .why-standard-item h4,
+.home-page-body .equipment-card h4 {
+    color: #303640;
+}
+
+.home-page-body .why-header p,
+.home-page-body .why-tab-card p,
+.home-page-body .why-standard-item p,
+.home-page-body .equipment-tab,
+.home-page-body .equipment-card p {
+    color: #5b6675;
+}
+
+.home-page-body .why-tab-card,
+.home-page-body .why-detail-panel,
+.home-page-body .why-side-panel,
+.home-page-body .workflow-card,
+.home-page-body .program-card,
+.home-page-body .package-card-pro,
+.home-page-body .package-trust-strip,
+.home-page-body .home-trainer-card,
+.home-page-body .info-card,
+.home-page-body .empty-package-pro {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.home-page-body .why-tab-card:hover,
+.home-page-body .why-tab-card.active,
+.home-page-body .package-card-pro.featured,
+.home-page-body .home-trainer-card:hover {
+    border-color: rgba(14, 165, 233, 0.35);
+    box-shadow: 0 22px 54px rgba(14, 165, 233, 0.12);
+}
+
+.home-page-body .why-detail-panel,
+.home-page-body .why-side-panel {
+    padding: 28px;
+}
+
+.home-page-body .equipment-tabs,
+.home-page-body .why-standard-item,
+.home-page-body .package-duration {
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+.home-page-body .equipment-card {
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+}
+
+.home-page-body .equipment-img,
+.home-page-body .package-image-box {
+    background: #e5edf5;
+}
+
+.home-page-body .equipment-tab.active {
+    color: #0ea5e9;
+    border-bottom-color: #0ea5e9;
+}
+
+.home-page-body .package-image-box::after {
+    background: linear-gradient(180deg, transparent 42%, rgba(255, 255, 255, 0.88) 100%);
+}
+
+.home-page-body .package-name-row h3,
+.home-page-body .trust-item strong,
+.home-page-body .home-trainer-name {
+    color: #303640;
+}
+
+.home-page-body .package-duration,
+.home-page-body .package-summary-text,
+.home-page-body .package-benefit-list li,
+.home-page-body .trust-item span,
+.home-page-body .home-trainer-bio {
+    color: #5b6675;
+}
+
+.home-page-body .btn-package-outline,
+.home-page-body .home-trainer-btn-outline {
+    border-color: rgba(15, 23, 42, 0.12);
+    color: #303640;
+    background: #ffffff;
+}
+
+.home-page-body .btn-package-outline:hover,
+.home-page-body .home-trainer-btn-outline:hover {
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.45);
+}
+
+.home-page-body .workflow-icon,
+.home-page-body .program-card i,
+.home-page-body .why-tab-icon,
+.home-page-body .why-standard-icon,
+.home-page-body .trust-icon {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+}
+
+.home-page-body .gallery-card {
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.1);
+}
+
+.home-page-body .home-trainer-stats span {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+    color: #303640;
+}
+
+.home-page-body .home-trainer-btn-primary,
+.home-page-body .btn-package-primary,
+.home-page-body .btn-hero-primary {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.home-page-body .home-trainer-btn-primary:hover,
+.home-page-body .btn-package-primary:hover,
+.home-page-body .btn-hero-primary:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+.home-page-body .user-footer {
+    background: #f6f9fc;
+    color: #303640;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.home-page-body .user-footer,
+.home-page-body .user-footer p,
+.home-page-body .user-footer a {
+    color: #5b6675;
+}
+
+@media (max-width: 991.98px) {
+    .home-page-body .home-hero {
+        background:
+            linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.94)),
+            url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85') center/cover no-repeat;
+    }
+}

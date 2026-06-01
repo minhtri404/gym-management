@@ -22,7 +22,7 @@ $error = trim($_GET['error'] ?? '');
   <title>&#272;&#259;ng k&yacute; - Gym Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=register-readable-1" />
+  <link rel="stylesheet" href="css/style.css?v=light-1" />
 </head>
 <body class="login-page register-page">
   <div class="container">

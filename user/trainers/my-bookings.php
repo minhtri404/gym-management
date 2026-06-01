@@ -61,6 +61,8 @@ $stmt_user->close();
 
 /* Tìm member theo phone/email */
 $member = null;
+$phone = '';
+$email = '';
 
 if ($user) {
     $phone = trim((string)($user['phone'] ?? ''));
@@ -81,8 +83,28 @@ if ($user) {
 
 $bookings = [];
 
-if ($member) {
-    $member_id = (int)$member['id'];
+if ($member || $phone !== '' || $email !== '') {
+    $conditions = [];
+    $params = [];
+    $types = '';
+
+    if ($member) {
+        $conditions[] = 'tb.member_id = ?';
+        $params[] = (int)$member['id'];
+        $types .= 'i';
+    }
+
+    if ($phone !== '') {
+        $conditions[] = 'm.phone = ?';
+        $params[] = $phone;
+        $types .= 's';
+    }
+
+    if ($email !== '') {
+        $conditions[] = 'm.email = ?';
+        $params[] = $email;
+        $types .= 's';
+    }
 
     $stmt = $conn->prepare("
         SELECT 
@@ -101,10 +123,11 @@ if ($member) {
             t.specialty AS trainer_specialty
         FROM trainer_bookings tb
         JOIN trainers t ON t.id = tb.trainer_id
-        WHERE tb.member_id = ?
+        JOIN members m ON m.id = tb.member_id
+        WHERE " . implode(' OR ', $conditions) . "
         ORDER BY tb.booking_date DESC, tb.start_time DESC
     ");
-    $stmt->bind_param("i", $member_id);
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -125,8 +148,8 @@ if ($member) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="../includes/assets/css/user.css">
-    <link rel="stylesheet" href="../includes/assets/css/trainers.css">
+    <link rel="stylesheet" href="../includes/assets/css/user.css?v=light-1">
+    <link rel="stylesheet" href="../includes/assets/css/trainers.css?v=trainers-light-1">
 </head>
 
 <body class="user-body">
@@ -161,7 +184,13 @@ if ($member) {
                     </a>
                 </div>
 
-                <?php if (!$member): ?>
+                <?php if (isset($_GET['booking']) && $_GET['booking'] === 'success'): ?>
+                    <div class="alert alert-success">
+                        Đã gửi yêu cầu đặt lịch HLV. Vui lòng chờ admin xác nhận.
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!$member && empty($bookings)): ?>
                     <div class="alert alert-warning">
                         Tài khoản của bạn chưa liên kết với hồ sơ hội viên nên chưa thể xem lịch HLV.
                     </div>

@@ -590,3 +590,107 @@ body {
 }
 
 /* End of checkin styles */
+
+/* ===== PUBLIC AUTH LIGHT THEME ===== */
+.login-page,
+.login-dev-page {
+  background: #f6f9fc;
+  color: #303640;
+}
+
+.login-card,
+.login-dev-page .login-card,
+.register-page .login-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.login-card .card-body {
+  color: #303640;
+}
+
+.login-card h2,
+.login-dev-page .login-card h2,
+.register-page .login-card h2,
+.login-card .form-label,
+.login-dev-page .login-card .form-label,
+.register-page .login-card .form-label {
+  color: #303640;
+}
+
+.login-card .text-muted,
+.login-dev-page .login-card .text-muted,
+.register-page .login-card .text-muted {
+  color: #5b6675 !important;
+}
+
+.login-card .input-group,
+.login-dev-page .login-card .input-group,
+.register-page .login-card .input-group {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 8px;
+}
+
+.login-card .form-control,
+.login-dev-page .login-card .form-control,
+.register-page .login-card .form-control {
+  background: #ffffff;
+  color: #303640;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+.login-card .form-control:focus,
+.login-dev-page .login-card .form-control:focus,
+.register-page .login-card .form-control:focus {
+  background: #ffffff;
+  color: #303640;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 0.2rem rgba(14, 165, 233, 0.12);
+}
+
+.input-group-text,
+.login-dev-page .input-group-text,
+.register-page .input-group-text {
+  background: #f8fafc;
+  color: #0ea5e9;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.login-card .btn-primary,
+.login-dev-page .login-card .btn-primary {
+  background: #0ea5e9;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.login-card .btn-primary:hover,
+.login-dev-page .login-card .btn-primary:hover {
+  background: #0284c7;
+}
+
+.login-card a,
+.login-dev-page .login-card a,
+.register-page .login-card a {
+  color: #0ea5e9;
+}
+
+.login-card a:hover,
+.login-dev-page .login-card a:hover,
+.register-page .login-card a:hover {
+  color: #0284c7;
+}
+
+.login-google-btn {
+  background: #ffffff;
+  color: #303640;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+.login-google-btn:hover {
+  background: rgba(14, 165, 233, 0.06);
+  color: #0ea5e9;
+  border-color: rgba(14, 165, 233, 0.45);
+}

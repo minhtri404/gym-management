@@ -125,8 +125,8 @@ $contact_subject = 'Đặt HLV: ' . (string) ($trainer['full_name'] ?? '');
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../includes/assets/css/user.css">
-    <link rel="stylesheet" href="../includes/assets/css/trainers.css">
+    <link rel="stylesheet" href="../includes/assets/css/user.css?v=light-1">
+    <link rel="stylesheet" href="../includes/assets/css/trainers.css?v=trainers-light-1">
 </head>
 
 <body class="user-body">
@@ -187,7 +187,7 @@ $contact_subject = 'Đặt HLV: ' . (string) ($trainer['full_name'] ?? '');
                             </div>
 
                             <div class="trainer-detail-actions">
-                                <a href="<?php echo $base_path; ?>user/trainers/my-bookings.php" class="btn-trainer-primary">
+                                <a href="book.php?trainer_id=<?php echo (int)$trainer['id']; ?>" class="btn-trainer-primary">
                                     <i class="bi bi-calendar-check me-1"></i>
                                     Đặt HLV
                                 </a>

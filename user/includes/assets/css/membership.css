@@ -310,3 +310,52 @@ body.membership-page {
         padding: 18px;
     }
 }
+
+/* ===== LIGHT THEME SYNC ===== */
+body.membership-page {
+    background: #ffffff;
+    color: #303640;
+}
+
+.membership-wrapper {
+    background: #f6f9fc;
+}
+
+.membership-shell,
+.membership-plan-card,
+.membership-stat-card,
+.membership-table-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.membership-title,
+.membership-stat-number,
+.membership-table td,
+.membership-empty h3 {
+    color: #303640;
+}
+
+.membership-subtitle,
+.membership-stat-label,
+.membership-price span,
+.membership-meta,
+.membership-small,
+.membership-empty p {
+    color: #5b6675;
+}
+
+.membership-plan-header,
+.membership-primary-btn {
+    background: #0ea5e9;
+}
+
+.membership-primary-btn:hover {
+    background: #0284c7;
+}
+
+.membership-time,
+.membership-upgrade-btn {
+    color: #0ea5e9;
+}

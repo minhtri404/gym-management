@@ -278,8 +278,8 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="../includes/assets/css/user.css">
-    <link rel="stylesheet" href="../includes/assets/css/dashboard.css">
+    <link rel="stylesheet" href="../includes/assets/css/user.css?v=light-1">
+    <link rel="stylesheet" href="../includes/assets/css/dashboard.css?v=dashboard-light-1">
 </head>
 
 <body class="dashboard-page">

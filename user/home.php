@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 include __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions/package-functions.php';
 
 $base_path = '../';
 $homePackages = getActivePackages($conn);
 $homeTrainers = [];
+$homeBranches = [];
 
 $trainerStmt = $conn->prepare("
     SELECT id, full_name, avatar, specialty, experience_years, bio, rating
@@ -23,6 +24,24 @@ if ($trainerStmt) {
     }
 
     $trainerStmt->close();
+}
+
+$branchStmt = $conn->prepare("
+    SELECT id, name, city, address, map_url, image, description
+    FROM branches
+    WHERE status = 'active'
+    ORDER BY FIELD(city, 'Ho Chi Minh City', 'Da Nang', 'Can Tho', 'Dong Nai'), id ASC
+");
+
+if ($branchStmt) {
+    $branchStmt->execute();
+    $branchResult = $branchStmt->get_result();
+
+    while ($branchRow = $branchResult->fetch_assoc()) {
+        $homeBranches[] = $branchRow;
+    }
+
+    $branchStmt->close();
 }
 
 function h($value): string
@@ -98,6 +117,46 @@ function homeTrainerAvatar(?string $avatar, string $name, string $basePath): str
     }
 
     return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff';
+}
+
+function homeBranchImage(array $branch, int $index, string $basePath): string
+{
+    $image = trim((string)($branch['image'] ?? ''));
+
+    if ($image !== '') {
+        $paths = [
+            'uploads/branches/' . $image,
+            'assets/images/branches/' . $image,
+            'user/includes/assets/images/branches/' . $image,
+        ];
+
+        foreach ($paths as $path) {
+            if (is_file(__DIR__ . '/../' . $path)) {
+                return $basePath . $path;
+            }
+        }
+    }
+
+    $fallbacks = [
+        'assets/images/brett-jordan-U2q73PfHFpM-unsplash.jpg',
+        'assets/images/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg',
+        'assets/images/ambitious-studio-rick-barrett-1RNQ11ZODJM-unsplash.jpg',
+        'assets/images/imagebanne.jpg',
+    ];
+
+    return $basePath . $fallbacks[$index % count($fallbacks)];
+}
+
+function homeBranchCityLabel(string $city): string
+{
+    $labels = [
+        'Ho Chi Minh City' => 'Ho Chi Minh City',
+        'Da Nang' => 'Da Nang',
+        'Can Tho' => 'Can Tho',
+        'Dong Nai' => 'Dong Nai',
+    ];
+
+    return $labels[$city] ?? $city;
 }
 
 function homeCleanPackageText($value): string
@@ -301,11 +360,12 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="includes/assets/css/user.css?v=home-upgrade-4">
+    <link rel="stylesheet" href="includes/assets/css/user.css?v=light-1">
     <link rel="stylesheet" href="includes/assets/css/why-choose.css?v=why-choose-1">
-    <link rel="stylesheet" href="includes/assets/css/packages.css?v=home-packages-1">
+    <link rel="stylesheet" href="includes/assets/css/packages.css?v=package-light-1">
+    <link rel="stylesheet" href="includes/assets/css/home-light.css?v=home-light-1">
 </head>
-<body class="user-body">
+<body class="user-body home-page-body">
 
     <?php include __DIR__ . '/includes/navbar.php'; ?>
 
@@ -344,8 +404,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
             <div class="why-header">
                 <h2>Why Choose <span>FLEXZONE</span></h2>
                 <p>
-                    Khám phá hệ thống thiết bị nhập khẩu, đội ngũ HLV chuyên môn
-                    và lộ trình tập luyện cá nhân hóa dành cho hội viên.
+                    Khám phá h? th?ng thi?t b? nh?p kh?u, d?i ngu HLV chuyên môn
+                    và l? trình t?p luy?n cá nhân hóa dành cho h?i viên.
                 </p>
             </div>
 
@@ -355,8 +415,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                         <i class="bi bi-heart-pulse"></i>
                     </div>
                     <div>
-                        <h3>Thiết bị hiện đại</h3>
-                        <p>Danh mục máy tập nổi bật từ các thương hiệu quốc tế.</p>
+                        <h3>Thi?t b? hi?n d?i</h3>
+                        <p>Danh m?c máy t?p n?i b?t t? các thuong hi?u qu?c t?.</p>
                     </div>
                 </div>
 
@@ -365,8 +425,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                         <i class="bi bi-person-check"></i>
                     </div>
                     <div>
-                        <h3>HLV đồng hành</h3>
-                        <p>Đội ngũ PT theo sát mục tiêu tập luyện của bạn.</p>
+                        <h3>HLV d?ng hành</h3>
+                        <p>Ð?i ngu PT theo sát m?c tiêu t?p luy?n c?a b?n.</p>
                     </div>
                 </div>
 
@@ -375,42 +435,42 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                         <i class="bi bi-clipboard2-pulse"></i>
                     </div>
                     <div>
-                        <h3>Kế hoạch cá nhân</h3>
-                        <p>Xây dựng lộ trình tập luyện và dinh dưỡng rõ ràng.</p>
+                        <h3>K? ho?ch cá nhân</h3>
+                        <p>Xây d?ng l? trình t?p luy?n và dinh du?ng rõ ràng.</p>
                     </div>
                 </div>
             </div>
 
             <div class="why-detail-layout">
                 <div class="why-detail-panel">
-                    <h3 class="why-detail-title">Danh sách thiết bị nổi bật</h3>
+                    <h3 class="why-detail-title">Danh sách thi?t b? n?i b?t</h3>
 
                     <div class="equipment-tabs">
                         <div class="equipment-tab active" data-filter="cardio">Cardio</div>
-                        <div class="equipment-tab" data-filter="strength">Tăng cơ</div>
+                        <div class="equipment-tab" data-filter="strength">Tang co</div>
                         <div class="equipment-tab" data-filter="functional">Functional</div>
                     </div>
 
                     <div class="equipment-grid">
                         <div class="equipment-card" data-category="cardio">
                             <img src="includes/assets/images/equipment/treadmill.jfif"
-                                 alt="Máy chạy bộ Life Fitness Integrity+"
+                                 alt="Máy ch?y b? Life Fitness Integrity+"
                                  class="equipment-img">
                             <div>
-                                <h4>Máy chạy bộ<br>Life Fitness Integrity+</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Cardio bền bỉ · Nhập khẩu từ Life Fitness.</p>
+                                <h4>Máy ch?y b?<br>Life Fitness Integrity+</h4>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>Cardio b?n b? · Nh?p kh?u t? Life Fitness.</p>
                             </div>
                         </div>
 
                         <div class="equipment-card" data-category="cardio">
                             <img src="includes/assets/images/equipment/technogym-bike.jpg"
-                                 alt="Xe đạp Technogym Bike"
+                                 alt="Xe d?p Technogym Bike"
                                  class="equipment-img">
                             <div>
-                                <h4>Xe đạp<br>Technogym Bike</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Tăng sức bền · Phù hợp khởi động và cardio nhẹ.</p>
+                                <h4>Xe d?p<br>Technogym Bike</h4>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>Tang s?c b?n · Phù h?p kh?i d?ng và cardio nh?.</p>
                             </div>
                         </div>
 
@@ -420,8 +480,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                  class="equipment-img">
                             <div>
                                 <h4>Super Incline<br>Chest Press</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Chinh phục vùng ngực trên hiệu quả · Hỗ trợ phát triển cơ ngực.</p>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>Chinh ph?c vùng ng?c trên hi?u qu? · H? tr? phát tri?n co ng?c.</p>
                             </div>
                         </div>
 
@@ -431,8 +491,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                  class="equipment-img">
                             <div>
                                 <h4>Leg Press<br>Cybex VR3</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Tập chân, mông, đùi · Hỗ trợ tải trọng lớn.</p>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>T?p chân, mông, dùi · H? tr? t?i tr?ng l?n.</p>
                             </div>
                         </div>
 
@@ -442,8 +502,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                  class="equipment-img">
                             <div>
                                 <h4>Smith Machine<br>Strength Station</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Hỗ trợ squat, bench press, shoulder press · An toàn khi tập nặng.</p>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>H? tr? squat, bench press, shoulder press · An toàn khi t?p n?ng.</p>
                             </div>
                         </div>
 
@@ -453,19 +513,19 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                  class="equipment-img">
                             <div>
                                 <h4>Matrix<br>Functional Trainer</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Kéo cáp toàn thân · Linh hoạt nhiều nhóm cơ.</p>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>Kéo cáp toàn thân · Linh ho?t nhi?u nhóm co.</p>
                             </div>
                         </div>
 
                         <div class="equipment-card" data-category="functional">
                             <img src="includes/assets/images/equipment/functional-trainer.jpg"
-                                 alt="Cáp kéo đa năng"
+                                 alt="Cáp kéo da nang"
                                  class="equipment-img">
                             <div>
-                                <h4>Cáp kéo<br>đa năng</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Tập vai, lưng, tay, core · Linh hoạt nhiều góc kéo.</p>
+                                <h4>Cáp kéo<br>da nang</h4>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>T?p vai, lung, tay, core · Linh ho?t nhi?u góc kéo.</p>
                             </div>
                         </div>
 
@@ -475,30 +535,30 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                  class="equipment-img">
                             <div>
                                 <h4>Precor EFX 863<br>Elliptical</h4>
-                                <div class="equipment-status">Đang hoạt động</div>
-                                <p>Cardio ít tác động · Phù hợp giảm mỡ và tăng sức bền.</p>
+                                <div class="equipment-status">Ðang ho?t d?ng</div>
+                                <p>Cardio ít tác d?ng · Phù h?p gi?m m? và tang s?c b?n.</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="why-button-wrap">
                         <a href="#" class="why-equipment-btn">
-                            Xem chi tiết thiết bị
+                            Xem chi ti?t thi?t b?
                             <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 </div>
 
                 <aside class="why-side-panel">
-                    <h3>Thiết bị & tiêu chuẩn</h3>
+                    <h3>Thi?t b? & tiêu chu?n</h3>
 
                     <div class="why-standard-item">
                         <div class="why-standard-icon">
                             <i class="bi bi-box-seam"></i>
                         </div>
                         <div>
-                            <h4>200+ thiết bị hiện đại</h4>
-                            <p>Nhiều dòng máy nhập khẩu, đáp ứng đa dạng mục tiêu tập luyện.</p>
+                            <h4>200+ thi?t b? hi?n d?i</h4>
+                            <p>Nhi?u dòng máy nh?p kh?u, dáp ?ng da d?ng m?c tiêu t?p luy?n.</p>
                         </div>
                     </div>
 
@@ -507,8 +567,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                             <i class="bi bi-calendar-check"></i>
                         </div>
                         <div>
-                            <h4>Bảo trì định kỳ</h4>
-                            <p>Kiểm tra, vệ sinh và bảo dưỡng thiết bị mỗi tuần.</p>
+                            <h4>B?o trì d?nh k?</h4>
+                            <p>Ki?m tra, v? sinh và b?o du?ng thi?t b? m?i tu?n.</p>
                         </div>
                     </div>
 
@@ -517,8 +577,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                             <i class="bi bi-people"></i>
                         </div>
                         <div>
-                            <h4>PT hỗ trợ tại sàn</h4>
-                            <p>Luôn có HLV hướng dẫn hội viên khi cần sử dụng máy.</p>
+                            <h4>PT h? tr? t?i sàn</h4>
+                            <p>Luôn có HLV hu?ng d?n h?i viên khi c?n s? d?ng máy.</p>
                         </div>
                     </div>
 
@@ -527,12 +587,88 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                             <i class="bi bi-grid-3x3-gap"></i>
                         </div>
                         <div>
-                            <h4>5 khu vực tập luyện</h4>
-                            <p>Cardio, tăng cơ, functional, group X và recovery.</p>
+                            <h4>5 khu v?c t?p luy?n</h4>
+                            <p>Cardio, tang co, functional, group X và recovery.</p>
                         </div>
                     </div>
                 </aside>
             </div>
+        </div>
+    </section>
+
+    <section class="home-clubs-section" id="clubs">
+        <div class="container">
+            <div class="home-clubs-heading">
+                <h2>Find a Club</h2>
+                <p>FLEXZONE hi&#7879;n c&oacute; <?php echo count($homeBranches); ?> chi nh&aacute;nh &#273;ang ho&#7841;t &#273;&#7897;ng.</p>
+            </div>
+
+            <?php if (count($homeBranches) > 0): ?>
+                <?php
+                    $branchCities = [];
+
+                    foreach ($homeBranches as $branch) {
+                        $city = trim((string)($branch['city'] ?? ''));
+
+                        if ($city !== '' && !in_array($city, $branchCities, true)) {
+                            $branchCities[] = $city;
+                        }
+                    }
+                ?>
+
+                <div class="home-club-filters" aria-label="L&#7885;c chi nh&aacute;nh theo th&agrave;nh ph&#7889;">
+                    <button class="home-club-filter active" type="button" data-club-filter="all">All</button>
+                    <?php foreach ($branchCities as $city): ?>
+                        <button class="home-club-filter" type="button" data-club-filter="<?php echo h($city); ?>">
+                            <?php echo h(homeBranchCityLabel($city)); ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="home-clubs-grid" data-visible-count="4">
+                    <?php foreach ($homeBranches as $index => $branch): ?>
+                        <?php
+                            $branchName = trim((string)($branch['name'] ?? 'FLEXZONE'));
+                            $branchCity = trim((string)($branch['city'] ?? ''));
+                            $branchAddress = trim((string)($branch['address'] ?? ''));
+                            $branchImage = homeBranchImage($branch, (int)$index, $base_path);
+                            $branchTitle = strtoupper(homeBranchCityLabel($branchCity !== '' ? $branchCity : $branchName));
+                            $branchHref = $base_path . 'user/branches/detail.php?id=' . (int)($branch['id'] ?? 0);
+                        ?>
+                        <article class="home-club-card" data-club-city="<?php echo h($branchCity); ?>" data-club-index="<?php echo (int)$index; ?>">
+                            <div class="home-club-image">
+                                <img src="<?php echo h($branchImage); ?>" alt="<?php echo h($branchName); ?>">
+                            </div>
+
+                            <div class="home-club-info">
+                                <h3><?php echo h($branchTitle); ?></h3>
+
+                                <p class="home-club-address">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span><?php echo h($branchAddress !== '' ? $branchAddress : $branchName); ?></span>
+                                </p>
+
+                                <a class="home-club-more" href="<?php echo h($branchHref); ?>">
+                                    Xem th&ecirc;m
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+
+                <?php if (count($homeBranches) > 4): ?>
+                    <div class="home-club-load-wrap">
+                        <button class="home-club-load" type="button">Load more</button>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="home-clubs-empty">
+                    <i class="bi bi-buildings"></i>
+                    <h3>Ch&#432;a c&oacute; chi nh&aacute;nh</h3>
+                    <p>Vui l&ograve;ng th&ecirc;m d&#7919; li&#7879;u chi nh&aacute;nh trong b&#7843;ng <code>branches</code>.</p>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -770,8 +906,8 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                         <?php
                             $trainerId = (int) ($trainer['id'] ?? 0);
                             $trainerName = trim((string) ($trainer['full_name'] ?? 'HLV FLEXZONE'));
-                            $trainerBio = trim((string) ($trainer['bio'] ?? 'Huấn luyện viên đồng hành cùng hội viên theo mục tiêu tập luyện cụ thể.'));
-                            $trainerSpecialty = trim((string) ($trainer['specialty'] ?? 'Huấn luyện cá nhân'));
+                            $trainerBio = trim((string) ($trainer['bio'] ?? 'Hu?n luy?n viên d?ng hành cùng h?i viên theo m?c tiêu t?p luy?n c? th?.'));
+                            $trainerSpecialty = trim((string) ($trainer['specialty'] ?? 'Hu?n luy?n cá nhân'));
                             $trainerRating = number_format((float) ($trainer['rating'] ?? 0), 1);
                             $trainerExperience = max(0, (int) ($trainer['experience_years'] ?? 0));
                             $trainerAvatar = homeTrainerAvatar($trainer['avatar'] ?? '', $trainerName, $base_path);
@@ -788,13 +924,13 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                                     <p class="home-trainer-bio"><?php echo h($trainerBio); ?></p>
 
                                     <div class="home-trainer-stats">
-                                        <span><i class="bi bi-briefcase"></i><?php echo $trainerExperience; ?> năm kinh nghiệm</span>
-                                        <span><i class="bi bi-star-fill"></i><?php echo h($trainerRating); ?>/5 đánh giá</span>
+                                        <span><i class="bi bi-briefcase"></i><?php echo $trainerExperience; ?> nam kinh nghi?m</span>
+                                        <span><i class="bi bi-star-fill"></i><?php echo h($trainerRating); ?>/5 dánh giá</span>
                                     </div>
 
                                     <div class="home-trainer-actions">
-                                        <a href="<?php echo $base_path; ?>user/trainers/detail.php?id=<?php echo $trainerId; ?>" class="home-trainer-btn home-trainer-btn-outline">Xem hồ sơ</a>
-                                        <a href="<?php echo $base_path; ?>user/trainers/my-bookings.php" class="home-trainer-btn home-trainer-btn-primary">Đặt HLV</a>
+                                        <a href="<?php echo $base_path; ?>user/trainers/detail.php?id=<?php echo $trainerId; ?>" class="home-trainer-btn home-trainer-btn-outline">Xem h? so</a>
+                                        <a href="<?php echo $base_path; ?>user/trainers/my-bookings.php" class="home-trainer-btn home-trainer-btn-primary">Ð?t HLV</a>
                                     </div>
                                 </div>
                             </article>
@@ -803,11 +939,11 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
                 <?php else: ?>
                     <div class="col-12">
                         <div class="info-card text-center">
-                            <h3 class="card-title-user mb-3">Đội ngũ HLV đang được cập nhật</h3>
-                            <p class="card-text-user mb-4">Bạn vẫn có thể xem danh sách huấn luyện viên và gửi yêu cầu tư vấn trực tiếp.</p>
+                            <h3 class="card-title-user mb-3">Ð?i ngu HLV dang du?c c?p nh?t</h3>
+                            <p class="card-text-user mb-4">B?n v?n có th? xem danh sách hu?n luy?n viên và g?i yêu c?u tu v?n tr?c ti?p.</p>
                             <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
                                 <a href="<?php echo $base_path; ?>user/trainers/index.php" class="btn btn-outline-light">Xem danh sách HLV</a>
-                                <a href="<?php echo $base_path; ?>user/trainers/my-bookings.php" class="btn btn-hero-primary">Đặt HLV</a>
+                                <a href="<?php echo $base_path; ?>user/trainers/my-bookings.php" class="btn btn-hero-primary">Ð?t HLV</a>
                             </div>
                         </div>
                     </div>
@@ -820,5 +956,65 @@ $homePackagePricePoints = homePackagePricePoints($homePackages);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="includes/assets/js/why-choose.js?v=why-choose-2"></script>
+    <script>
+        (() => {
+            const grid = document.querySelector('.home-clubs-grid');
+
+            if (!grid) {
+                return;
+            }
+
+            const cards = Array.from(grid.querySelectorAll('.home-club-card'));
+            const filters = Array.from(document.querySelectorAll('.home-club-filter'));
+            const loadButton = document.querySelector('.home-club-load');
+            const pageSize = Number(grid.dataset.visibleCount || 4);
+            let activeCity = 'all';
+            let visibleCount = pageSize;
+
+            const applyClubState = () => {
+                let matchedCount = 0;
+                let shownCount = 0;
+
+                cards.forEach((card) => {
+                    const city = card.dataset.clubCity || '';
+                    const matches = activeCity === 'all' || city === activeCity;
+                    const shouldShow = matches && shownCount < visibleCount;
+
+                    if (matches) {
+                        matchedCount += 1;
+                    }
+
+                    if (shouldShow) {
+                        shownCount += 1;
+                    }
+
+                    card.hidden = !shouldShow;
+                });
+
+                if (loadButton) {
+                    loadButton.hidden = matchedCount <= visibleCount;
+                }
+            };
+
+            filters.forEach((filter) => {
+                filter.addEventListener('click', () => {
+                    activeCity = filter.dataset.clubFilter || 'all';
+                    visibleCount = pageSize;
+
+                    filters.forEach((item) => item.classList.toggle('active', item === filter));
+                    applyClubState();
+                });
+            });
+
+            if (loadButton) {
+                loadButton.addEventListener('click', () => {
+                    visibleCount += pageSize;
+                    applyClubState();
+                });
+            }
+
+            applyClubState();
+        })();
+    </script>
 </body>
 </html>

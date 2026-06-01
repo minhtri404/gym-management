@@ -230,8 +230,8 @@ $price_points = package_price_points($packages);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="../includes/assets/css/user.css">
-    <link rel="stylesheet" href="../includes/assets/css/packages.css?v=package-images-1">
+    <link rel="stylesheet" href="../includes/assets/css/user.css?v=light-1">
+    <link rel="stylesheet" href="../includes/assets/css/packages.css?v=package-light-1">
 </head>
 
 <body class="user-body">
