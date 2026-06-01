@@ -1,12 +1,12 @@
-<?php
-$page_title = "LiÍn h? kh·ch h‡ng";
+Ôªø<?php
+$page_title = 'Li√™n h·ªá kh√°ch h√†ng';
 include __DIR__ . '/../includes/auth-check.php';
 
 $base_path = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
-    die('CSRF token khÙng h?p l?.');
+    die('CSRF token kh√¥ng h·ª£p l·ªá.');
   }
 
   $action = trim($_POST['action'] ?? 'update');
@@ -14,35 +14,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if ($action === 'delete') {
     if ($id > 0) {
-      $stmt = $conn->prepare("DELETE FROM contact_messages WHERE id = ?");
-      $stmt->bind_param("i", $id);
+      $stmt = $conn->prepare('DELETE FROM contact_messages WHERE id = ?');
+      $stmt->bind_param('i', $id);
       $stmt->execute();
       $stmt->close();
     }
 
-    header("Location: contacts.php?delete=success");
+    header('Location: contacts.php?delete=success');
     exit;
   }
 
   $status = trim($_POST['status'] ?? 'new');
   $admin_note = trim($_POST['admin_note'] ?? '');
-
   $allowed_statuses = ['new', 'contacted', 'closed'];
+
   if (!in_array($status, $allowed_statuses, true)) {
     $status = 'new';
   }
 
   if ($id > 0) {
-    $stmt = $conn->prepare("UPDATE contact_messages SET status = ?, admin_note = ? WHERE id = ?");
-    $stmt->bind_param("ssi", $status, $admin_note, $id);
+    $stmt = $conn->prepare('UPDATE contact_messages SET status = ?, admin_note = ? WHERE id = ?');
+    $stmt->bind_param('ssi', $status, $admin_note, $id);
     $stmt->execute();
     $stmt->close();
 
-    header("Location: contacts.php?update=success");
+    header('Location: contacts.php?update=success');
     exit;
   }
 }
-$total_result = $conn->query("SELECT COUNT(*) AS total FROM contact_messages");
+
+$total_result = $conn->query('SELECT COUNT(*) AS total FROM contact_messages');
 $total_contacts = $total_result ? (int) $total_result->fetch_assoc()['total'] : 0;
 
 $new_result = $conn->query("SELECT COUNT(*) AS total FROM contact_messages WHERE status = 'new'");
@@ -62,13 +63,13 @@ $params = [];
 $types = '';
 
 if ($filter_status !== '' && in_array($filter_status, ['new', 'contacted', 'closed'], true)) {
-  $where_conditions[] = "status = ?";
+  $where_conditions[] = 'status = ?';
   $params[] = $filter_status;
   $types .= 's';
 }
 
 if ($keyword !== '') {
-  $where_conditions[] = "(full_name LIKE ? OR phone LIKE ? OR email LIKE ? OR subject LIKE ?)";
+  $where_conditions[] = '(full_name LIKE ? OR phone LIKE ? OR email LIKE ? OR subject LIKE ?)';
   $keyword_like = '%' . $keyword . '%';
   $params[] = $keyword_like;
   $params[] = $keyword_like;
@@ -102,7 +103,7 @@ if (!empty($params)) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LiÍn h? kh·ch h‡ng - Gym Management</title>
+  <title>Li√™n h·ªá kh√°ch h√†ng - Gym Management</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -110,7 +111,6 @@ if (!empty($params)) {
 </head>
 
 <body class="dashboard-page">
-
   <div class="d-flex dashboard-wrapper">
     <?php include __DIR__ . '/../includes/sidebar.php'; ?>
 
@@ -119,22 +119,20 @@ if (!empty($params)) {
 
       <div class="container-fluid p-4">
         <?php if (isset($_GET['update']) && $_GET['update'] === 'success'): ?>
-          <div class="alert alert-success">C?p nh?t liÍn h? th‡nh cÙng.</div>
+          <div class="alert alert-success">C·∫≠p nh·∫≠t li√™n h·ªá th√†nh c√¥ng.</div>
         <?php endif; ?>
 
         <?php if (isset($_GET['delete']) && $_GET['delete'] === 'success'): ?>
-          <div class="alert alert-success">XÛa liÍn h? th‡nh cÙng.</div>
+          <div class="alert alert-success">X√≥a li√™n h·ªá th√†nh c√¥ng.</div>
         <?php endif; ?>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h4 class="mb-1">Qu?n l˝ liÍn h? kh·ch h‡ng</h4>
-            <p class="text-muted mb-0">Theo dıi yÍu c?u liÍn h?, tÏnh tr?ng x? l˝ v‡ ghi ch˙ cham sÛc kh·ch h‡ng.</p>
+            <h4 class="mb-1">Qu·∫£n l√Ω li√™n h·ªá kh√°ch h√†ng</h4>
+            <p class="text-muted mb-0">Theo d√µi y√™u c·∫ßu li√™n h·ªá, t√¨nh tr·∫°ng x·ª≠ l√Ω v√† ghi ch√∫ chƒÉm s√≥c kh√°ch h√†ng.</p>
           </div>
           <div>
-            <a href="contact-form.php" target="_blank" class="btn btn-outline-primary">
-              Xem form liÍn h? public
-            </a>
+            <a href="contact-form.php" target="_blank" class="btn btn-outline-primary">Xem form li√™n h·ªá public</a>
           </div>
         </div>
 
@@ -142,7 +140,7 @@ if (!empty($params)) {
           <div class="col-md-6 col-xl-3">
             <div class="card border-0 shadow-sm h-100">
               <div class="card-body">
-                <div class="text-muted mb-2">T?ng yÍu c?u</div>
+                <div class="text-muted mb-2">T·ªïng y√™u c·∫ßu</div>
                 <h3 class="mb-0"><?php echo $total_contacts; ?></h3>
               </div>
             </div>
@@ -150,7 +148,7 @@ if (!empty($params)) {
           <div class="col-md-6 col-xl-3">
             <div class="card border-0 shadow-sm h-100">
               <div class="card-body">
-                <div class="text-muted mb-2">M?i</div>
+                <div class="text-muted mb-2">M·ªõi</div>
                 <h3 class="mb-0 text-primary"><?php echo $new_contacts; ?></h3>
               </div>
             </div>
@@ -158,7 +156,7 @@ if (!empty($params)) {
           <div class="col-md-6 col-xl-3">
             <div class="card border-0 shadow-sm h-100">
               <div class="card-body">
-                <div class="text-muted mb-2">–„ liÍn h?</div>
+                <div class="text-muted mb-2">ƒê√£ li√™n h·ªá</div>
                 <h3 class="mb-0 text-warning"><?php echo $contacted_contacts; ?></h3>
               </div>
             </div>
@@ -166,51 +164,50 @@ if (!empty($params)) {
           <div class="col-md-6 col-xl-3">
             <div class="card border-0 shadow-sm h-100">
               <div class="card-body">
-                <div class="text-muted mb-2">–„ dÛng</div>
+                <div class="text-muted mb-2">ƒê√£ ƒë√≥ng</div>
                 <h3 class="mb-0 text-success"><?php echo $closed_contacts; ?></h3>
               </div>
             </div>
           </div>
         </div>
 
-        <form method="GET" class="row g-3 align-items-end">
+        <form method="GET" class="row g-3 align-items-end mb-4">
           <div class="col-md-4">
-            <label class="form-label">TÏm ki?m</label>
+            <label class="form-label">T√¨m ki·∫øm</label>
             <input
               type="text"
               name="keyword"
               class="form-control"
-              placeholder="TÍn / S–T / Email / Ch? d?"
+              placeholder="T√™n / SƒêT / Email / Ch·ªß ƒë·ªÅ"
               value="<?php echo htmlspecialchars($keyword); ?>">
           </div>
 
           <div class="col-md-4">
-            <label class="form-label">L?c theo tr?ng th·i</label>
+            <label class="form-label">L·ªçc theo tr·∫°ng th√°i</label>
             <select name="status" class="form-select">
-              <option value="">T?t c?</option>
-              <option value="new" <?php echo $filter_status === 'new' ? 'selected' : ''; ?>>M?i</option>
-              <option value="contacted" <?php echo $filter_status === 'contacted' ? 'selected' : ''; ?>>–„ liÍn h?</option>
-              <option value="closed" <?php echo $filter_status === 'closed' ? 'selected' : ''; ?>>–„ dÛng</option>
+              <option value="">T·∫•t c·∫£</option>
+              <option value="new" <?php echo $filter_status === 'new' ? 'selected' : ''; ?>>M·ªõi</option>
+              <option value="contacted" <?php echo $filter_status === 'contacted' ? 'selected' : ''; ?>>ƒê√£ li√™n h·ªá</option>
+              <option value="closed" <?php echo $filter_status === 'closed' ? 'selected' : ''; ?>>ƒê√£ ƒë√≥ng</option>
             </select>
           </div>
 
           <div class="col-md-auto">
             <button type="submit" class="btn btn-primary">
-              <i class="bi bi-search me-1"></i> TÏm / L?c
+              <i class="bi bi-search me-1"></i>T√¨m / L·ªçc
             </button>
           </div>
 
           <div class="col-md-auto">
             <a href="contacts.php" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-clockwise me-1"></i> Reset
+              <i class="bi bi-arrow-clockwise me-1"></i>ƒê·∫∑t l·∫°i
             </a>
           </div>
         </form>
-                      
 
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="mb-0">Danh s·ch yÍu c?u liÍn h?</h5>
+            <h5 class="mb-0">Danh s√°ch y√™u c·∫ßu li√™n h·ªá</h5>
           </div>
           <div class="card-body px-4 pb-4">
             <div class="table-responsive">
@@ -218,12 +215,12 @@ if (!empty($params)) {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Kh·ch h‡ng</th>
-                    <th>Ch? d?</th>
-                    <th>N?i dung</th>
-                    <th>Tr?ng th·i</th>
-                    <th>Ng‡y g?i</th>
-                    <th class="text-end">X? l˝</th>
+                    <th>Kh√°ch h√†ng</th>
+                    <th>Ch·ªß ƒë·ªÅ</th>
+                    <th>N·ªôi dung</th>
+                    <th>Tr·∫°ng th√°i</th>
+                    <th>Ng√†y g·ª≠i</th>
+                    <th class="text-end">X·ª≠ l√Ω</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,24 +230,24 @@ if (!empty($params)) {
                         <td>#<?php echo str_pad($row['id'], 3, '0', STR_PAD_LEFT); ?></td>
                         <td>
                           <div class="fw-semibold"><?php echo htmlspecialchars($row['full_name']); ?></div>
-                          <div class="small text-muted">S–T: <?php echo htmlspecialchars($row['phone']); ?></div>
-                          <div class="small text-muted">Email: <?php echo htmlspecialchars($row['email'] ?: 'Chua cÛ'); ?></div>
-                          <div class="small text-muted">Uu tiÍn: <?php echo htmlspecialchars($row['preferred_contact_method']); ?></div>
+                          <div class="small text-muted">SƒêT: <?php echo htmlspecialchars($row['phone']); ?></div>
+                          <div class="small text-muted">Email: <?php echo htmlspecialchars($row['email'] ?: 'Ch∆∞a c√≥'); ?></div>
+                          <div class="small text-muted">∆Øu ti√™n: <?php echo htmlspecialchars($row['preferred_contact_method']); ?></div>
                         </td>
                         <td><?php echo htmlspecialchars($row['subject']); ?></td>
                         <td style="min-width: 240px;">
                           <div><?php echo nl2br(htmlspecialchars($row['message'])); ?></div>
                           <?php if (!empty($row['admin_note'])): ?>
-                            <div class="mt-2 small text-muted"><strong>Ghi ch˙:</strong> <?php echo htmlspecialchars($row['admin_note']); ?></div>
+                            <div class="mt-2 small text-muted"><strong>Ghi ch√∫:</strong> <?php echo htmlspecialchars($row['admin_note']); ?></div>
                           <?php endif; ?>
                         </td>
                         <td>
                           <?php if ($row['status'] === 'new'): ?>
-                            <span class="badge bg-primary">M?i</span>
+                            <span class="badge bg-primary">M·ªõi</span>
                           <?php elseif ($row['status'] === 'contacted'): ?>
-                            <span class="badge bg-warning text-dark">–„ liÍn h?</span>
+                            <span class="badge bg-warning text-dark">ƒê√£ li√™n h·ªá</span>
                           <?php else: ?>
-                            <span class="badge bg-success">–„ dÛng</span>
+                            <span class="badge bg-success">ƒê√£ ƒë√≥ng</span>
                           <?php endif; ?>
                         </td>
                         <td><?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?></td>
@@ -261,9 +258,9 @@ if (!empty($params)) {
 
                             <div class="col-12">
                               <select name="status" class="form-select form-select-sm">
-                                <option value="new" <?php echo $row['status'] === 'new' ? 'selected' : ''; ?>>M?i</option>
-                                <option value="contacted" <?php echo $row['status'] === 'contacted' ? 'selected' : ''; ?>>–„ liÍn h?</option>
-                                <option value="closed" <?php echo $row['status'] === 'closed' ? 'selected' : ''; ?>>–„ dÛng</option>
+                                <option value="new" <?php echo $row['status'] === 'new' ? 'selected' : ''; ?>>M·ªõi</option>
+                                <option value="contacted" <?php echo $row['status'] === 'contacted' ? 'selected' : ''; ?>>ƒê√£ li√™n h·ªá</option>
+                                <option value="closed" <?php echo $row['status'] === 'closed' ? 'selected' : ''; ?>>ƒê√£ ƒë√≥ng</option>
                               </select>
                             </div>
 
@@ -272,23 +269,24 @@ if (!empty($params)) {
                                 type="text"
                                 name="admin_note"
                                 class="form-control form-control-sm"
-                                placeholder="Ghi ch˙ x? l˝"
+                                placeholder="Ghi ch√∫ x·ª≠ l√Ω"
                                 value="<?php echo htmlspecialchars($row['admin_note'] ?? ''); ?>">
                             </div>
 
                             <div class="col-12">
                               <input type="hidden" name="action" value="update">
                               <button type="submit" class="btn btn-sm btn-warning w-100">
-                                <i class="bi bi-save me-1"></i> C?p nh?t
+                                <i class="bi bi-save me-1"></i>C·∫≠p nh·∫≠t
                               </button>
                             </div>
                           </form>
-                          <form method="POST" class="mt-2" onsubmit="return confirm('XÛa liÍn h? n‡y?');">
+
+                          <form method="POST" class="mt-2" onsubmit="return confirm('X√≥a li√™n h·ªá n√†y?');">
                             <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                             <input type="hidden" name="action" value="delete">
                             <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                              <i class="bi bi-trash me-1"></i> XÛa
+                              <i class="bi bi-trash me-1"></i>X√≥a
                             </button>
                           </form>
                         </td>
@@ -296,7 +294,7 @@ if (!empty($params)) {
                     <?php endwhile; ?>
                   <?php else: ?>
                     <tr>
-                      <td colspan="7" class="text-center text-muted">Chua cÛ yÍu c?u liÍn h? n‡o.</td>
+                      <td colspan="7" class="text-center text-muted">Ch∆∞a c√≥ y√™u c·∫ßu li√™n h·ªá n√†o.</td>
                     </tr>
                   <?php endif; ?>
                 </tbody>
@@ -304,7 +302,6 @@ if (!empty($params)) {
             </div>
           </div>
         </div>
-
       </div>
     </main>
   </div>
@@ -313,6 +310,3 @@ if (!empty($params)) {
 </body>
 
 </html>
-
-
-

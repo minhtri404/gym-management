@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include __DIR__ . '/../includes/auth-check.php';
 $page_title = 'Tổng quan';
 // Biến này sẽ được dùng trong sidebar.php để đánh dấu menu nào đang active

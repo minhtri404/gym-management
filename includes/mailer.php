@@ -73,3 +73,45 @@ function sendOTP($toEmail, $otp)
 
     $mail->send();
 }
+function sendPasswordResetOTP($toEmail, $otp)
+{
+    $mailHost = get_mail_config_value('MAIL_HOST', 'smtp.gmail.com');
+    $mailPort = (int)get_mail_config_value('MAIL_PORT', '587');
+    $mailUsername = get_mail_config_value('MAIL_USERNAME');
+    $mailPassword = get_mail_config_value('MAIL_PASSWORD');
+    $mailEncryption = strtolower(get_mail_config_value('MAIL_ENCRYPTION', 'tls'));
+    $mailFromAddress = get_mail_config_value('MAIL_FROM_ADDRESS', $mailUsername);
+    $mailFromName = get_mail_config_value('MAIL_FROM_NAME', 'Gym System');
+
+    if ($mailUsername === '' || $mailPassword === '' || $mailFromAddress === '') {
+        throw new Exception('MAIL_USERNAME, MAIL_PASSWORD hoặc MAIL_FROM_ADDRESS chưa được cấu hình.');
+    }
+
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $mailHost;
+    $mail->SMTPAuth = true;
+    $mail->CharSet = 'UTF-8';
+
+    $mail->Username = $mailUsername;
+    $mail->Password = $mailPassword;
+
+    $mail->SMTPSecure = $mailEncryption;
+    $mail->Port = $mailPort;
+
+    $mail->setFrom($mailFromAddress, $mailFromName);
+    $mail->addAddress($toEmail);
+
+    $mail->isHTML(true);
+    $mail->Subject = 'OTP dat lai mat khau - Gym Management';
+    $mail->Body = "
+        <h3>Đặt lại mật khẩu</h3>
+        <p>Mã OTP của bạn là:</p>
+        <h2 style='letter-spacing:4px;'>$otp</h2>
+        <p>Mã này có hiệu lực trong 5 phút.</p>
+        <p>Nếu bạn không yêu cầu đổi mật khẩu, hãy bỏ qua email này.</p>
+    ";
+
+    $mail->send();
+}

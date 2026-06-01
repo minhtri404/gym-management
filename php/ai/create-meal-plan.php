@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include __DIR__ . '/../../includes/auth-check.php';
 
 $base_path = '../../admin/';
@@ -7,15 +7,15 @@ function getMealGoalLabel($goal)
 {
     switch ($goal) {
         case 'weight-loss':
-            return 'Gi?m c�n';
+            return 'Giảm cân';
         case 'muscle-gain':
-            return 'Tang co';
+            return 'Tăng cơ';
         case 'weight-gain':
-            return 'Tang c�n';
+            return 'Tăng cân';
         case 'maintain':
-            return 'Gi? d�ng';
+            return 'Giữ dáng';
         default:
-            return 'Chua x�c d?nh';
+            return 'Chưa xác định';
     }
 }
 
@@ -23,13 +23,13 @@ function getBodyTypeLabel($bodyType)
 {
     switch ($bodyType) {
         case 'thin':
-            return 'G?y';
+            return 'Gầy';
         case 'normal':
-            return 'B�nh thu?ng';
+            return 'Bình thường';
         case 'overweight':
-            return 'Th?a c�n';
+            return 'Thừa cân';
         default:
-            return 'Chua x�c d?nh';
+            return 'Chưa xác định';
     }
 }
 
@@ -38,33 +38,33 @@ function buildFallbackMealPlan($memberName, $goal, $bodyType, $mealsPerDay, $hea
     $goalLabel = getMealGoalLabel($goal);
     $bodyTypeLabel = getBodyTypeLabel($bodyType);
 
-    $text = "K? ho?ch dinh du?ng cho {$memberName}\n";
-    $text .= "M?c ti�u: {$goalLabel}\n";
-    $text .= "Th? tr?ng: {$bodyTypeLabel}\n";
-    $text .= "S? b?a/ng�y: {$mealsPerDay}\n\n";
+    $text = "Kế hoạch dinh dưỡng cho {$memberName}\n";
+    $text .= "Mục tiêu: {$goalLabel}\n";
+    $text .= "Thể trạng: {$bodyTypeLabel}\n";
+    $text .= "Số bữa/ngày: {$mealsPerDay}\n\n";
 
-    $mealNames = ['B?a s�ng', 'B?a trua', 'B?a t?i', 'B?a ph? 1', 'B?a ph? 2', 'B?a nh?'];
+    $mealNames = ['Bữa sáng', 'Bữa trưa', 'Bữa tối', 'Bữa phụ 1', 'Bữa phụ 2', 'Bữa nhẹ'];
     for ($i = 0; $i < $mealsPerDay; $i++) {
-        $label = $mealNames[$i] ?? ('B?a ' . ($i + 1));
+        $label = $mealNames[$i] ?? ('Bữa ' . ($i + 1));
         $text .= $label . ":\n";
-        $text .= "- 1 ngu?n d?m s?ch\n";
-        $text .= "- 1 ph?n tinh b?t ph� h?p\n";
-        $text .= "- Rau xanh ho?c tr�i c�y\n";
-        $text .= "- U?ng d? nu?c\n\n";
+        $text .= "- 1 nguồn đạm sạch\n";
+        $text .= "- 1 phần tinh bột phù hợp\n";
+        $text .= "- Rau xanh hoặc trái cây\n";
+        $text .= "- Uống đủ nước\n\n";
     }
 
     if ($healthNote !== '') {
-        $text .= "Luu � s?c kh?e / an u?ng: {$healthNote}\n";
+        $text .= "Lưu ý sức khỏe / ăn uống: {$healthNote}\n";
     }
 
     if ($goal === 'weight-loss') {
-        $text .= "Uu ti�n gi?m d? ng?t, d? chi�n, nu?c c� gas.\n";
+        $text .= "Ưu tiên giảm đồ ngọt, đồ chiên, nước có gas.\n";
     } elseif ($goal === 'muscle-gain') {
-        $text .= "Uu ti�n tang d?m, chia d?u c�c b?a v� an d? sau t?p.\n";
+        $text .= "Ưu tiên tăng đạm, chia đều các bữa và ăn đủ sau tập.\n";
     } elseif ($goal === 'weight-gain') {
-        $text .= "Uu ti�n tang t?ng nang lu?ng l�nh m?nh v� th�m b?a ph?.\n";
+        $text .= "Ưu tiên tăng tổng năng lượng lành mạnh và thêm bữa phụ.\n";
     } else {
-        $text .= "Uu ti�n an c�n b?ng, duy tr� d?u v� ng? ngh? h?p l�.\n";
+        $text .= "Ưu tiên ăn cân bằng, duy trì đều và ngủ nghỉ hợp lý.\n";
     }
 
     return trim($text);
@@ -76,59 +76,59 @@ function callGeminiMealPlan($apiKey, $memberName, $goal, $bodyType, $mealsPerDay
     $bodyTypeLabel = getBodyTypeLabel($bodyType);
 
     $prompt = "
-B?n l� chuy�n gia dinh du?ng cho ph�ng gym.
+Bạn là chuyên gia dinh dưỡng cho phòng gym.
 
-H�y t?o k? ho?ch an u?ng b?ng ti?ng Vi?t cho h?i vi�n v?i th�ng tin sau:
-- H? t�n: {$memberName}
-- M?c ti�u: {$goalLabel}
-- Th? tr?ng: {$bodyTypeLabel}
-- S? b?a m?i ng�y: {$mealsPerDay}
-- Luu � s?c kh?e / an u?ng: {$healthNote}
+Hãy tạo kế hoạch ăn uống bằng tiếng Việt cho hội viên với thông tin sau:
+- Họ tên: {$memberName}
+- Mục tiêu: {$goalLabel}
+- Thể trạng: {$bodyTypeLabel}
+- Số bữa mỗi ngày: {$mealsPerDay}
+- Lưu ý sức khỏe / ăn uống: {$healthNote}
 
-Y�u c?u b?t bu?c:
-1. Chia r� theo t?ng b?a trong ng�y.
-2. M?i b?a ph?i b?t d?u d�ng d?nh d?ng: B?a 1:, B?a 2:, B?a 3:...
-3. Sau ti�u d? m?i b?a, li?t k� m�n an b?ng d?u g?ch d?u d�ng '-'.
-4. M?i m�n n�n ghi kh?u ph?n tuong d?i, v� d?: 150g ?c g�, 1 ch�n com, 1 qu? chu?i.
-5. C� th? th�m 1 d�ng ghi ch� ng?n cho t?ng b?a n?u c?n.
-6. N?i dung th?c t?, d? mua, d? �p d?ng ? Vi?t Nam.
-7. Ph� h?p m?c ti�u tang co / gi?m m? / gi? d�ng c?a h?i vi�n.
-8. N?u c� luu � s?c kh?e ho?c d? ?ng th� ph?i di?u ch?nh th?c don theo luu � d�.
-9. Kh�ng vi?t m? d?u d�i d�ng, kh�ng vi?t k?t lu?n d�i.
-10. Kh�ng d�ng b?ng markdown.
-11. Kh�ng d�ng k� hi?u l?, ch? d�ng van b?n thu?n d? hi?n th? tr�n website.
+Yêu cầu bắt buộc:
+1. Chia rõ theo từng bữa trong ngày.
+2. Mỗi bữa phải bắt đầu đúng định dạng: Bữa 1:, Bữa 2:, Bữa 3:...
+3. Sau tiêu đề mỗi bữa, liệt kê món ăn bằng dấu gạch đầu dòng '-'.
+4. Mỗi món nên ghi khẩu phần tương đối, ví dụ: 150g ức gà, 1 chén cơm, 1 quả chuối.
+5. Có thể thêm 1 dòng ghi chú ngắn cho từng bữa nếu cần.
+6. Nội dung thực tế, dễ mua, dễ áp dụng ở Việt Nam.
+7. Phù hợp mục tiêu tăng cơ / giảm mỡ / giữ dáng của hội viên.
+8. Nếu có lưu ý sức khỏe hoặc dị ứng thì phải điều chỉnh thực đơn theo lưu ý đó.
+9. Không viết mở đầu dài dòng, không viết kết luận dài.
+10. Không dùng bảng markdown.
+11. Không dùng ký hiệu lạ, chỉ dùng văn bản thuần để hiển thị trên website.
 
-M?u b?t bu?c ph?i gi?ng nhu sau:
+Mẫu bắt buộc phải giống như sau:
 
-B?a 1: B?a s�ng
-- Y?n m?ch: 50g
-- Tr?ng lu?c: 2 qu?
-- Chu?i: 1 qu?
-- Ghi ch�: Uu ti�n d?m v� tinh b?t h?p thu ch?m
+Bữa 1: Bữa sáng
+- Yến mạch: 50g
+- Trứng luộc: 2 quả
+- Chuối: 1 quả
+- Ghi chú: Ưu tiên đạm và tinh bột hấp thu chậm
 
-B?a 2: B?a ph?
-- S?a chua kh�ng du?ng: 1 hu
-- H?nh nh�n: 15g
+Bữa 2: Bữa phụ
+- Sữa chua không đường: 1 hũ
+- Hạnh nhân: 15g
 
-B?a 3: B?a trua
-- ?c g� �p ch?o: 150g
-- Com g?o l?t: 1 ch�n
-- Rau lu?c: 1 dia
+Bữa 3: Bữa trưa
+- Ức gà áp chảo: 150g
+- Cơm gạo lứt: 1 chén
+- Rau luộc: 1 đĩa
 
-Ch? tr? v? n?i dung k? ho?ch dinh du?ng d�ng format tr�n.
+Chỉ trả về nội dung kế hoạch dinh dưỡng đúng format trên.
 ";
 
     $payload = [
         'contents' => [
             [
                 'parts' => [
-                    ['text' => $prompt]
-                ]
-            ]
+                    ['text' => $prompt],
+                ],
+            ],
         ],
         'generationConfig' => [
-            'temperature' => 0.7
-        ]
+            'temperature' => 0.7,
+        ],
     ];
 
     $url = 'https://generativelanguage.googleapis.com/v1/models/' . $model . ':generateContent?key=' . urlencode($apiKey);
@@ -138,10 +138,10 @@ Ch? tr? v? n?i dung k? ho?ch dinh du?ng d�ng format tr�n.
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json'
+            'Content-Type: application/json',
         ],
         CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
-        CURLOPT_TIMEOUT => 60
+        CURLOPT_TIMEOUT => 60,
     ]);
 
     $response = curl_exec($ch);
@@ -150,13 +150,13 @@ Ch? tr? v? n?i dung k? ho?ch dinh du?ng d�ng format tr�n.
     curl_close($ch);
 
     if ($response === false || $curlError !== '') {
-        throw new Exception('Kh�ng g?i du?c Gemini API: ' . $curlError);
+        throw new Exception('Không gọi được Gemini API: ' . $curlError);
     }
 
     $decoded = json_decode($response, true);
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        $message = 'Gemini API l?i';
+        $message = 'Gemini API lỗi';
         if (!empty($decoded['error']['message'])) {
             $message .= ': ' . $decoded['error']['message'];
         }
@@ -164,11 +164,9 @@ Ch? tr? v? n?i dung k? ho?ch dinh du?ng d�ng format tr�n.
         throw new Exception($message);
     }
 
-    $text = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
-    $text = trim($text);
-
+    $text = trim($decoded['candidates'][0]['content']['parts'][0]['text'] ?? '');
     if ($text === '') {
-        throw new Exception('Gemini kh�ng tr? v? n?i dung h?p l?.');
+        throw new Exception('Gemini không trả về nội dung hợp lệ.');
     }
 
     return $text;
@@ -214,7 +212,7 @@ function callGeminiMealPlanWithRetry($apiKey, $memberName, $goal, $bodyType, $me
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: " . $base_path . "meal-plans.php");
+    header('Location: ' . $base_path . 'meal-plans.php');
     exit();
 }
 
@@ -224,42 +222,42 @@ if (
     $csrf_token === '' ||
     !hash_equals($_SESSION['csrf_token'], $csrf_token)
 ) {
-    die('CSRF token kh�ng h?p l?.');
+    die('CSRF token không hợp lệ.');
 }
 
-$member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
+$member_id = isset($_POST['member_id']) ? (int) $_POST['member_id'] : 0;
 $goal = trim($_POST['goal'] ?? '');
 $body_type = trim($_POST['body_type'] ?? '');
-$meals_per_day = isset($_POST['meals_per_day']) ? (int)$_POST['meals_per_day'] : 0;
+$meals_per_day = isset($_POST['meals_per_day']) ? (int) $_POST['meals_per_day'] : 0;
 $health_note = trim($_POST['health_note'] ?? '');
 
 if ($member_id <= 0 || $goal === '' || $body_type === '' || $meals_per_day <= 0) {
-    header("Location: " . $base_path . "meal-plans.php?error=missing_fields");
+    header('Location: ' . $base_path . 'meal-plans.php?error=missing_fields');
     exit();
 }
 
-$stmtMember = $conn->prepare("SELECT id, full_name FROM members WHERE id = ? LIMIT 1");
-$stmtMember->bind_param("i", $member_id);
+$stmtMember = $conn->prepare('SELECT id, full_name FROM members WHERE id = ? LIMIT 1');
+$stmtMember->bind_param('i', $member_id);
 $stmtMember->execute();
 $resultMember = $stmtMember->get_result();
 $member = $resultMember ? $resultMember->fetch_assoc() : null;
 $stmtMember->close();
 
 if (!$member) {
-    header("Location: " . $base_path . "meal-plans.php?error=member_not_found");
+    header('Location: ' . $base_path . 'meal-plans.php?error=member_not_found');
     exit();
 }
 
-$ai_prompt = "M?c ti�u: " . getMealGoalLabel($goal)
-    . " | Th? tr?ng: " . getBodyTypeLabel($body_type)
-    . " | S? b?a/ng�y: " . $meals_per_day
-    . " | Luu � an u?ng: " . $health_note;
+$ai_prompt = 'Mục tiêu: ' . getMealGoalLabel($goal)
+    . ' | Thể trạng: ' . getBodyTypeLabel($body_type)
+    . ' | Số bữa/ngày: ' . $meals_per_day
+    . ' | Lưu ý ăn uống: ' . $health_note;
 
 $ai_response = '';
 
 try {
     if (!isset($gemini_api_key) || trim($gemini_api_key) === '') {
-        header("Location: " . $base_path . "meal-plans.php?error=gemini_key_missing");
+        header('Location: ' . $base_path . 'meal-plans.php?error=gemini_key_missing');
         exit();
     }
 
@@ -273,7 +271,7 @@ try {
     );
 } catch (Exception $e) {
     error_log('Gemini meal error: ' . $e->getMessage());
-    $ai_response = "[K? ho?ch d? ph�ng]\n" . buildFallbackMealPlan(
+    $ai_response = "[Kế hoạch dự phòng]\n" . buildFallbackMealPlan(
         $member['full_name'],
         $goal,
         $body_type,
@@ -284,7 +282,7 @@ try {
 
 $status = 'active';
 
-$stmtInsert = $conn->prepare("
+$stmtInsert = $conn->prepare('
     INSERT INTO ai_meal_plans (
         member_id,
         goal,
@@ -295,9 +293,9 @@ $stmtInsert = $conn->prepare("
         ai_response,
         status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-");
+');
 $stmtInsert->bind_param(
-    "ississss",
+    'ississss',
     $member_id,
     $goal,
     $body_type,
@@ -310,13 +308,11 @@ $stmtInsert->bind_param(
 
 if (!$stmtInsert->execute()) {
     $stmtInsert->close();
-    header("Location: " . $base_path . "meal-plans.php?error=save_failed");
+    header('Location: ' . $base_path . 'meal-plans.php?error=save_failed');
     exit();
 }
 
 $stmtInsert->close();
 
-header("Location: " . $base_path . "meal-plans.php?success=1&member_id=" . $member_id);
+header('Location: ' . $base_path . 'meal-plans.php?success=1&member_id=' . $member_id);
 exit();
-
-

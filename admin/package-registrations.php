@@ -1,243 +1,88 @@
 <?php
-$page_title = "–ang k˝ gÛi";
+$page_title = 'ƒêƒÉng k√Ω g√≥i';
 include __DIR__ . '/../includes/auth-check.php';
 
 $base_path = '';
 
+function registration_status_badge(string $status): string
+{
+    return match ($status) {
+        'new' => '<span class="badge bg-primary">ƒê√£ ƒëƒÉng k√Ω</span>',
+        'contacted' => '<span class="badge bg-warning text-dark">ƒê√£ li√™n h·ªá</span>',
+        'closed' => '<span class="badge bg-success">ƒê√£ x·ª≠ l√Ω</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>',
+    };
+}
+
+function payment_method_label(?int $paymentId): string
+{
+    return $paymentId > 0 ? 'Online / VNPAY' : 'T·∫°i ph√≤ng';
+}
+
+function payment_status_badge(string $paymentStatus, ?int $paymentId): string
+{
+    if (($paymentId ?? 0) <= 0) {
+        return '<span class="badge bg-secondary">Thanh to√°n t·∫°i ph√≤ng</span>';
+    }
+
+    return match ($paymentStatus) {
+        'paid' => '<span class="badge bg-success">ƒê√£ thanh to√°n online</span>',
+        'pending' => '<span class="badge bg-warning text-dark">Ch·ªù thanh to√°n online</span>',
+        'failed' => '<span class="badge bg-danger">Thanh to√°n online th·∫•t b·∫°i</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($paymentStatus) . '</span>',
+    };
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
-        die('CSRF token khÙng h?p l?.');
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || $csrf_token === '' || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        die('CSRF token kh√¥ng h·ª£p l·ªá.');
     }
 
     $action = trim($_POST['action'] ?? 'update');
     $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
 
-    if ($action === 'delete') {
-        if ($id > 0) {
-            $stmt = $conn->prepare("DELETE FROM package_registrations WHERE id = ?");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $stmt->close();
-        }
-
-        header("Location: package-registrations.php?delete=success");
-        exit;
-    }
-
-    if ($action === 'approve' && $id > 0) {
-        $conn->begin_transaction();
-        try {
-            $stmt = $conn->prepare("SELECT id, full_name, phone, email, note, package_id, date_of_birth, address FROM package_registrations WHERE id = ? LIMIT 1");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $registration = $result ? $result->fetch_assoc() : null;
-            $stmt->close();
-
-            if (!$registration) {
-                throw new Exception('KhÙng tÏm th?y dang k˝.');
-            }
-
-            $stmt = $conn->prepare("SELECT id FROM members WHERE phone = ? LIMIT 1");
-            $stmt->bind_param("s", $registration['phone']);
-            $stmt->execute();
-            $exists = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-
-            if (!$registration) {
-                throw new Exception('KhÙng tÏm th?y dang k˝.');
-            }
-
-            // BU?C 1: TÏm h?i viÍn theo S–T ho?c email, d˘ng l?i n?u t?n t?i, n?u khÙng thÏ t?o m?i
-            $phone = $registration['phone'];
-            $email = $registration['email'];
-            $full_name = $registration['full_name'];
-
-            $stmtCheck = $conn->prepare("SELECT id FROM members WHERE phone = ? OR email = ? LIMIT 1");
-            $stmtCheck->bind_param("ss", $phone, $email);
-            $stmtCheck->execute();
-            $resultCheck = $stmtCheck->get_result();
-
-            if ($row = $resultCheck->fetch_assoc()) {
-                $member_id = (int) $row['id'];
-                $stmtCheck->close();
-
-                // N?u h?i viÍn d„ t?n t?i: c?p nh?t nh?ng tru?ng cÚn thi?u t? dang k˝ (khÙng ghi dË d? li?u d„ cÛ)
-                $stmtM = $conn->prepare("SELECT full_name, date_of_birth, address FROM members WHERE id = ? LIMIT 1");
-                $stmtM->bind_param("i", $member_id);
-                $stmtM->execute();
-                $existingMember = $stmtM->get_result()->fetch_assoc();
-                $stmtM->close();
-
-                $updateFields = [];
-                $updateParams = [];
-                $updateTypes = '';
-
-                if ((empty($existingMember['full_name']) || $existingMember['full_name'] === '') && !empty($full_name)) {
-                    $updateFields[] = 'full_name = ?';
-                    $updateParams[] = $full_name;
-                    $updateTypes .= 's';
-                }
-                if ((empty($existingMember['date_of_birth']) || $existingMember['date_of_birth'] === '') && !empty($registration['date_of_birth'])) {
-                    $updateFields[] = 'date_of_birth = ?';
-                    $updateParams[] = $registration['date_of_birth'];
-                    $updateTypes .= 's';
-                }
-                if ((empty($existingMember['address']) || $existingMember['address'] === '') && !empty($registration['address'])) {
-                    $updateFields[] = 'address = ?';
-                    $updateParams[] = $registration['address'];
-                    $updateTypes .= 's';
-                }
-
-                if (!empty($updateFields)) {
-                    $sql = 'UPDATE members SET ' . implode(', ', $updateFields) . ' WHERE id = ?';
-                    $stmtU = $conn->prepare($sql);
-                    // bind params dynamically
-                    $updateTypes .= 'i';
-                    $updateParams[] = $member_id;
-                    $stmtU->bind_param($updateTypes, ...$updateParams);
-                    $stmtU->execute();
-                    $stmtU->close();
-                }
-            } else {
-                $stmtCheck->close();
-
-                // N?u khÙng cÛ trong members, th? tÏm trong users (ngu?i d˘ng d„ t?o t‡i kho?n)
-                $stmtUser = $conn->prepare("SELECT id, full_name, phone, email FROM users WHERE phone = ? OR email = ? LIMIT 1");
-                $stmtUser->bind_param("ss", $phone, $email);
-                $stmtUser->execute();
-                $userRow = $stmtUser->get_result()->fetch_assoc();
-                $stmtUser->close();
-
-                if ($userRow) {
-                    // T?o member t? d? li?u user hi?n cÛ
-                    $stmtInsert = $conn->prepare("INSERT INTO members (full_name, phone, email, status) VALUES (?, ?, ?, 'active')");
-                    $stmtInsert->bind_param("sss", $userRow['full_name'], $userRow['phone'], $userRow['email']);
-                    $stmtInsert->execute();
-                    $member_id = $stmtInsert->insert_id;
-                    $stmtInsert->close();
-                } else {
-                    // T?o h?i viÍn m?i (t?i thi?u thÙng tin). Sau n‡y s? update package v‡ dates.
-                    $stmtInsert = $conn->prepare("INSERT INTO members (full_name, phone, email, status) VALUES (?, ?, ?, 'active')");
-                    $stmtInsert->bind_param("sss", $full_name, $phone, $email);
-                    $stmtInsert->execute();
-                    $member_id = $stmtInsert->insert_id;
-                    $stmtInsert->close();
-                }
-            }
-
-            // Tr·nh chËn tr˘ng: ki?m tra xem d„ cÛ member_packages active c˘ng package chua
-            $pkgId = (int)$registration['package_id'];
-            $stmtSame = $conn->prepare("SELECT id, end_date FROM member_packages WHERE member_id = ? AND package_id = ? AND status = 'active' LIMIT 1");
-            $stmtSame->bind_param("ii", $member_id, $pkgId);
-            $stmtSame->execute();
-            $existingMp = $stmtSame->get_result()->fetch_assoc();
-            $stmtSame->close();
-
-            if ($existingMp) {
-                // N?u d„ cÛ active c˘ng package, ch? m? r?ng end_date n?u dang k˝ m?i d‡i hon
-                if (!empty($existingMp['end_date']) && $existingMp['end_date'] < $end_date) {
-                    $stmt = $conn->prepare("UPDATE member_packages SET end_date = ? WHERE id = ?");
-                    $stmt->bind_param("si", $end_date, $existingMp['id']);
-                    $stmt->execute();
-                    $stmt->close();
-                }
-            } else {
-                // BU?C 2: Expire c·c b?n ghi member_packages active hi?n cÛ cho h?i viÍn n‡y
-                $stmt = $conn->prepare("UPDATE member_packages SET status = 'expired' WHERE member_id = ? AND status = 'active'");
-                $stmt->bind_param("i", $member_id);
-                $stmt->execute();
-                $stmt->close();
-
-                // BU?C 3: ChËn member_packages m?i v?i tr?ng th·i active
-                $stmt = $conn->prepare("INSERT INTO member_packages (member_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, 'active')");
-                $stmt->bind_param("iiss", $member_id, $pkgId, $start_date, $end_date);
-                $stmt->execute();
-                $stmt->close();
-            }
-
-            // BU?C 4: C?p nh?t b?ng members d? ph?n ·nh gÛi hi?n t?i v‡ ng‡y
-            $stmt = $conn->prepare("UPDATE members SET package_id = ?, start_date = ?, end_date = ?, status = 'active' WHERE id = ?");
-            $stmt->bind_param("issi", $registration['package_id'], $start_date, $end_date, $member_id);
-            $stmt->execute();
-            $stmt->close();
-
-            $price = (float) ($package['price'] ?? 0);
-            $paid_amount = 0.0;
-            $remaining_amount = $price;
-            $history_note = '–ang k˝ t? website';
-
-            $stmt = $conn->prepare("
-                INSERT INTO member_package_history (
-                    member_id,
-                    package_id,
-                    action_type,
-                    start_date,
-                    end_date,
-                    price,
-                    paid_amount,
-                    remaining_amount,
-                    status,
-                    note
-                ) VALUES (?, ?, 'new', ?, ?, ?, ?, ?, 'active', ?)
-            ");
-            $stmt->bind_param(
-                "iissddds",
-                $member_id,
-                $registration['package_id'],
-                $start_date,
-                $end_date,
-                $price,
-                $paid_amount,
-                $remaining_amount,
-                $history_note
-            );
-            $stmt->execute();
-            $stmt->close();
-
-            $stmt = $conn->prepare("UPDATE package_registrations SET status = 'closed' WHERE id = ?");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $stmt->close();
-
-            $conn->commit();
-            header("Location: package-registrations.php?approve=success");
-            exit;
-        } catch (Exception $e) {
-            $conn->rollback();
-            header("Location: package-registrations.php?approve=error");
-            exit;
-        }
-    }
-
-    $status = trim($_POST['status'] ?? 'new');
-    $allowed_statuses = ['new', 'contacted', 'closed'];
-    if (!in_array($status, $allowed_statuses, true)) {
-        $status = 'new';
-    }
-
-    if ($id > 0) {
-        $stmt = $conn->prepare("UPDATE package_registrations SET status = ? WHERE id = ?");
-        $stmt->bind_param("si", $status, $id);
+    if ($action === 'delete' && $id > 0) {
+        $stmt = $conn->prepare('DELETE FROM package_registrations WHERE id = ?');
+        $stmt->bind_param('i', $id);
         $stmt->execute();
         $stmt->close();
 
-        header("Location: package-registrations.php?update=success");
+        header('Location: package-registrations.php?delete=success');
+        exit;
+    }
+
+    if ($action === 'update' && $id > 0) {
+        $status = trim($_POST['status'] ?? 'new');
+        $allowed_statuses = ['new', 'contacted', 'closed'];
+        if (!in_array($status, $allowed_statuses, true)) {
+            $status = 'new';
+        }
+
+        $stmt = $conn->prepare('UPDATE package_registrations SET status = ? WHERE id = ?');
+        $stmt->bind_param('si', $status, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        header('Location: package-registrations.php?update=success');
         exit;
     }
 }
 
-$total_result = $conn->query("SELECT COUNT(*) AS total FROM package_registrations");
-$total_registrations = $total_result ? (int) $total_result->fetch_assoc()['total'] : 0;
+$total_result = $conn->query('SELECT COUNT(*) AS total FROM package_registrations');
+$total_registrations = $total_result ? (int) ($total_result->fetch_assoc()['total'] ?? 0) : 0;
 
 $new_result = $conn->query("SELECT COUNT(*) AS total FROM package_registrations WHERE status = 'new'");
-$new_registrations = $new_result ? (int) $new_result->fetch_assoc()['total'] : 0;
+$new_registrations = $new_result ? (int) ($new_result->fetch_assoc()['total'] ?? 0) : 0;
 
 $contacted_result = $conn->query("SELECT COUNT(*) AS total FROM package_registrations WHERE status = 'contacted'");
-$contacted_registrations = $contacted_result ? (int) $contacted_result->fetch_assoc()['total'] : 0;
+$contacted_registrations = $contacted_result ? (int) ($contacted_result->fetch_assoc()['total'] ?? 0) : 0;
 
 $closed_result = $conn->query("SELECT COUNT(*) AS total FROM package_registrations WHERE status = 'closed'");
-$closed_registrations = $closed_result ? (int) $closed_result->fetch_assoc()['total'] : 0;
+$closed_registrations = $closed_result ? (int) ($closed_result->fetch_assoc()['total'] ?? 0) : 0;
+
+$paid_online_result = $conn->query("SELECT COUNT(*) AS total FROM package_registrations WHERE payment_id IS NOT NULL AND payment_id > 0 AND payment_status = 'paid'");
+$paid_online_registrations = $paid_online_result ? (int) ($paid_online_result->fetch_assoc()['total'] ?? 0) : 0;
 
 $filter_status = trim($_GET['status'] ?? '');
 $keyword = trim($_GET['keyword'] ?? '');
@@ -247,13 +92,13 @@ $params = [];
 $types = '';
 
 if ($filter_status !== '' && in_array($filter_status, ['new', 'contacted', 'closed'], true)) {
-    $where_conditions[] = "pr.status = ?";
+    $where_conditions[] = 'pr.status = ?';
     $params[] = $filter_status;
     $types .= 's';
 }
 
 if ($keyword !== '') {
-    $where_conditions[] = "(pr.full_name LIKE ? OR pr.phone LIKE ? OR pr.email LIKE ? OR p.package_name LIKE ?)";
+    $where_conditions[] = '(pr.full_name LIKE ? OR pr.phone LIKE ? OR pr.email LIKE ? OR p.package_name LIKE ?)';
     $keyword_like = '%' . $keyword . '%';
     $params[] = $keyword_like;
     $params[] = $keyword_like;
@@ -268,13 +113,15 @@ if (!empty($where_conditions)) {
 }
 
 $sql = "
-    SELECT 
+    SELECT
         pr.id,
         pr.full_name,
         pr.phone,
         pr.email,
         pr.note,
         pr.status,
+        pr.payment_status,
+        pr.payment_id,
         pr.created_at,
         p.package_name,
         p.price,
@@ -296,19 +143,16 @@ if (!empty($params)) {
 ?>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>–ang k˝ gÛi - Gym Management</title>
+    <title>ƒêƒÉng k√Ω g√≥i - Gym Management</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="../css/style.css" />
 </head>
-
 <body class="dashboard-page">
-
     <div class="d-flex dashboard-wrapper">
         <?php include __DIR__ . '/../includes/sidebar.php'; ?>
 
@@ -317,23 +161,25 @@ if (!empty($params)) {
 
             <div class="container-fluid p-4">
                 <?php if (isset($_GET['update']) && $_GET['update'] === 'success'): ?>
-                    <div class="alert alert-success">C?p nh?t dang k˝ th‡nh cÙng.</div>
+                    <div class="alert alert-success">C·∫≠p nh·∫≠t ƒëƒÉng k√Ω th√†nh c√¥ng.</div>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['delete']) && $_GET['delete'] === 'success'): ?>
-                    <div class="alert alert-success">XÛa dang k˝ th‡nh cÙng.</div>
+                    <div class="alert alert-success">X√≥a ƒëƒÉng k√Ω th√†nh c√¥ng.</div>
                 <?php endif; ?>
+
                 <?php if (isset($_GET['approve']) && $_GET['approve'] === 'success'): ?>
-                    <div class="alert alert-success">–„ duy?t v‡ t?o h?i viÍn th‡nh cÙng.</div>
+                    <div class="alert alert-success">Duy·ªát ƒëƒÉng k√Ω v√† t·∫°o h·ªôi vi√™n th√†nh c√¥ng.</div>
                 <?php endif; ?>
+
                 <?php if (isset($_GET['approve']) && $_GET['approve'] === 'error'): ?>
-                    <div class="alert alert-danger">Duy?t th?t b?i. Ki?m tra l?i d? li?u (tr˘ng S–T ho?c gÛi khÙng t?n t?i).</div>
+                    <div class="alert alert-danger">Duy·ªát ƒëƒÉng k√Ω th·∫•t b·∫°i. Vui l√≤ng ki·ªÉm tra l·∫°i d·ªØ li·ªáu.</div>
                 <?php endif; ?>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h4 class="mb-1">Qu?n l˝ dang k˝ gÛi t?p</h4>
-                        <p class="text-muted mb-0">Theo dıi yÍu c?u dang k˝ gÛi t? website v‡ x? l˝ nhanh.</p>
+                        <h4 class="mb-1">Qu·∫£n l√Ω ƒëƒÉng k√Ω g√≥i t·∫≠p</h4>
+                        <p class="text-muted mb-0">Theo d√µi y√™u c·∫ßu ƒëƒÉng k√Ω t·ª´ website v√† ki·ªÉm tra tr·∫°ng th√°i thanh to√°n online.</p>
                     </div>
                 </div>
 
@@ -341,7 +187,7 @@ if (!empty($params)) {
                     <div class="col-md-6 col-xl-3">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body">
-                                <div class="text-muted mb-2">T?ng dang k˝</div>
+                                <div class="text-muted mb-2">T·ªïng ƒëƒÉng k√Ω</div>
                                 <h3 class="mb-0"><?php echo $total_registrations; ?></h3>
                             </div>
                         </div>
@@ -349,7 +195,7 @@ if (!empty($params)) {
                     <div class="col-md-6 col-xl-3">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body">
-                                <div class="text-muted mb-2">M?i</div>
+                                <div class="text-muted mb-2">ƒê√£ ƒëƒÉng k√Ω</div>
                                 <h3 class="mb-0 text-primary"><?php echo $new_registrations; ?></h3>
                             </div>
                         </div>
@@ -357,7 +203,7 @@ if (!empty($params)) {
                     <div class="col-md-6 col-xl-3">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body">
-                                <div class="text-muted mb-2">–„ liÍn h?</div>
+                                <div class="text-muted mb-2">ƒê√£ li√™n h·ªá</div>
                                 <h3 class="mb-0 text-warning"><?php echo $contacted_registrations; ?></h3>
                             </div>
                         </div>
@@ -365,37 +211,37 @@ if (!empty($params)) {
                     <div class="col-md-6 col-xl-3">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body">
-                                <div class="text-muted mb-2">–„ dÛng</div>
-                                <h3 class="mb-0 text-success"><?php echo $closed_registrations; ?></h3>
+                                <div class="text-muted mb-2">ƒê√£ thanh to√°n online</div>
+                                <h3 class="mb-0 text-success"><?php echo $paid_online_registrations; ?></h3>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <form method="GET" class="row g-3 align-items-end">
+                <form method="GET" class="row g-3 align-items-end mb-4">
                     <div class="col-md-4">
-                        <label class="form-label">TÏm ki?m</label>
+                        <label class="form-label">T√¨m ki·∫øm</label>
                         <input
                             type="text"
                             name="keyword"
                             class="form-control"
-                            placeholder="TÍn / S–T / Email / GÛi"
+                            placeholder="T√™n / SƒêT / Email / G√≥i"
                             value="<?php echo htmlspecialchars($keyword); ?>">
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">L?c theo tr?ng th·i</label>
+                        <label class="form-label">L·ªçc theo tr·∫°ng th√°i</label>
                         <select name="status" class="form-select">
-                            <option value="">T?t c?</option>
-                            <option value="new" <?php echo $filter_status === 'new' ? 'selected' : ''; ?>>M?i</option>
-                            <option value="contacted" <?php echo $filter_status === 'contacted' ? 'selected' : ''; ?>>–„ liÍn h?</option>
-                            <option value="closed" <?php echo $filter_status === 'closed' ? 'selected' : ''; ?>>–„ dÛng</option>
+                            <option value="">T·∫•t c·∫£</option>
+                            <option value="new" <?php echo $filter_status === 'new' ? 'selected' : ''; ?>>ƒê√£ ƒëƒÉng k√Ω</option>
+                            <option value="contacted" <?php echo $filter_status === 'contacted' ? 'selected' : ''; ?>>ƒê√£ li√™n h·ªá</option>
+                            <option value="closed" <?php echo $filter_status === 'closed' ? 'selected' : ''; ?>>ƒê√£ x·ª≠ l√Ω</option>
                         </select>
                     </div>
 
                     <div class="col-md-auto">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search me-1"></i> TÏm / L?c
+                            <i class="bi bi-search me-1"></i> T√¨m / L·ªçc
                         </button>
                     </div>
 
@@ -408,7 +254,7 @@ if (!empty($params)) {
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h5 class="mb-0">Danh s·ch dang k˝ gÛi t?p</h5>
+                        <h5 class="mb-0">Danh s√°ch ƒëƒÉng k√Ω g√≥i t·∫≠p</h5>
                     </div>
                     <div class="card-body px-4 pb-4">
                         <div class="table-responsive">
@@ -416,80 +262,78 @@ if (!empty($params)) {
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Kh·ch h‡ng</th>
-                                        <th>GÛi dang k˝</th>
-                                        <th>Ghi ch˙</th>
-                                        <th>Tr?ng th·i</th>
-                                        <th>Ng‡y g?i</th>
-                                        <th class="text-end">X? l˝</th>
+                                        <th>Kh√°ch h√†ng</th>
+                                        <th>G√≥i ƒëƒÉng k√Ω</th>
+                                        <th>Ghi ch√∫</th>
+                                        <th>Tr·∫°ng th√°i</th>
+                                        <th>Thanh to√°n</th>
+                                        <th>Ng√†y g·ª≠i</th>
+                                        <th class="text-end">X·ª≠ l√Ω</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if ($result && $result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
                                             <tr>
-                                                <td>#<?php echo str_pad($row['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                                                <td>#<?php echo str_pad((string) $row['id'], 3, '0', STR_PAD_LEFT); ?></td>
                                                 <td>
                                                     <div class="fw-semibold"><?php echo htmlspecialchars($row['full_name']); ?></div>
-                                                    <div class="small text-muted">S–T: <?php echo htmlspecialchars($row['phone']); ?></div>
-                                                    <div class="small text-muted">Email: <?php echo htmlspecialchars($row['email'] ?: 'Chua cÛ'); ?></div>
+                                                    <div class="small text-muted">SƒêT: <?php echo htmlspecialchars($row['phone']); ?></div>
+                                                    <div class="small text-muted">Email: <?php echo htmlspecialchars($row['email'] ?: 'Ch∆∞a c√≥'); ?></div>
                                                 </td>
                                                 <td>
-                                                    <div class="fw-semibold"><?php echo htmlspecialchars($row['package_name'] ?: 'KhÙng x·c d?nh'); ?></div>
+                                                    <div class="fw-semibold"><?php echo htmlspecialchars($row['package_name'] ?: 'Kh√¥ng x√°c ƒë·ªãnh'); ?></div>
                                                     <?php if (!empty($row['price'])): ?>
-                                                        <div class="small text-muted"><?php echo number_format((float)$row['price'], 0, ',', '.'); ?> VN–</div>
+                                                        <div class="small text-muted"><?php echo number_format((float) $row['price'], 0, ',', '.'); ?> VNƒê</div>
                                                     <?php endif; ?>
                                                     <?php if (!empty($row['duration_months'])): ?>
-                                                        <div class="small text-muted">Th?i h?n: <?php echo (int)$row['duration_months']; ?> th·ng</div>
+                                                        <div class="small text-muted">Th·ªùi h·∫°n: <?php echo (int) $row['duration_months']; ?> th√°ng</div>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td style="min-width: 200px;"><?php echo nl2br(htmlspecialchars($row['note'] ?? '')); ?></td>
+                                                <td style="min-width: 220px;"><?php echo nl2br(htmlspecialchars($row['note'] ?? '')); ?></td>
+                                                <td><?php echo registration_status_badge((string) ($row['status'] ?? '')); ?></td>
                                                 <td>
-                                                    <?php if ($row['status'] === 'new'): ?>
-                                                        <span class="badge bg-primary">M?i</span>
-                                                    <?php elseif ($row['status'] === 'contacted'): ?>
-                                                        <span class="badge bg-warning text-dark">–„ liÍn h?</span>
-                                                    <?php else: ?>
-                                                        <span class="badge bg-success">–„ dÛng</span>
-                                                    <?php endif; ?>
+                                                    <div class="fw-semibold small mb-1"><?php echo payment_method_label(isset($row['payment_id']) ? (int) $row['payment_id'] : 0); ?></div>
+                                                    <?php echo payment_status_badge((string) ($row['payment_status'] ?? 'unpaid'), isset($row['payment_id']) ? (int) $row['payment_id'] : 0); ?>
                                                 </td>
                                                 <td><?php echo !empty($row['created_at']) ? date('d/m/Y H:i', strtotime($row['created_at'])) : ''; ?></td>
-                                                <td class="text-end" style="min-width: 220px;">
+                                                <td class="text-end" style="min-width: 240px;">
                                                     <form method="POST" class="row g-2 justify-content-end">
                                                         <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
-                                                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
                                                         <div class="col-12">
                                                             <select name="status" class="form-select form-select-sm">
-                                                                <option value="new" <?php echo $row['status'] === 'new' ? 'selected' : ''; ?>>M?i</option>
-                                                                <option value="contacted" <?php echo $row['status'] === 'contacted' ? 'selected' : ''; ?>>–„ liÍn h?</option>
-                                                                <option value="closed" <?php echo $row['status'] === 'closed' ? 'selected' : ''; ?>>–„ dÛng</option>
+                                                                <option value="new" <?php echo $row['status'] === 'new' ? 'selected' : ''; ?>>ƒê√£ ƒëƒÉng k√Ω</option>
+                                                                <option value="contacted" <?php echo $row['status'] === 'contacted' ? 'selected' : ''; ?>>ƒê√£ li√™n h·ªá</option>
+                                                                <option value="closed" <?php echo $row['status'] === 'closed' ? 'selected' : ''; ?>>ƒê√£ x·ª≠ l√Ω</option>
                                                             </select>
                                                         </div>
 
                                                         <div class="col-12">
                                                             <input type="hidden" name="action" value="update">
                                                             <button type="submit" class="btn btn-sm btn-warning w-100">
-                                                                <i class="bi bi-save me-1"></i> C?p nh?t
+                                                                <i class="bi bi-save me-1"></i> C·∫≠p nh·∫≠t tr·∫°ng th√°i
                                                             </button>
                                                         </div>
                                                     </form>
-                                                    <?php if ($row['status'] !== 'closed'): ?>
-                                                        <form method="POST" action="php/package-registrations/approve.php" class="mt-2" onsubmit="return confirm('Duy?t v‡ t?o h?i viÍn m?i?');">
+
+                                                    <?php if (($row['status'] ?? '') !== 'closed'): ?>
+                                                        <form method="POST" action="../php/package-registrations/approve.php" class="mt-2" onsubmit="return confirm('Duy·ªát ƒëƒÉng k√Ω v√† t·∫°o h·ªôi vi√™n m·ªõi?');">
                                                             <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
-                                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                                            <input type="hidden" name="action" value="approve">
+                                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
                                                             <button type="submit" class="btn btn-sm btn-success w-100">
-                                                                <i class="bi bi-check-circle me-1"></i> Duy?t & t?o h?i viÍn
+                                                                <i class="bi bi-check-circle me-1"></i> Duy·ªát & t·∫°o h·ªôi vi√™n
                                                             </button>
                                                         </form>
                                                     <?php endif; ?>
-                                                    <form method="POST" class="mt-2" onsubmit="return confirm('XÛa dang k˝ n‡y?');">
+
+                                                    <form method="POST" class="mt-2" onsubmit="return confirm('X√≥a ƒëƒÉng k√Ω n√†y?');">
                                                         <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
-                                                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
                                                         <input type="hidden" name="action" value="delete">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                                            <i class="bi bi-trash me-1"></i> XÛa
+                                                            <i class="bi bi-trash me-1"></i> X√≥a
                                                         </button>
                                                     </form>
                                                 </td>
@@ -497,7 +341,7 @@ if (!empty($params)) {
                                         <?php endwhile; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted">Chua cÛ dang k˝ gÛi n‡o.</td>
+                                            <td colspan="8" class="text-center text-muted">Ch∆∞a c√≥ ƒëƒÉng k√Ω g√≥i n√†o.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -505,12 +349,10 @@ if (!empty($params)) {
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
     <script src="../js/main.js"></script>
 </body>
-
 </html>

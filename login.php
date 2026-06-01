@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
-    if (($_SESSION['user_role'] ?? '') === 'admin') {
+    if (strtolower(trim($_SESSION['user_role'] ?? '')) === 'admin') {
         header('Location: admin/dashboard.php');
         exit;
     }
@@ -19,13 +19,16 @@ $error = trim($_GET['error'] ?? '');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Đăng nhập - Gym Management</title>
+  <title>&#272;&#259;ng nh&#7853;p - Gym Management</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=login-clean-3" />
 </head>
-<body class="login-page">
+<body class="login-page login-dev-page">
 
   <div class="container">
     <div class="row min-vh-100 justify-content-center align-items-center">
@@ -37,11 +40,20 @@ $error = trim($_GET['error'] ?? '');
                 <img src="assets/images/1.png" alt="logo" class="login-logo">
               </div>
               <h2 class="fw-bold">Gym Management</h2>
-              <p class="text-muted mb-0">Đăng nhập hệ thống</p>
+              <p class="text-muted mb-0">&#272;&#259;ng nh&#7853;p h&#7879; th&#7889;ng</p>
             </div>
+            <div class="login-divider"><span>ho&#7863;c</span></div>
 
+<a href="php/auth/google-redirect.php" class="btn login-google-btn w-100 mb-4">
+  <i class="bi bi-google me-2"></i>&#272;&#259;ng nh&#7853;p v&#7899;i Google
+</a>
+<?php if (isset($_GET['reset_success'])): ?>
+  <div class="alert alert-success">
+    &#272;&#7893;i m&#7853;t kh&#7849;u th&agrave;nh c&ocirc;ng. B&#7841;n c&oacute; th&#7875; &#273;&#259;ng nh&#7853;p b&#7857;ng m&#7853;t kh&#7849;u m&#7899;i.
+  </div>
+<?php endif; ?>
             <?php if ($success): ?>
-              <div class="alert alert-success">Thao tác thành công. Bạn có thể đăng nhập ngay.</div>
+              <div class="alert alert-success">Thao t&aacute;c th&agrave;nh c&ocirc;ng. B&#7841;n c&oacute; th&#7875; &#273;&#259;ng nh&#7853;p ngay.</div>
             <?php endif; ?>
 
             <?php if ($error !== ''): ?>
@@ -63,14 +75,14 @@ $error = trim($_GET['error'] ?? '');
                     type="email"
                     class="form-control"
                     name="email"
-                    placeholder="Nhập email"
+                    placeholder="Nh&#7853;p email"
                     required
                   />
                 </div>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
+                <label class="form-label">M&#7853;t kh&#7849;u</label>
                 <div class="input-group">
                   <span class="input-group-text">
                     <i class="bi bi-lock"></i>
@@ -79,25 +91,23 @@ $error = trim($_GET['error'] ?? '');
                     type="password"
                     class="form-control"
                     name="password"
-                    placeholder="Nhập mật khẩu"
+                    placeholder="Nh&#7853;p m&#7853;t kh&#7849;u"
                     required
                   />
                 </div>
               </div>
 
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="forgot-password.php" class="text-decoration-none small">Quên mật khẩu?</a>
-                <a href="register.php" class="text-decoration-none small">Tạo tài khoản</a>
+                <a href="forgot-password.php" class="text-decoration-none small">Qu&ecirc;n m&#7853;t kh&#7849;u?</a>
+                <a href="register.php" class="text-decoration-none small">T&#7841;o t&agrave;i kho&#7843;n</a>
               </div>
 
               <button type="submit" class="btn btn-primary w-100 mb-3">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                <i class="bi bi-box-arrow-in-right me-2"></i>&#272;&#259;ng nh&#7853;p
               </button>
             </form>
 
-            <p class="text-center mt-4 mb-0 text-muted small">
-              Tài khoản test: admin@gmail.com / 123456
-            </p>
+           
           </div>
         </div>
       </div>
@@ -106,3 +116,4 @@ $error = trim($_GET['error'] ?? '');
 
 </body>
 </html>
+

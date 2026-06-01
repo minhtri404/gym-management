@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $base_path = $base_path ?? '';
 $logout_path = $logout_path ?? ($base_path !== '' ? rtrim(dirname(rtrim($base_path, '/')), '/') . '/logout.php' : '../logout.php');
@@ -54,6 +54,16 @@ $logout_path = $logout_path ?? ($base_path !== '' ? rtrim(dirname(rtrim($base_pa
     <li class="nav-item">
       <a href="<?php echo $base_path; ?>package-registrations.php" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
         <i class="bi bi-bag-check me-2"></i>Đăng ký gói
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="<?php echo $base_path; ?>trainer-reviews.php" class="nav-link <?php echo ($current_page == 'trainer-reviews.php') ? 'active' : ''; ?>">
+        <i class="bi bi-chat-square-quote me-2"></i>Đánh giá HLV
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="<?php echo $base_path; ?>../user/home.php" class="nav-link">
+        <i class="bi bi-arrow-up-right-circle me-2"></i>Về giao diện user
       </a>
     </li>
     <li class="nav-item mt-3">

@@ -1,174 +1,138 @@
 <?php
-$page_title = "Gia h?n g�i t?p";
+$page_title = 'Gia hạn gói tập';
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../admin/';
+$root_base_path = '../../';
 
-$member_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$member_id = isset($_GET['id']) ? (int) ($_GET['id'] ?? 0) : 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
+    $member_id = isset($_POST['member_id']) ? (int) ($_POST['member_id'] ?? 0) : 0;
 }
 
 if ($member_id <= 0) {
-    header("Location: " . $base_path . "members.php");
-    exit();
+    header('Location: ' . $base_path . 'members.php');
+    exit;
 }
 
-/* L?y th�ng tin h?i vi�n */
-$stmt_member = $conn->prepare("
-    SELECT m.*, p.package_name
-    FROM members m
-    LEFT JOIN packages p ON m.package_id = p.id
-    WHERE m.id = ?
-    LIMIT 1
-");
-$stmt_member->bind_param("i", $member_id);
+$stmt_member = $conn->prepare('SELECT m.*, p.package_name FROM members m LEFT JOIN packages p ON m.package_id = p.id WHERE m.id = ? LIMIT 1');
+$stmt_member->bind_param('i', $member_id);
 $stmt_member->execute();
 $result_member = $stmt_member->get_result();
-
-if (!$result_member || $result_member->num_rows === 0) {
-    $stmt_member->close();
-    header("Location: " . $base_path . "members.php");
-    exit();
-}
-
-$member = $result_member->fetch_assoc();
+$member = $result_member ? $result_member->fetch_assoc() : null;
 $stmt_member->close();
 
-// L?y danh s�ch g�i t?p d? hi?n th? trong form
+if (!$member) {
+    header('Location: ' . $base_path . 'members.php');
+    exit;
+}
+
 $packages = [];
-$result_packages = $conn->query("SELECT id, package_name, price, duration_months FROM packages ORDER BY id DESC");
-if ($result_packages && $result_packages->num_rows > 0) {
+$result_packages = $conn->query("SELECT id, package_name, price, duration_months FROM packages WHERE status = 'active' ORDER BY id DESC");
+if ($result_packages) {
     while ($row = $result_packages->fetch_assoc()) {
         $packages[] = $row;
     }
 }
 
 $error = '';
-$success = '';
+$form = [
+    'package_id' => '',
+    'start_date' => date('Y-m-d'),
+    'paid_amount' => '',
+    'note' => '',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $package_id = isset($_POST['package_id']) ? (int)$_POST['package_id'] : 0;
-    $start_date = trim($_POST['start_date'] ?? '');
-    $paid_amount_input = trim($_POST['paid_amount'] ?? '');
-    $note = trim($_POST['note'] ?? '');
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || $csrf_token === '' || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = 'CSRF token không hợp lệ.';
+    }
 
-    if ($package_id <= 0 || empty($start_date)) {
-        $error = "Vui l�ng ch?n g�i v� ng�y b?t d?u.";
-    } else {
-        /* Lấy thông tin gói mới */
-        $stmt_package = $conn->prepare("
-            SELECT id, package_name, price, duration_months
-            FROM packages
-            WHERE id = ?
-            LIMIT 1
-        ");
-        $stmt_package->bind_param("i", $package_id);
+    foreach ($form as $key => $value) {
+        $form[$key] = trim((string) ($_POST[$key] ?? $value));
+    }
+
+    $package_id = (int) $form['package_id'];
+    $start_date = $form['start_date'];
+    $paid_amount_input = $form['paid_amount'];
+    $note = $form['note'];
+
+    if ($error === '' && ($package_id <= 0 || $start_date === '')) {
+        $error = 'Vui lòng chọn gói và ngày bắt đầu.';
+    }
+
+    $package = null;
+    if ($error === '') {
+        $stmt_package = $conn->prepare('SELECT id, package_name, price, duration_months FROM packages WHERE id = ? LIMIT 1');
+        $stmt_package->bind_param('i', $package_id);
         $stmt_package->execute();
         $result_package = $stmt_package->get_result();
+        $package = $result_package ? $result_package->fetch_assoc() : null;
+        $stmt_package->close();
 
-        if (!$result_package || $result_package->num_rows === 0) {
-            $error = "G�i t?p kh�ng t?n t?i.";
-        } else {
-            $package = $result_package->fetch_assoc();
-            $stmt_package->close();
+        if (!$package) {
+            $error = 'Gói tập không tồn tại.';
+        }
+    }
 
-            $price = (float)$package['price'];
-            $duration_months = (int)$package['duration_months'];
+    if ($error === '') {
+        try {
+            $start = new DateTime($start_date);
+            $end = clone $start;
+            $end->modify('+' . (int) $package['duration_months'] . ' months');
+            $end_date = $end->format('Y-m-d');
+        } catch (Exception $e) {
+            $error = 'Ngày bắt đầu không hợp lệ.';
+        }
+    }
 
-            try {
-                $start = new DateTime($start_date);
-                $end = clone $start;
-                $end->modify("+{$duration_months} months");
-                $end_date = $end->format('Y-m-d');
-            } catch (Exception $e) {
-                $error = "Ng�y b?t d?u kh�ng h?p l?.";
-            }
+    if ($error === '') {
+        $price = (float) ($package['price'] ?? 0);
+        $paid_amount = 0.0;
+        if ($paid_amount_input !== '') {
+            $paid_amount = (float) str_replace([',', ' '], '', $paid_amount_input);
+        }
+        if ($paid_amount < 0) {
+            $paid_amount = 0.0;
+        }
+        if ($paid_amount > $price) {
+            $paid_amount = $price;
+        }
+        $remaining_amount = max(0, $price - $paid_amount);
+        $history_note = $note !== '' ? $note : 'Gia hạn gói tập';
 
-                try {
-                    /* H?T G�I CU: mark previous member_packages as expired */
-                    $stmtExpire = $conn->prepare("\n                        UPDATE member_packages\n                        SET status = 'expired'\n                        WHERE member_id = ? AND status = 'active'\n                    ");
-                    $stmtExpire->bind_param("i", $member_id);
-                    $stmtExpire->execute();
-                    $stmtExpire->close();
+        $conn->begin_transaction();
+        try {
+            $stmt_expire = $conn->prepare("UPDATE member_packages SET status = 'expired' WHERE member_id = ? AND status = 'active'");
+            $stmt_expire->bind_param('i', $member_id);
+            $stmt_expire->execute();
+            $stmt_expire->close();
 
-                    /* LUU L?CH G�I: insert new active member_packages row */
-                    $stmtHistory = $conn->prepare("\n                        INSERT INTO member_packages (member_id, package_id, start_date, end_date, status)\n                        VALUES (?, ?, ?, ?, 'active')\n                    ");
-                    if ($stmtHistory === false) {
-                        throw new Exception('Prepare failed (member_packages): ' . $conn->error);
-                    }
-                    $stmtHistory->bind_param("iiss", $member_id, $package_id, $start_date, $end_date);
-                    $stmtHistory->execute();
-                    $stmtHistory->close();
+            $stmt_member_package = $conn->prepare('INSERT INTO member_packages (member_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)');
+            $active_status = 'active';
+            $stmt_member_package->bind_param('iisss', $member_id, $package_id, $start_date, $end_date, $active_status);
+            $stmt_member_package->execute();
+            $stmt_member_package->close();
 
-                    /* C?p nh?t g�i hi?n t?i trong members */
-                    $new_status = 'active';
+            $stmt_update = $conn->prepare('UPDATE members SET package_id = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?');
+            $member_status = 'active';
+            $stmt_update->bind_param('isssi', $package_id, $start_date, $end_date, $member_status, $member_id);
+            $stmt_update->execute();
+            $stmt_update->close();
 
-                    $stmt_update = $conn->prepare("\n                        UPDATE members\n                        SET package_id = ?, start_date = ?, end_date = ?, status = ?\n                        WHERE id = ?\n                    ");
-                    $stmt_update->bind_param("isssi", $package_id, $start_date, $end_date, $new_status, $member_id);
-                    $stmt_update->execute();
-                    $stmt_update->close();
+            $stmt_history = $conn->prepare('INSERT INTO member_package_history (member_id, package_id, action_type, start_date, end_date, price, paid_amount, remaining_amount, status, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $action_type = 'renew';
+            $history_status = 'active';
+            $stmt_history->bind_param('iisssdddss', $member_id, $package_id, $action_type, $start_date, $end_date, $price, $paid_amount, $remaining_amount, $history_status, $history_note);
+            $stmt_history->execute();
+            $stmt_history->close();
 
-                    /* Luu l?ch s? gia h?n */
-                    $history_note = !empty($note) ? $note : 'Gia h?n g�i t?p';
-                    $paid_amount = 0.0;
-                    if ($paid_amount_input !== '') {
-                      $paid_amount = (float) str_replace([',', ' '], '', $paid_amount_input);
-                    }
-                    if ($paid_amount < 0) {
-                      $paid_amount = 0.0;
-                    }
-                    if ($paid_amount > $price) {
-                      $paid_amount = $price;
-                    }
-                    $remaining_amount = max(0, $price - $paid_amount);
-
-                    $stmt_history = $conn->prepare("\n                      INSERT INTO member_package_history (\n                        member_id,\n                        package_id,\n                        action_type,\n                        start_date,\n                        end_date,\n                        price,\n                        paid_amount,\n                        remaining_amount,\n                        status,\n                        note\n                      ) VALUES (?, ?, 'renew', ?, ?, ?, ?, ?, 'active', ?)\n                    ");
-                    if ($stmt_history === false) {
-                      throw new Exception('Prepare failed: ' . $conn->error);
-                    }
-                    $stmt_history->bind_param(
-                      "iissddds",
-                      $member_id,
-                      $package_id,
-                      $start_date,
-                      $end_date,
-                      $price,
-                      $paid_amount,
-                      $remaining_amount,
-                      $history_note
-                    );
-                    $stmt_history->execute();
-                    $stmt_history->close();
-
-                    $conn->commit();
-
-                    header("Location: " . $base_path . "php/members/view-member.php?id=" . $member_id . "&renew=success");
-                    exit();
-                } catch (Exception $e) {
-                    $conn->rollback();
-                    $error = "Gia h?n th?t b?i: " . $e->getMessage();
-                }
-                      $member_id,
-                      $package_id,
-                      $start_date,
-                      $end_date,
-                      $price,
-                      $paid_amount,
-                      $remaining_amount,
-                      $history_note
-                    );
-                    $stmt_history->execute();
-                    $stmt_history->close();
-
-                    $conn->commit();
-
-                    header("Location: " . $base_path . "php/members/view-member.php?id=" . $member_id . "&renew=success");
-                    exit();
-                } catch (Exception $e) {
-                    $conn->rollback();
-                    $error = "Gia hạn thất bại: " . $e->getMessage();
-                }
-            }
+            $conn->commit();
+            header('Location: ' . $root_base_path . 'php/members/view-member.php?id=' . $member_id . '&renew=success');
+            exit;
+        } catch (Throwable $e) {
+            $conn->rollback();
+            $error = 'Gia hạn thất bại: ' . $e->getMessage();
         }
     }
 }
@@ -181,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title><?php echo $page_title; ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
+  <link rel="stylesheet" href="<?php echo $root_base_path; ?>css/style.css">
 </head>
 <body>
   <div class="d-flex">
@@ -192,40 +156,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold mb-0">Gia h?n g�i t?p</h2>
-          <a href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member_id; ?>" class="btn btn-secondary">
+          <h2 class="fw-bold mb-0">Gia hạn gói tập</h2>
+          <a href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member_id; ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-1"></i> Quay lại
           </a>
         </div>
 
         <div class="card shadow-sm border-0">
           <div class="card-body p-4">
-            <?php if (!empty($error)): ?>
+            <?php if ($error !== ''): ?>
               <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
             <div class="row g-4">
               <div class="col-lg-5">
                 <div class="border rounded p-3 bg-light">
-                  <h5 class="mb-3">Th�ng tin h?i vi�n</h5>
+                  <h5 class="mb-3">Thông tin hội viên</h5>
 
                   <div class="mb-2">
-                    <div class="text-muted small">H? v� t�n</div>
+                    <div class="text-muted small">Họ và tên</div>
                     <div class="fw-semibold"><?php echo htmlspecialchars($member['full_name']); ?></div>
                   </div>
 
                   <div class="mb-2">
-                    <div class="text-muted small">G�i hi?n t?i</div>
+                    <div class="text-muted small">Gói hiện tại</div>
                     <div><?php echo htmlspecialchars($member['package_name'] ?: 'Chưa có'); ?></div>
                   </div>
 
                   <div class="mb-2">
-                    <div class="text-muted small">Ng�y b?t d?u hi?n t?i</div>
+                    <div class="text-muted small">Ngày bắt đầu hiện tại</div>
                     <div><?php echo htmlspecialchars($member['start_date'] ?: 'Chưa có'); ?></div>
                   </div>
 
                   <div class="mb-0">
-                    <div class="text-muted small">Ng�y k?t th�c hi?n t?i</div>
+                    <div class="text-muted small">Ngày kết thúc hiện tại</div>
                     <div><?php echo htmlspecialchars($member['end_date'] ?: 'Chưa có'); ?></div>
                   </div>
                 </div>
@@ -233,51 +197,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
               <div class="col-lg-7">
                 <form method="POST">
-                  <input type="hidden" name="member_id" value="<?php echo (int)$member_id; ?>">
+                  <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                  <input type="hidden" name="member_id" value="<?php echo (int) $member_id; ?>">
 
                   <div class="mb-3">
-                    <label class="form-label">Ch?n g�i m?i</label>
-                    <select name="package_id" class="form-select" required>
-                      <option value="">-- Ch?n g�i --</option>
+                    <label class="form-label">Chọn gói mới</label>
+                    <select name="package_id" id="package_id" class="form-select" required>
+                      <option value="">-- Chọn gói --</option>
                       <?php foreach ($packages as $package): ?>
-                        <option value="<?php echo (int)$package['id']; ?>">
-                          <?php echo htmlspecialchars($package['package_name']); ?>
-                          - <?php echo number_format((float)$package['price'], 0, ',', '.'); ?> VN�
-                          - <?php echo (int)$package['duration_months']; ?> th�ng
+                        <option value="<?php echo (int) $package['id']; ?>" data-duration="<?php echo (int) $package['duration_months']; ?>" <?php echo ((int) $form['package_id'] === (int) $package['id']) ? 'selected' : ''; ?>>
+                          <?php echo htmlspecialchars($package['package_name']); ?> - <?php echo number_format((float) $package['price'], 0, ',', '.'); ?> VNĐ - <?php echo (int) $package['duration_months']; ?> tháng
                         </option>
                       <?php endforeach; ?>
                     </select>
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">Ng�y b?t d?u</label>
-                    <input type="date" name="start_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">S? ti?n d� tr?</label>
-                    <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" placeholder="0">
-                    <small class="text-muted">H? th?ng t? t�nh c�n n?.</small>
+                    <label class="form-label">Ngày bắt đầu</label>
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="<?php echo htmlspecialchars($form['start_date']); ?>" required>
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">Ghi ch�</label>
-                    <textarea name="note" class="form-control" rows="3" placeholder="V� d?: Gia h?n th�m 12 th�ng"></textarea>
+                    <label class="form-label">Ngày kết thúc dự kiến</label>
+                    <input type="date" id="end_date_display" class="form-control" readonly>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Số tiền đã trả</label>
+                    <input type="number" name="paid_amount" class="form-control" min="0" step="0.01" value="<?php echo htmlspecialchars($form['paid_amount']); ?>" placeholder="0">
+                    <small class="text-muted">Hệ thống tự tính phần còn nợ.</small>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea name="note" class="form-control" rows="3" placeholder="Ví dụ: Gia hạn thêm 12 tháng"><?php echo htmlspecialchars($form['note']); ?></textarea>
                   </div>
 
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Luu gia h?n
+                    <i class="bi bi-save me-1"></i> Lưu gia hạn
                   </button>
                 </form>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
+
+  <script>
+    function addMonthsSafe(date, monthsToAdd) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      const targetMonth = month + monthsToAdd;
+      const targetDate = new Date(year, targetMonth, 1);
+      const lastDayOfTargetMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+      const safeDay = Math.min(day, lastDayOfTargetMonth);
+      return new Date(targetDate.getFullYear(), targetDate.getMonth(), safeDay);
+    }
+
+    function calculateEndDate() {
+      const packageSelect = document.getElementById('package_id');
+      const startDateInput = document.getElementById('start_date');
+      const endDateDisplay = document.getElementById('end_date_display');
+      const selectedOption = packageSelect.options[packageSelect.selectedIndex];
+      const duration = selectedOption ? parseInt(selectedOption.getAttribute('data-duration'), 10) : 0;
+      const startDate = startDateInput.value;
+
+      if (duration > 0 && startDate) {
+        const start = new Date(startDate);
+        const end = addMonthsSafe(start, duration);
+        endDateDisplay.value = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
+      } else {
+        endDateDisplay.value = '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', calculateEndDate);
+    document.getElementById('package_id').addEventListener('change', calculateEndDate);
+    document.getElementById('start_date').addEventListener('change', calculateEndDate);
+  </script>
 </body>
 </html>
-
-
-

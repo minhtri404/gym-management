@@ -29,6 +29,10 @@ function createContact(
     string $preferred_contact_method = 'phone'
 ): bool {
     $status = 'new';
+    // Ensure contacts table exists (try to create if missing)
+    if (!ensureContactsTableExists($conn)) {
+        return false;
+    }
 
     $stmt = $conn->prepare("
         INSERT INTO contacts (full_name, phone, email, subject, message, preferred_contact_method, status, created_at)
@@ -49,4 +53,29 @@ function createContact(
     $stmt->close();
 
     return $ok;
+}
+
+function ensureContactsTableExists(mysqli $conn): bool
+{
+    $check = $conn->query("SHOW TABLES LIKE 'contacts'");
+    if ($check && $check->num_rows > 0) {
+        return true;
+    }
+
+    $sql = "CREATE TABLE IF NOT EXISTS `contacts` (
+        `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `full_name` VARCHAR(255) NOT NULL,
+        `phone` VARCHAR(50) NOT NULL,
+        `email` VARCHAR(255) DEFAULT NULL,
+        `subject` VARCHAR(255) DEFAULT NULL,
+        `message` TEXT NOT NULL,
+        `preferred_contact_method` VARCHAR(50) DEFAULT 'phone',
+        `status` VARCHAR(50) DEFAULT 'new',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        INDEX `idx_contacts_status` (`status`),
+        INDEX `idx_contacts_created_at` (`created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+    return $conn->query($sql) !== false;
 }

@@ -1,12 +1,13 @@
-<?php
-$page_title = "Kế hoạch tập luyện";
+﻿<?php
+$page_title = 'Kế hoạch tập luyện';
 include __DIR__ . '/../includes/auth-check.php';
 
 $base_path = '';
+$root_base_path = '../';
 
 function h($value)
 {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
 function getGoalLabel($goal)
@@ -37,23 +38,22 @@ function getLevelLabel($level)
     }
 }
 
-$selected_member_id = isset($_GET['member_id']) ? (int)$_GET['member_id'] : 0;
+$selected_member_id = isset($_GET['member_id']) ? (int) $_GET['member_id'] : 0;
 $selected_member = null;
 $members = [];
 $plans = [];
 
-$resultMembers = $conn->query("SELECT id, full_name, phone, status FROM members ORDER BY id DESC");
+$resultMembers = $conn->query('SELECT id, full_name, phone, status FROM members ORDER BY id DESC');
 if ($resultMembers && $resultMembers->num_rows > 0) {
     while ($row = $resultMembers->fetch_assoc()) {
         $members[] = $row;
-
-        if ($selected_member_id > 0 && (int)$row['id'] === $selected_member_id) {
+        if ($selected_member_id > 0 && (int) $row['id'] === $selected_member_id) {
             $selected_member = $row;
         }
     }
 }
 
-$sqlPlans = "
+$sqlPlans = '
     SELECT 
         awp.id,
         awp.member_id,
@@ -68,13 +68,13 @@ $sqlPlans = "
         m.phone
     FROM ai_workout_plans awp
     INNER JOIN members m ON awp.member_id = m.id
-";
+';
 
 if ($selected_member_id > 0) {
-    $sqlPlans .= " WHERE awp.member_id = " . (int)$selected_member_id;
+    $sqlPlans .= ' WHERE awp.member_id = ' . (int) $selected_member_id;
 }
 
-$sqlPlans .= " ORDER BY awp.id DESC LIMIT 10";
+$sqlPlans .= ' ORDER BY awp.id DESC LIMIT 10';
 
 $resultPlans = $conn->query($sqlPlans);
 if ($resultPlans && $resultPlans->num_rows > 0) {
@@ -127,10 +127,10 @@ if (isset($_GET['error'])) {
 </head>
 <body class="dashboard-page">
     <div class="d-flex dashboard-wrapper">
-        <?php include __DIR__ . '/includes/sidebar.php'; ?>
+        <?php include __DIR__ . '/../includes/sidebar.php'; ?>
 
         <main class="main-content flex-grow-1">
-            <?php include __DIR__ . '/includes/navbar.php'; ?>
+            <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
             <div class="container-fluid p-4">
                 <div class="row g-4">
@@ -148,7 +148,7 @@ if (isset($_GET['error'])) {
                                     <div class="alert alert-warning"><?php echo h($error_message); ?></div>
                                 <?php endif; ?>
 
-                                <form method="POST" action="<?php echo $base_path; ?>php/ai/create-workout-plan.php">
+                                <form method="POST" action="<?php echo $root_base_path; ?>php/ai/create-workout-plan.php">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
                                     <div class="mb-3">
@@ -156,7 +156,7 @@ if (isset($_GET['error'])) {
                                         <select name="member_id" class="form-select" required>
                                             <option value="">-- Chọn hội viên --</option>
                                             <?php foreach ($members as $member): ?>
-                                                <option value="<?php echo (int)$member['id']; ?>" <?php echo ($selected_member_id === (int)$member['id']) ? 'selected' : ''; ?>>
+                                                <option value="<?php echo (int) $member['id']; ?>" <?php echo ($selected_member_id === (int) $member['id']) ? 'selected' : ''; ?>>
                                                     <?php echo h($member['full_name']); ?> - <?php echo h($member['phone']); ?> (<?php echo h($member['status']); ?>)
                                                 </option>
                                             <?php endforeach; ?>
@@ -228,7 +228,7 @@ if (isset($_GET['error'])) {
                                                         <div class="small text-muted">
                                                             <?php echo h(getGoalLabel($plan['goal'])); ?> |
                                                             <?php echo h(getLevelLabel($plan['level'])); ?> |
-                                                            <?php echo (int)$plan['days_per_week']; ?> buổi/tuần
+                                                            <?php echo (int) $plan['days_per_week']; ?> buổi/tuần
                                                         </div>
                                                     </div>
                                                     <span class="badge bg-success"><?php echo h($plan['status']); ?></span>
@@ -242,12 +242,10 @@ if (isset($_GET['error'])) {
 
                                                 <div class="plan-box"><?php echo nl2br(h($plan['ai_response'])); ?></div>
 
-                                                <div class="small text-muted mt-2">
-                                                    Tạo lúc: <?php echo h($plan['created_at']); ?>
-                                                </div>
-                                                <a href="<?php echo $base_path; ?>php/ai/edit-workout-plan.php?id=<?php echo (int)$plan['id']; ?>" class="btn btn-sm btn-outline-warning">
-        <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
-    </a>
+                                                <div class="small text-muted mt-2">Tạo lúc: <?php echo h($plan['created_at']); ?></div>
+                                                <a href="<?php echo $root_base_path; ?>php/ai/edit-workout-plan.php?id=<?php echo (int) $plan['id']; ?>" class="btn btn-sm btn-outline-warning mt-2">
+                                                    <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
+                                                </a>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
@@ -262,4 +260,4 @@ if (isset($_GET['error'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html> 
+</html>

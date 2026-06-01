@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $page_title = $page_title ?? 'Dashboard';
 $admin_name = $_SESSION['admin_full_name'] ?? 'Admin';
 ?>

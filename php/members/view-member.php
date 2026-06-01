@@ -1,38 +1,38 @@
-<?php
-$page_title = "Chi ti?t h?i viÍn";
+Ôªø<?php
+$page_title = 'Chi ti·∫øt h·ªôi vi√™n';
 include __DIR__ . '/../../includes/auth-check.php';
 $base_path = '../../admin/';
+$root_base_path = '../../';
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($id <= 0) {
-    header("Location: " . $base_path . "members.php");
+    header('Location: ' . $base_path . 'members.php');
     exit();
 }
 
-// X? l˝ thÍm/s?a/xÛa ghi ch˙
-$note_success = "";
-$note_error = "";
+// X·ª≠ l√Ω th√™m/s·ª≠a/x√≥a ghi ch√∫
+$note_success = '';
+$note_error = '';
 $edit_note_id = isset($_GET['edit_note_id']) ? (int) $_GET['edit_note_id'] : 0;
 $filter_note_date = isset($_GET['note_date']) ? trim($_GET['note_date']) : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
     $note_content = trim($_POST['note'] ?? '');
 
-    if (empty($note_content)) {
-        $note_error = "Vui lÚng nh?p n?i dung ghi ch˙.";
+    if ($note_content === '') {
+        $note_error = 'Vui l√≤ng nh·∫≠p n·ªôi dung ghi ch√∫.';
     } else {
-        $stmt_note = $conn->prepare("INSERT INTO member_notes (member_id, note, created_by_name) VALUES (?, ?, ?)");
-        $created_by = "Admin"; // CÛ th? l?y t? session n?u cÛ
-        $stmt_note->bind_param("iss", $id, $note_content, $created_by);
+        $stmt_note = $conn->prepare('INSERT INTO member_notes (member_id, note, created_by_name) VALUES (?, ?, ?)');
+        $created_by = 'Admin';
+        $stmt_note->bind_param('iss', $id, $note_content, $created_by);
 
         if ($stmt_note->execute()) {
-            $note_success = "–„ thÍm ghi ch˙ th‡nh cÙng.";
-            header("Location: " . $_SERVER['REQUEST_URI'] . "&note_success=1");
+            header('Location: ' . $_SERVER['REQUEST_URI'] . '&note_success=1');
             exit();
-        } else {
-            $note_error = "L?i khi thÍm ghi ch˙: " . $stmt_note->error;
         }
+
+        $note_error = 'L·ªói khi th√™m ghi ch√∫: ' . $stmt_note->error;
         $stmt_note->close();
     }
 }
@@ -42,16 +42,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_note'])) {
     $note_content = trim($_POST['note'] ?? '');
 
     if ($note_id <= 0 || $note_content === '') {
-        $note_error = "Vui lÚng nh?p n?i dung ghi ch˙.";
+        $note_error = 'Vui l√≤ng nh·∫≠p n·ªôi dung ghi ch√∫.';
     } else {
-        $stmt_update = $conn->prepare("UPDATE member_notes SET note = ? WHERE id = ? AND member_id = ?");
-        $stmt_update->bind_param("sii", $note_content, $note_id, $id);
+        $stmt_update = $conn->prepare('UPDATE member_notes SET note = ? WHERE id = ? AND member_id = ?');
+        $stmt_update->bind_param('sii', $note_content, $note_id, $id);
         if ($stmt_update->execute()) {
-            header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?id=" . $id . "&note_updated=1");
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?id=' . $id . '&note_updated=1');
             exit();
-        } else {
-            $note_error = "L?i khi c?p nh?t ghi ch˙: " . $stmt_update->error;
         }
+
+        $note_error = 'L·ªói khi c·∫≠p nh·∫≠t ghi ch√∫: ' . $stmt_update->error;
         $stmt_update->close();
     }
 }
@@ -59,56 +59,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_note'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_note'])) {
     $note_id = isset($_POST['note_id']) ? (int) $_POST['note_id'] : 0;
     if ($note_id > 0) {
-        $stmt_delete = $conn->prepare("DELETE FROM member_notes WHERE id = ? AND member_id = ?");
-        $stmt_delete->bind_param("ii", $note_id, $id);
+        $stmt_delete = $conn->prepare('DELETE FROM member_notes WHERE id = ? AND member_id = ?');
+        $stmt_delete->bind_param('ii', $note_id, $id);
         if ($stmt_delete->execute()) {
-            header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?id=" . $id . "&note_deleted=1");
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?id=' . $id . '&note_deleted=1');
             exit();
-        } else {
-            $note_error = "L?i khi xÛa ghi ch˙: " . $stmt_delete->error;
         }
+
+        $note_error = 'L·ªói khi x√≥a ghi ch√∫: ' . $stmt_delete->error;
         $stmt_delete->close();
     }
 }
 
-// Ki?m tra thÙng b·o t? URL
 if (isset($_GET['note_success']) && $_GET['note_success'] === '1') {
-    $note_success = "–„ thÍm ghi ch˙ th‡nh cÙng.";
+    $note_success = 'ƒê√£ th√™m ghi ch√∫ th√†nh c√¥ng.';
 }
 if (isset($_GET['note_updated']) && $_GET['note_updated'] === '1') {
-    $note_success = "–„ c?p nh?t ghi ch˙ th‡nh cÙng.";
+    $note_success = 'ƒê√£ c·∫≠p nh·∫≠t ghi ch√∫ th√†nh c√¥ng.';
 }
 if (isset($_GET['note_deleted']) && $_GET['note_deleted'] === '1') {
-    $note_success = "–„ xÛa ghi ch˙ th‡nh cÙng.";
+    $note_success = 'ƒê√£ x√≥a ghi ch√∫ th√†nh c√¥ng.';
 }
 
-/* L?y thÙng tin h?i viÍn + gÛi t?p hi?n t?i */
-$stmt = $conn->prepare("
+$stmt = $conn->prepare('
     SELECT 
-        m.*,
+        m.*, 
         p.package_name,
         p.price AS package_price,
         p.duration_months
     FROM members m
     LEFT JOIN packages p ON m.package_id = p.id
     WHERE m.id = ?
-");
-$stmt->bind_param("i", $id);
+');
+$stmt->bind_param('i', $id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
     $stmt->close();
-    header("Location: " . $base_path . "members.php");
+    header('Location: ' . $base_path . 'members.php');
     exit();
 }
 
 $member = $result->fetch_assoc();
 $stmt->close();
 
-/* L?y l?ch s? gÛi */
 $history = [];
-$stmt_history = $conn->prepare("
+$stmt_history = $conn->prepare('
     SELECT
         h.*,
         p.package_name
@@ -116,8 +113,8 @@ $stmt_history = $conn->prepare("
     LEFT JOIN packages p ON h.package_id = p.id
     WHERE h.member_id = ?
     ORDER BY h.id DESC
-");
-$stmt_history->bind_param("i", $id);
+');
+$stmt_history->bind_param('i', $id);
 $stmt_history->execute();
 $result_history = $stmt_history->get_result();
 
@@ -128,23 +125,22 @@ if ($result_history && $result_history->num_rows > 0) {
 }
 $stmt_history->close();
 
-// L?y ghi ch˙ h?i viÍn (cÛ l?c theo ng‡y n?u cÛ)
 $notes = [];
-$sql_notes = "
+$sql_notes = '
     SELECT *
     FROM member_notes
     WHERE member_id = ?
-";
+';
 if ($filter_note_date !== '') {
-    $sql_notes .= " AND DATE(created_at) = ?";
+    $sql_notes .= ' AND DATE(created_at) = ?';
 }
-$sql_notes .= " ORDER BY id DESC";
+$sql_notes .= ' ORDER BY id DESC';
 
 $stmt_notes = $conn->prepare($sql_notes);
 if ($filter_note_date !== '') {
-    $stmt_notes->bind_param("is", $id, $filter_note_date);
+    $stmt_notes->bind_param('is', $id, $filter_note_date);
 } else {
-    $stmt_notes->bind_param("i", $id);
+    $stmt_notes->bind_param('i', $id);
 }
 $stmt_notes->execute();
 $result_notes = $stmt_notes->get_result();
@@ -157,12 +153,12 @@ if ($result_notes && $result_notes->num_rows > 0) {
 $stmt_notes->close();
 
 $total_debt = 0.0;
-$stmt_debt = $conn->prepare("
+$stmt_debt = $conn->prepare('
     SELECT COALESCE(SUM(remaining_amount), 0) AS total_debt
     FROM member_package_history
     WHERE member_id = ? AND remaining_amount > 0
-");
-$stmt_debt->bind_param("i", $id);
+');
+$stmt_debt->bind_param('i', $id);
 $stmt_debt->execute();
 $result_debt = $stmt_debt->get_result();
 if ($result_debt && $row_debt = $result_debt->fetch_assoc()) {
@@ -173,25 +169,26 @@ $stmt_debt->close();
 function formatMemberStatus($status)
 {
     if ($status === 'active') {
-        return '<span class="badge bg-success">–ang ho?t d?ng</span>';
+        return '<span class="badge bg-success">ƒêang ho·∫°t ƒë·ªông</span>';
     }
     if ($status === 'expired') {
-        return '<span class="badge bg-warning text-dark">H?t h?n</span>';
+        return '<span class="badge bg-warning text-dark">H·∫øt h·∫°n</span>';
     }
-    return '<span class="badge bg-secondary">Ngung ho?t d?ng</span>';
+    return '<span class="badge bg-secondary">Ng·ª´ng ho·∫°t ƒë·ªông</span>';
 }
 
 function formatHistoryStatus($status)
 {
     if ($status === 'active') {
-        return '<span class="badge bg-success">–ang ·p d?ng</span>';
+        return '<span class="badge bg-success">ƒêang √°p d·ª•ng</span>';
     }
     if ($status === 'expired') {
-        return '<span class="badge bg-warning text-dark">H?t h?n</span>';
+        return '<span class="badge bg-warning text-dark">H·∫øt h·∫°n</span>';
     }
-    return '<span class="badge bg-secondary">–„ h?y</span>';
+    return '<span class="badge bg-secondary">ƒê√£ h·ªßy</span>';
 }
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -200,13 +197,14 @@ function formatHistoryStatus($status)
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
+    <link rel="stylesheet" href="<?php echo $root_base_path; ?>css/style.css">
     <style>
         .notes-list .note-item:last-child {
             border-bottom: none !important;
             margin-bottom: 0 !important;
             padding-bottom: 0 !important;
         }
+
         .note-content {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -214,8 +212,8 @@ function formatHistoryStatus($status)
     </style>
 </head>
 
-<body>
-    <div class="d-flex">
+<body class="dashboard-page">
+    <div class="d-flex dashboard-wrapper">
         <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
 
         <div class="main-content flex-grow-1">
@@ -223,9 +221,9 @@ function formatHistoryStatus($status)
 
             <div class="container-fluid p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold mb-0">Chi ti?t h?i viÍn</h2>
+                    <h2 class="fw-bold mb-0">Chi ti·∫øt h·ªôi vi√™n</h2>
                     <a href="<?php echo $base_path; ?>members.php" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Quay l?i
+                        <i class="bi bi-arrow-left me-1"></i>Quay l·∫°i
                     </a>
                 </div>
 
@@ -233,72 +231,69 @@ function formatHistoryStatus($status)
                     <div class="col-lg-5">
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-white border-0 pt-4 px-4">
-                                <h5 class="mb-0">ThÙng tin h?i viÍn</h5>
+                                <h5 class="mb-0">Th√¥ng tin h·ªôi vi√™n</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
                                 <div class="mb-3">
-                                    <div class="text-muted small">H? v‡ tÍn</div>
+                                    <div class="text-muted small">H·ªç v√† t√™n</div>
                                     <div class="fw-semibold"><?php echo htmlspecialchars($member['full_name']); ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">Gi?i tÌnh</div>
+                                    <div class="text-muted small">Gi·ªõi t√≠nh</div>
                                     <div><?php echo htmlspecialchars($member['gender'] ?? ''); ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">S? di?n tho?i</div>
+                                    <div class="text-muted small">S·ªë ƒëi·ªán tho·∫°i</div>
                                     <div><?php echo htmlspecialchars($member['phone']); ?></div>
                                 </div>
 
                                 <div class="mb-3">
                                     <div class="text-muted small">Email</div>
-                                    <div><?php echo htmlspecialchars($member['email'] ?: 'Chua cÛ'); ?></div>
+                                    <div><?php echo htmlspecialchars($member['email'] ?: 'Ch∆∞a c√≥'); ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">Ng‡y sinh</div>
-                                    <div><?php echo !empty($member['date_of_birth']) ? htmlspecialchars($member['date_of_birth']) : 'Chua cÛ'; ?></div>
+                                    <div class="text-muted small">Ng√†y sinh</div>
+                                    <div><?php echo !empty($member['date_of_birth']) ? htmlspecialchars($member['date_of_birth']) : 'Ch∆∞a c√≥'; ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">–?a ch?</div>
-                                    <div><?php echo htmlspecialchars($member['address'] ?: 'Chua cÛ'); ?></div>
+                                    <div class="text-muted small">ƒê·ªãa ch·ªâ</div>
+                                    <div><?php echo htmlspecialchars($member['address'] ?: 'Ch∆∞a c√≥'); ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">Tr?ng th·i</div>
+                                    <div class="text-muted small">Tr·∫°ng th√°i</div>
                                     <div><?php echo formatMemberStatus($member['status']); ?></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="text-muted small">T?ng n?</div>
-                                    <div class="fw-semibold text-danger">
-                                        <?php echo number_format((float)$total_debt, 0, ',', '.'); ?> VN–
-                                    </div>
+                                    <div class="text-muted small">T·ªïng n·ª£</div>
+                                    <div class="fw-semibold text-danger"><?php echo number_format((float) $total_debt, 0, ',', '.'); ?> VNƒê</div>
                                 </div>
 
                                 <div class="mb-0">
-                                    <div class="text-muted small">Ng‡y t?o</div>
+                                    <div class="text-muted small">Ng√†y t·∫°o</div>
                                     <div><?php echo htmlspecialchars($member['created_at'] ?? ''); ?></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Form thÍm ghi ch˙ -->
                         <div class="card shadow-sm border-0 mt-4" id="member-notes">
                             <div class="card-header bg-white border-0 pt-4 px-4">
-                                <h5 class="mb-0">ThÍm ghi ch˙</h5>
+                                <h5 class="mb-0">Th√™m ghi ch√∫</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
-                                <?php if (!empty($note_success)): ?>
+                                <?php if ($note_success !== ''): ?>
                                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                                         <i class="bi bi-check-circle me-2"></i><?php echo htmlspecialchars($note_success); ?>
                                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                     </div>
                                 <?php endif; ?>
 
-                                <?php if (!empty($note_error)): ?>
+                                <?php if ($note_error !== ''): ?>
                                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                         <i class="bi bi-exclamation-triangle me-2"></i><?php echo htmlspecialchars($note_error); ?>
                                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -308,11 +303,11 @@ function formatHistoryStatus($status)
                                 <form method="POST" action="">
                                     <input type="hidden" name="add_note" value="1">
                                     <div class="mb-3">
-                                        <label class="form-label">N?i dung ghi ch˙</label>
-                                        <textarea name="note" class="form-control" rows="3" placeholder="Nh?p ghi ch˙ v? h?i viÍn..." required></textarea>
+                                        <label class="form-label">N·ªôi dung ghi ch√∫</label>
+                                        <textarea name="note" class="form-control" rows="3" placeholder="Nh·∫≠p ghi ch√∫ v·ªÅ h·ªôi vi√™n..." required></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle me-1"></i>ThÍm ghi ch˙
+                                        <i class="bi bi-plus-circle me-1"></i>Th√™m ghi ch√∫
                                     </button>
                                 </form>
                             </div>
@@ -322,54 +317,49 @@ function formatHistoryStatus($status)
                     <div class="col-lg-7">
                         <div class="card shadow-sm border-0 mb-4">
                             <div class="card-header bg-white border-0 pt-4 px-4">
-                                <h5 class="mb-0">GÛi hi?n t?i</h5>
+                                <h5 class="mb-0">G√≥i hi·ªán t·∫°i</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <div class="text-muted small">TÍn gÛi</div>
-                                        <div class="fw-semibold"><?php echo htmlspecialchars($member['package_name'] ?: 'Chua cÛ gÛi'); ?></div>
+                                        <div class="text-muted small">T√™n g√≥i</div>
+                                        <div class="fw-semibold"><?php echo htmlspecialchars($member['package_name'] ?: 'Ch∆∞a c√≥ g√≥i'); ?></div>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="text-muted small">Gi· gÛi</div>
-                                        <div>
-                                            <?php echo isset($member['package_price']) ? number_format((float)$member['package_price'], 0, ',', '.') . ' VN–' : 'Chua cÛ'; ?>
-                                        </div>
+                                        <div class="text-muted small">Gi√° g√≥i</div>
+                                        <div><?php echo isset($member['package_price']) ? number_format((float) $member['package_price'], 0, ',', '.') . ' VNƒê' : 'Ch∆∞a c√≥'; ?></div>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="text-muted small">Ng‡y b?t d?u</div>
-                                        <div><?php echo !empty($member['start_date']) ? htmlspecialchars($member['start_date']) : 'Chua cÛ'; ?></div>
+                                        <div class="text-muted small">Ng√†y b·∫Øt ƒë·∫ßu</div>
+                                        <div><?php echo !empty($member['start_date']) ? htmlspecialchars($member['start_date']) : 'Ch∆∞a c√≥'; ?></div>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="text-muted small">Ng‡y k?t th˙c</div>
-                                        <div><?php echo !empty($member['end_date']) ? htmlspecialchars($member['end_date']) : 'Chua cÛ'; ?></div>
+                                        <div class="text-muted small">Ng√†y k·∫øt th√∫c</div>
+                                        <div><?php echo !empty($member['end_date']) ? htmlspecialchars($member['end_date']) : 'Ch∆∞a c√≥'; ?></div>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="text-muted small">Th?i h?n gÛi</div>
-                                        <div>
-                                            <?php echo isset($member['duration_months']) ? (int)$member['duration_months'] . ' th·ng' : 'Chua cÛ'; ?>
-                                        </div>
+                                        <div class="text-muted small">Th·ªùi h·∫°n g√≥i</div>
+                                        <div><?php echo isset($member['duration_months']) ? (int) $member['duration_months'] . ' th√°ng' : 'Ch∆∞a c√≥'; ?></div>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="text-muted small">Thao t·c nhanh</div>
+                                        <div class="text-muted small">Thao t√°c nhanh</div>
                                         <div class="d-flex gap-2 flex-wrap">
-                                            <a href="<?php echo $base_path; ?>php/members/edit-member.php?id=<?php echo (int)$member['id']; ?>" class="btn btn-warning btn-sm">
-                                                <i class="bi bi-pencil me-1"></i>S?a h?i viÍn
+                                            <a href="<?php echo $root_base_path; ?>php/members/edit-member.php?id=<?php echo (int) $member['id']; ?>" class="btn btn-warning btn-sm">
+                                                <i class="bi bi-pencil me-1"></i>S·ª≠a h·ªôi vi√™n
                                             </a>
-
-                                            <a href="<?php echo $base_path; ?>php/members/renew-package.php?id=<?php echo (int)$member['id']; ?>" class="btn btn-primary btn-sm">
-                                                <i class="bi bi-arrow-repeat me-1"></i>Gia h?n gÛi
+                                            <a href="<?php echo $root_base_path; ?>php/members/renew-package.php?id=<?php echo (int) $member['id']; ?>" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Gia h·∫°n g√≥i
                                             </a>
-                                            <a href="<?php echo $base_path; ?>workout-plans.php?member_id=<?php echo (int)$member['id']; ?>" class="btn btn-success btn-sm">
-                                                <i class="bi bi-clipboard2-pulse me-1"></i>K? ho?ch t?p luy?n
+                                            <a href="<?php echo $base_path; ?>workout-plans.php?member_id=<?php echo (int) $member['id']; ?>" class="btn btn-success btn-sm">
+                                                <i class="bi bi-clipboard2-pulse me-1"></i>K·∫ø ho·∫°ch t·∫≠p luy·ªán
                                             </a>
-                                            <a href="<?php echo $base_path; ?>meal-plans.php?member_id=<?php echo (int)$member['id']; ?>" class="btn btn-outline-success btn-sm">
-                                                <i class="bi bi-egg-fried me-1"></i>K? ho?ch dinh du?ng
+                                            <a href="<?php echo $base_path; ?>meal-plans.php?member_id=<?php echo (int) $member['id']; ?>" class="btn btn-outline-success btn-sm">
+                                                <i class="bi bi-egg-fried me-1"></i>K·∫ø ho·∫°ch dinh d∆∞·ª°ng
                                             </a>
                                         </div>
                                     </div>
@@ -379,7 +369,7 @@ function formatHistoryStatus($status)
 
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-white border-0 pt-4 px-4">
-                                <h5 class="mb-0">L?ch s? gÛi t?p</h5>
+                                <h5 class="mb-0">L·ªãch s·ª≠ g√≥i t·∫≠p</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
                                 <div class="table-responsive">
@@ -387,36 +377,36 @@ function formatHistoryStatus($status)
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>GÛi t?p</th>
-                                                <th>Lo?i</th>
-                                                <th>Th?i gian</th>
-                                                <th>Thanh to·n</th>
-                                                <th>Tr?ng th·i</th>
+                                                <th>G√≥i t·∫≠p</th>
+                                                <th>Lo·∫°i</th>
+                                                <th>Th·ªùi gian</th>
+                                                <th>Thanh to√°n</th>
+                                                <th>Tr·∫°ng th√°i</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php if (!empty($history)): ?>
                                                 <?php foreach ($history as $item): ?>
                                                     <tr>
-                                                        <td>#<?php echo (int)$item['id']; ?></td>
-                                                        <td><?php echo htmlspecialchars($item['package_name'] ?: 'KhÙng x·c d?nh'); ?></td>
+                                                        <td>#<?php echo (int) $item['id']; ?></td>
+                                                        <td><?php echo htmlspecialchars($item['package_name'] ?: 'Kh√¥ng x√°c ƒë·ªãnh'); ?></td>
                                                         <td><?php echo htmlspecialchars($item['action_type']); ?></td>
                                                         <td>
                                                             <?php echo htmlspecialchars($item['start_date']); ?>
                                                             <br>
-                                                            <small class="text-muted">d?n <?php echo htmlspecialchars($item['end_date']); ?></small>
+                                                            <small class="text-muted">ƒë·∫øn <?php echo htmlspecialchars($item['end_date']); ?></small>
                                                         </td>
                                                         <td>
-                                                            <div>T?ng: <?php echo number_format((float)$item['price'], 0, ',', '.'); ?> VN–</div>
-                                                            <small class="text-success d-block">–„ tr?: <?php echo number_format((float)$item['paid_amount'], 0, ',', '.'); ?> VN–</small>
-                                                            <small class="text-danger d-block">CÚn n?: <?php echo number_format((float)$item['remaining_amount'], 0, ',', '.'); ?> VN–</small>
+                                                            <div>T·ªïng: <?php echo number_format((float) $item['price'], 0, ',', '.'); ?> VNƒê</div>
+                                                            <small class="text-success d-block">ƒê√£ tr·∫£: <?php echo number_format((float) $item['paid_amount'], 0, ',', '.'); ?> VNƒê</small>
+                                                            <small class="text-danger d-block">C√≤n n·ª£: <?php echo number_format((float) $item['remaining_amount'], 0, ',', '.'); ?> VNƒê</small>
                                                         </td>
                                                         <td><?php echo formatHistoryStatus($item['status']); ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr>
-                                                    <td colspan="6" class="text-center text-muted">Chua cÛ l?ch s? gÛi t?p.</td>
+                                                    <td colspan="6" class="text-center text-muted">Ch∆∞a c√≥ l·ªãch s·ª≠ g√≥i t·∫≠p.</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
@@ -425,18 +415,15 @@ function formatHistoryStatus($status)
                             </div>
                         </div>
 
-                        <!-- Danh s·ch ghi ch˙ -->
                         <div class="card shadow-sm border-0 mt-4">
                             <div class="card-header bg-white border-0 pt-4 px-4">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <h5 class="mb-0">Danh s·ch ghi ch˙</h5>
+                                    <h5 class="mb-0">Danh s√°ch ghi ch√∫</h5>
                                     <form method="GET" action="" class="d-flex align-items-center gap-2">
-                                        <input type="hidden" name="id" value="<?php echo (int)$member['id']; ?>">
-                                        <input type="date" name="note_date" class="form-control form-control-sm"
-                                               value="<?php echo htmlspecialchars($filter_note_date); ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">L?c</button>
-                                        <a class="btn btn-sm btn-outline-secondary"
-                                           href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>#member-notes">Reset</a>
+                                        <input type="hidden" name="id" value="<?php echo (int) $member['id']; ?>">
+                                        <input type="date" name="note_date" class="form-control form-control-sm" value="<?php echo htmlspecialchars($filter_note_date); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">L·ªçc</button>
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member['id']; ?>#member-notes">Reset</a>
                                     </form>
                                 </div>
                             </div>
@@ -446,50 +433,39 @@ function formatHistoryStatus($status)
                                         <?php foreach ($notes as $note): ?>
                                             <div class="note-item border-bottom pb-3 mb-3">
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                                    <div class="fw-semibold">
-                                                        <?php echo htmlspecialchars($note['created_by_name'] ?: 'Admin'); ?>
-                                                    </div>
+                                                    <div class="fw-semibold"><?php echo htmlspecialchars($note['created_by_name'] ?: 'Admin'); ?></div>
                                                     <div class="text-end">
-                                                        <small class="text-muted d-block">
-                                                            <?php echo !empty($note['created_at']) ? date('d/m/Y H:i', strtotime($note['created_at'])) : ''; ?>
-                                                        </small>
+                                                        <small class="text-muted d-block"><?php echo !empty($note['created_at']) ? date('d/m/Y H:i', strtotime($note['created_at'])) : ''; ?></small>
                                                         <div class="mt-2 d-flex gap-2 justify-content-end">
-                                                            <a class="btn btn-outline-secondary btn-sm"
-                                                               href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>&edit_note_id=<?php echo (int)$note['id']; ?>#member-notes">
-                                                                <i class="bi bi-pencil-square me-1"></i>S?a
+                                                            <a class="btn btn-outline-secondary btn-sm" href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member['id']; ?>&edit_note_id=<?php echo (int) $note['id']; ?>#member-notes">
+                                                                <i class="bi bi-pencil-square me-1"></i>S·ª≠a
                                                             </a>
-                                                            <form method="POST" action=""
-                                                                  onsubmit="return confirm('XÛa ghi ch˙ n‡y?');">
+                                                            <form method="POST" action="" onsubmit="return confirm('X√≥a ghi ch√∫ n√†y?');">
                                                                 <input type="hidden" name="delete_note" value="1">
-                                                                <input type="hidden" name="note_id" value="<?php echo (int)$note['id']; ?>">
+                                                                <input type="hidden" name="note_id" value="<?php echo (int) $note['id']; ?>">
                                                                 <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                                    <i class="bi bi-trash me-1"></i>XÛa
+                                                                    <i class="bi bi-trash me-1"></i>X√≥a
                                                                 </button>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <?php if ($edit_note_id === (int)$note['id']): ?>
+                                                <?php if ($edit_note_id === (int) $note['id']): ?>
                                                     <form method="POST" action="" class="mb-3">
                                                         <input type="hidden" name="update_note" value="1">
-                                                        <input type="hidden" name="note_id" value="<?php echo (int)$note['id']; ?>">
+                                                        <input type="hidden" name="note_id" value="<?php echo (int) $note['id']; ?>">
                                                         <div class="mb-2">
                                                             <textarea name="note" class="form-control" rows="3" required><?php echo htmlspecialchars($note['note']); ?></textarea>
                                                         </div>
                                                         <div class="d-flex gap-2">
                                                             <button type="submit" class="btn btn-primary btn-sm">
-                                                                <i class="bi bi-check-circle me-1"></i>Luu
+                                                                <i class="bi bi-check-circle me-1"></i>L∆∞u
                                                             </button>
-                                                            <a class="btn btn-outline-secondary btn-sm"
-                                                               href="<?php echo $base_path; ?>php/members/view-member.php?id=<?php echo (int)$member['id']; ?>#member-notes">
-                                                                H?y
-                                                            </a>
+                                                            <a class="btn btn-outline-secondary btn-sm" href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member['id']; ?>#member-notes">H·ªßy</a>
                                                         </div>
                                                     </form>
                                                 <?php else: ?>
-                                                    <div class="note-content">
-                                                        <?php echo nl2br(htmlspecialchars($note['note'])); ?>
-                                                    </div>
+                                                    <div class="note-content"><?php echo nl2br(htmlspecialchars($note['note'])); ?></div>
                                                 <?php endif; ?>
                                             </div>
                                         <?php endforeach; ?>
@@ -497,12 +473,11 @@ function formatHistoryStatus($status)
                                 <?php else: ?>
                                     <div class="text-center text-muted py-4">
                                         <i class="bi bi-sticky-note fs-1 mb-2"></i>
-                                        <div>Chua cÛ ghi ch˙ n‡o.</div>
+                                        <div>Ch∆∞a c√≥ ghi ch√∫ n√†o.</div>
                                     </div>
                                 <?php endif; ?>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -513,5 +488,3 @@ function formatHistoryStatus($status)
 </body>
 
 </html>
-
-

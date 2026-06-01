@@ -1,13 +1,31 @@
 <?php
 
+require_once __DIR__ . '/package-image-helper.php';
+
+function getPackageFallbackImages(): array
+{
+    return [
+        '../../assets/images/ambitious-studio-rick-barrett-1RNQ11ZODJM-unsplash.jpg',
+        '../../assets/images/brett-jordan-U2q73PfHFpM-unsplash.jpg',
+        '../../assets/images/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg',
+    ];
+}
+
+function getPackageImageUrl(array $package, string $basePath, int $fallbackIndex = 0): string
+{
+    $fallbacks = getPackageFallbackImages();
+    $fallback = $fallbacks[$fallbackIndex % count($fallbacks)];
+    return resolve_package_image_url($package['image'] ?? '', $basePath, $fallback);
+}
+
 function getActivePackages(mysqli $conn): array
 {
     $items = [];
 
-    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, status
+    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status
             FROM packages
             WHERE status = 'active'
-            ORDER BY id DESC";
+            ORDER BY price ASC, duration_months ASC, id ASC";
 
     $result = $conn->query($sql);
 
@@ -22,7 +40,7 @@ function getActivePackages(mysqli $conn): array
 
 function getPackageById(mysqli $conn, int $id): ?array
 {
-    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, status
+    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status
             FROM packages
             WHERE id = ?
             LIMIT 1";

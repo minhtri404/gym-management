@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include __DIR__ . '/../../includes/auth-check.php';
 
 $base_path = '../../admin/';
@@ -7,13 +7,13 @@ function getGoalLabel($goal)
 {
     switch ($goal) {
         case 'weight-loss':
-            return 'Gi?m c�n';
+            return 'Giảm cân';
         case 'muscle-gain':
-            return 'Tang co';
+            return 'Tăng cơ';
         case 'maintain':
-            return 'Gi? d�ng';
+            return 'Giữ dáng';
         default:
-            return 'Chua x�c d?nh';
+            return 'Chưa xác định';
     }
 }
 
@@ -21,25 +21,25 @@ function getLevelLabel($level)
 {
     switch ($level) {
         case 'beginner':
-            return 'M?i b?t d?u';
+            return 'Mới bắt đầu';
         case 'intermediate':
-            return 'Trung b�nh';
+            return 'Trung bình';
         case 'advanced':
-            return 'N�ng cao';
+            return 'Nâng cao';
         default:
-            return 'Chua x�c d?nh';
+            return 'Chưa xác định';
     }
 }
 
 function detectHealthAdjustments($healthNote)
 {
-    $note = mb_strtolower(trim((string)$healthNote), 'UTF-8');
+    $note = mb_strtolower(trim((string) $healthNote), 'UTF-8');
 
     $adjustments = [
-        'warmup' => 'Kh?i d?ng 8-10 ph�t di b? nhanh, xoay kh?p v� k�ch ho?t co',
-        'rest' => '45-60 gi�y',
-        'cardio' => 'Cardio nh? 10-15 ph�t',
-        'focus_note' => 'Uu ti�n k? thu?t d�ng v� tang t?i t? t?.',
+        'warmup' => 'Khởi động 8-10 phút đi bộ nhanh, xoay khớp và kích hoạt cơ',
+        'rest' => '45-60 giây',
+        'cardio' => 'Cardio nhẹ 10-15 phút',
+        'focus_note' => 'Ưu tiên kỹ thuật đúng và tăng tải từ từ.',
         'avoid' => [],
         'replacements' => [],
     ];
@@ -48,38 +48,38 @@ function detectHealthAdjustments($healthNote)
         return $adjustments;
     }
 
-    if (preg_match('/dau g?i|g?i|kh?p g?i/u', $note)) {
-        $adjustments['avoid'][] = 'h?n ch? squat qu� s�u, jumping jack v� HIIT b?t nh?y';
-        $adjustments['replacements'][] = 'uu ti�n leg press nh?, glute bridge, di b? d?c th?p v� d?p xe nh?';
-        $adjustments['cardio'] = '�i b? m�y ho?c d?p xe nh? 10-12 ph�t';
-        $adjustments['rest'] = '60-75 gi�y';
+    if (preg_match('/đau gối|gối|khớp gối/u', $note)) {
+        $adjustments['avoid'][] = 'hạn chế squat quá sâu, jumping jack và HIIT bật nhảy';
+        $adjustments['replacements'][] = 'ưu tiên leg press nhẹ, glute bridge, đi bộ dốc thấp và đạp xe nhẹ';
+        $adjustments['cardio'] = 'Đi bộ máy hoặc đạp xe nhẹ 10-12 phút';
+        $adjustments['rest'] = '60-75 giây';
     }
 
-    if (preg_match('/dau lung|lung du?i|tho�t v?|c?t s?ng/u', $note)) {
-        $adjustments['avoid'][] = 'tr�nh deadlift n?ng, good morning v� c�c b�i g?p lung s�u';
-        $adjustments['replacements'][] = 'uu ti�n chest-supported row, bird dog, plank v� hip thrust nh?';
-        $adjustments['focus_note'] = 'Gi? c?t s?ng trung l?p, si?t core v� b? qua b�i g�y dau.';
+    if (preg_match('/đau lưng|lưng dưới|thoát vị|cột sống/u', $note)) {
+        $adjustments['avoid'][] = 'tránh deadlift nặng, good morning và các bài gập lưng sâu';
+        $adjustments['replacements'][] = 'ưu tiên chest-supported row, bird dog, plank và hip thrust nhẹ';
+        $adjustments['focus_note'] = 'Giữ cột sống trung lập, siết core và bỏ qua bài gây đau.';
     }
 
-    if (preg_match('/vai|dau vai|kh?p vai/u', $note)) {
-        $adjustments['avoid'][] = 'gi?m b�i overhead press n?ng v� d?ng t�c dang tay qu� r?ng';
-        $adjustments['replacements'][] = 'uu ti�n incline press nh?, cable row, face pull v� lateral raise nh?';
+    if (preg_match('/vai|đau vai|khớp vai/u', $note)) {
+        $adjustments['avoid'][] = 'giảm bài overhead press nặng và động tác dang tay quá rộng';
+        $adjustments['replacements'][] = 'ưu tiên incline press nhẹ, cable row, face pull và lateral raise nhẹ';
     }
 
-    if (preg_match('/tim m?ch|huy?t �p|cao huy?t �p|ti?n d�nh/u', $note)) {
-        $adjustments['avoid'][] = 'tr�nh HIIT cu?ng d? cao v� n�n th? khi g?ng s?c';
-        $adjustments['replacements'][] = 'uu ti�n cardio ?n d?nh, m?c v?a, theo d�i nh?p tim';
-        $adjustments['cardio'] = 'Cardio ?n d?nh 12-20 ph�t ? m?c v?a';
-        $adjustments['rest'] = '60-90 gi�y';
+    if (preg_match('/tim mạch|huyết áp|cao huyết áp|tiền đình/u', $note)) {
+        $adjustments['avoid'][] = 'tránh HIIT cường độ cao và nín thở khi gắng sức';
+        $adjustments['replacements'][] = 'ưu tiên cardio ổn định, mức vừa, theo dõi nhịp tim';
+        $adjustments['cardio'] = 'Cardio ổn định 12-20 phút ở mức vừa';
+        $adjustments['rest'] = '60-90 giây';
     }
 
-    if (preg_match('/m?i t?p|�t v?n d?ng|l�u kh�ng t?p/u', $note)) {
-        $adjustments['focus_note'] = 'Gi? m?c t? nh?, d?ng tru?c khi qu� m?i v� uu ti�n h?c k? thu?t.';
-        $adjustments['rest'] = '60-90 gi�y';
+    if (preg_match('/mới tập|ít vận động|lâu không tập/u', $note)) {
+        $adjustments['focus_note'] = 'Giữ mức tạ nhẹ, dừng trước khi quá mệt và ưu tiên học kỹ thuật.';
+        $adjustments['rest'] = '60-90 giây';
     }
 
-    if (preg_match('/th?a c�n|b�o|gi?m m?/u', $note)) {
-        $adjustments['cardio'] = '�i b? d?c nh? ho?c xe d?p 15-20 ph�t';
+    if (preg_match('/thừa cân|béo|giảm mỡ/u', $note)) {
+        $adjustments['cardio'] = 'Đi bộ dốc nhẹ hoặc xe đạp 15-20 phút';
     }
 
     return $adjustments;
@@ -89,19 +89,19 @@ function buildFallbackDayTemplates($goal, $daysPerWeek)
 {
     $plans = [
         'weight-loss' => [
-            3 => ['Full Body d?t m?', 'Th�n du?i v� core', 'Lung vai k?t h?p cardio'],
-            4 => ['Ng?c vai tay sau', 'Ch�n v� m�ng', 'Lung tay tru?c', 'Full Body v� cardio'],
-            5 => ['Ng?c tay sau', 'Ch�n m�ng', 'Lung tay tru?c', 'Vai core', 'Cardio v� chuy?n h�a']
+            3 => ['Full Body đốt mỡ', 'Thân dưới và core', 'Lưng vai kết hợp cardio'],
+            4 => ['Ngực vai tay sau', 'Chân và mông', 'Lưng tay trước', 'Full Body và cardio'],
+            5 => ['Ngực tay sau', 'Chân mông', 'Lưng tay trước', 'Vai core', 'Cardio và chuyển hóa'],
         ],
         'muscle-gain' => [
-            3 => ['Ng?c tay sau', 'Lung tay tru?c', 'Ch�n vai'],
-            4 => ['Ng?c tay sau', 'Lung tay tru?c', 'Ch�n m�ng', 'Vai core'],
-            5 => ['Ng?c', 'Lung', 'Ch�n', 'Vai', 'Tay v� b?ng']
+            3 => ['Ngực tay sau', 'Lưng tay trước', 'Chân vai'],
+            4 => ['Ngực tay sau', 'Lưng tay trước', 'Chân mông', 'Vai core'],
+            5 => ['Ngực', 'Lưng', 'Chân', 'Vai', 'Tay và bụng'],
         ],
         'maintain' => [
-            3 => ['Full Body', 'Cardio v� core', 'Th�n tr�n th�n du?i nh?'],
-            4 => ['Th�n tr�n', 'Th�n du?i', 'Cardio v� b?ng', 'Full Body nh?'],
-            5 => ['Ng?c tay', 'Ch�n', 'Lung vai', 'Cardio core', 'Full Body']
+            3 => ['Full Body', 'Cardio và core', 'Thân trên thân dưới nhẹ'],
+            4 => ['Thân trên', 'Thân dưới', 'Cardio và bụng', 'Full Body nhẹ'],
+            5 => ['Ngực tay', 'Chân', 'Lưng vai', 'Cardio core', 'Full Body'],
         ],
     ];
 
@@ -112,72 +112,72 @@ function buildFallbackDayTemplates($goal, $daysPerWeek)
 function buildExercisesForFocus($focus, $goal, $level, $adjustments)
 {
     $focusLower = mb_strtolower($focus, 'UTF-8');
-    $sets = $level === 'advanced' ? '4 hi?p' : '3 hi?p';
-    $compoundReps = $goal === 'muscle-gain' ? '8-10 l?n' : '10-12 l?n';
-    $accessoryReps = $goal === 'muscle-gain' ? '10-12 l?n' : '12-15 l?n';
+    $sets = $level === 'advanced' ? '4 hiệp' : '3 hiệp';
+    $compoundReps = $goal === 'muscle-gain' ? '8-10 lần' : '10-12 lần';
+    $accessoryReps = $goal === 'muscle-gain' ? '10-12 lần' : '12-15 lần';
 
-    if (str_contains($focusLower, 'ng?c')) {
+    if (str_contains($focusLower, 'ngực')) {
         return [
-            "- Kh?i d?ng: {$adjustments['warmup']}",
-            "- �?y ng?c m�y ho?c dumbbell press: {$sets} x {$compoundReps}",
+            "- Khởi động: {$adjustments['warmup']}",
+            "- Đẩy ngực máy hoặc dumbbell press: {$sets} x {$compoundReps}",
             "- Incline dumbbell press: {$sets} x {$compoundReps}",
-            "- Cable fly ho?c pec deck: 3 hi?p x {$accessoryReps}",
-            "- �p tay sau c�p: 3 hi?p x 12-15 l?n",
-            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+            "- Cable fly hoặc pec deck: 3 hiệp x {$accessoryReps}",
+            '- Ép tay sau cáp: 3 hiệp x 12-15 lần',
+            "- Nghỉ giữa hiệp: {$adjustments['rest']}",
         ];
     }
 
-    if (str_contains($focusLower, 'lung')) {
+    if (str_contains($focusLower, 'lưng')) {
         return [
-            "- Kh?i d?ng: {$adjustments['warmup']}",
+            "- Khởi động: {$adjustments['warmup']}",
             "- Lat pulldown: {$sets} x {$compoundReps}",
-            "- Seated row ho?c chest-supported row: {$sets} x {$compoundReps}",
-            "- One arm dumbbell row: 3 hi?p x 10-12 l?n m?i b�n",
-            "- Curl tay tru?c: 3 hi?p x 12 l?n",
-            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+            "- Seated row hoặc chest-supported row: {$sets} x {$compoundReps}",
+            '- One arm dumbbell row: 3 hiệp x 10-12 lần mỗi bên',
+            '- Curl tay trước: 3 hiệp x 12 lần',
+            "- Nghỉ giữa hiệp: {$adjustments['rest']}",
         ];
     }
 
-    if (str_contains($focusLower, 'ch�n') || str_contains($focusLower, 'm�ng')) {
+    if (str_contains($focusLower, 'chân') || str_contains($focusLower, 'mông')) {
         return [
-            "- Kh?i d?ng: {$adjustments['warmup']}",
-            "- Goblet squat ho?c leg press nh?: {$sets} x {$compoundReps}",
-            "- Romanian deadlift nh? ho?c hip hinge m�y: {$sets} x 10-12 l?n",
-            "- Glute bridge ho?c hip thrust nh?: 3 hi?p x 12 l?n",
-            "- Leg curl: 3 hi?p x 12-15 l?n",
-            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+            "- Khởi động: {$adjustments['warmup']}",
+            "- Goblet squat hoặc leg press nhẹ: {$sets} x {$compoundReps}",
+            "- Romanian deadlift nhẹ hoặc hip hinge máy: {$sets} x 10-12 lần",
+            '- Glute bridge hoặc hip thrust nhẹ: 3 hiệp x 12 lần',
+            '- Leg curl: 3 hiệp x 12-15 lần',
+            "- Nghỉ giữa hiệp: {$adjustments['rest']}",
         ];
     }
 
     if (str_contains($focusLower, 'vai')) {
         return [
-            "- Kh?i d?ng: {$adjustments['warmup']}",
-            "- Dumbbell shoulder press nh?: {$sets} x {$compoundReps}",
-            "- Lateral raise: 3 hi?p x 12-15 l?n",
-            "- Rear delt fly ho?c face pull: 3 hi?p x 12-15 l?n",
-            "- Plank: 3 hi?p x 30-45 gi�y",
-            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+            "- Khởi động: {$adjustments['warmup']}",
+            "- Dumbbell shoulder press nhẹ: {$sets} x {$compoundReps}",
+            '- Lateral raise: 3 hiệp x 12-15 lần',
+            '- Rear delt fly hoặc face pull: 3 hiệp x 12-15 lần',
+            '- Plank: 3 hiệp x 30-45 giây',
+            "- Nghỉ giữa hiệp: {$adjustments['rest']}",
         ];
     }
 
-    if (str_contains($focusLower, 'cardio') || str_contains($focusLower, 'd?t m?') || str_contains($focusLower, 'chuy?n h�a')) {
+    if (str_contains($focusLower, 'cardio') || str_contains($focusLower, 'đốt mỡ') || str_contains($focusLower, 'chuyển hóa')) {
         return [
-            "- Kh?i d?ng: {$adjustments['warmup']}",
-            "- Walking lunge ho?c step-up th?p: 3 hi?p x 10-12 l?n m?i b�n",
-            "- Push-up tr�n gh? ho?c chest press m�y: 3 hi?p x 10-12 l?n",
-            "- Seated row: 3 hi?p x 10-12 l?n",
-            "- {$adjustments['cardio']}",
-            "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+            "- Khởi động: {$adjustments['warmup']}",
+            '- Walking lunge hoặc step-up thấp: 3 hiệp x 10-12 lần mỗi bên',
+            '- Push-up trên ghế hoặc chest press máy: 3 hiệp x 10-12 lần',
+            '- Seated row: 3 hiệp x 10-12 lần',
+            '- ' . $adjustments['cardio'],
+            "- Nghỉ giữa hiệp: {$adjustments['rest']}",
         ];
     }
 
     return [
-        "- Kh?i d?ng: {$adjustments['warmup']}",
-        "- Leg press ho?c squat goblet nh?: {$sets} x {$compoundReps}",
-        "- Chest press m�y: {$sets} x {$compoundReps}",
+        "- Khởi động: {$adjustments['warmup']}",
+        "- Leg press hoặc squat goblet nhẹ: {$sets} x {$compoundReps}",
+        "- Chest press máy: {$sets} x {$compoundReps}",
         "- Lat pulldown: {$sets} x {$compoundReps}",
-        "- Plank: 3 hi?p x 30-45 gi�y",
-        "- Ngh? gi?a hi?p: {$adjustments['rest']}",
+        '- Plank: 3 hiệp x 30-45 giây',
+        "- Nghỉ giữa hiệp: {$adjustments['rest']}",
     ];
 }
 
@@ -190,102 +190,102 @@ function buildFallbackPlan($memberName, $goal, $level, $daysPerWeek, $healthNote
 
     $text = '';
     foreach ($focuses as $index => $focus) {
-        $text .= "Ng�y " . ($index + 1) . ": {$focus}\n";
+        $text .= 'Ngày ' . ($index + 1) . ": {$focus}\n";
         $text .= implode("\n", buildExercisesForFocus($focus, $goal, $level, $adjustments)) . "\n\n";
     }
 
     $extraNotes = [
-        "- M?c ti�u: {$goalLabel}",
-        "- Tr�nh d?: {$levelLabel}",
-        "- {$adjustments['focus_note']}",
+        "- Mục tiêu: {$goalLabel}",
+        "- Trình độ: {$levelLabel}",
+        '- ' . $adjustments['focus_note'],
     ];
 
     foreach ($adjustments['avoid'] as $avoid) {
-        $extraNotes[] = "- Tr�nh: {$avoid}";
+        $extraNotes[] = "- Tránh: {$avoid}";
     }
 
     foreach ($adjustments['replacements'] as $replacement) {
-        $extraNotes[] = "- Thay th? ph� h?p: {$replacement}";
+        $extraNotes[] = "- Thay thế phù hợp: {$replacement}";
     }
 
     if ($healthNote !== '') {
-        $extraNotes[] = "- Ghi ch� s?c kh?e d� �p d?ng: {$healthNote}";
+        $extraNotes[] = "- Ghi chú sức khỏe đã áp dụng: {$healthNote}";
     }
 
     $text .= implode("\n", $extraNotes);
     return trim($text);
 }
 
-function callGeminiWorkoutPlan($apiKey, $memberName, $goal, $level, $daysPerWeek, $healthNote = '')
+function callGeminiWorkoutPlan($apiKey, $memberName, $goal, $level, $daysPerWeek, $healthNote = '', $model = 'gemini-2.5-flash')
 {
     $goalLabel = getGoalLabel($goal);
     $levelLabel = getLevelLabel($level);
 
     $prompt = "
-B?n l� hu?n luy?n vi�n gym chuy�n nghi?p.
+Bạn là huấn luyện viên gym chuyên nghiệp.
 
-H�y t?o k? ho?ch t?p luy?n b?ng ti?ng Vi?t cho h?i vi�n v?i th�ng tin sau:
-- H? t�n: {$memberName}
-- M?c ti�u: {$goalLabel}
-- Tr�nh d?: {$levelLabel}
-- S? ng�y t?p m?i tu?n: {$daysPerWeek}
-- Ghi ch� s?c kh?e: {$healthNote}
+Hãy tạo kế hoạch tập luyện bằng tiếng Việt cho hội viên với thông tin sau:
+- Họ tên: {$memberName}
+- Mục tiêu: {$goalLabel}
+- Trình độ: {$levelLabel}
+- Số ngày tập mỗi tuần: {$daysPerWeek}
+- Ghi chú sức khỏe: {$healthNote}
 
-Y�u c?u b?t bu?c:
-1. Chia l?ch theo t?ng ng�y r� r�ng.
-2. M?i ng�y ph?i b?t d?u d�ng d?nh d?ng: Ng�y 1:, Ng�y 2:, Ng�y 3:...
-3. Sau ti�u d? m?i ng�y, li?t k� c�c b�i t?p b?ng d?u g?ch d?u d�ng '-'.
-4. M?i b�i t?p ghi r� s? hi?p v� s? l?n, v� d?: 4 hi?p x 10 l?n.
-5. C� d�ng kh?i d?ng n?u ph� h?p.
-6. C� d�ng ngh? gi?a hi?p n?u ph� h?p.
-7. N?i dung th?c t?, d? hi?u, ph� h?p ngu?i t?p gym.
-8. Kh�ng vi?t m? d?u d�i d�ng, kh�ng vi?t k?t lu?n d�i.
-9. Kh�ng d�ng b?ng markdown.
-10. Kh�ng d�ng k� hi?u l?, ch? d�ng van b?n thu?n d? hi?n th? tr�n website.
+Yêu cầu bắt buộc:
+1. Chia lịch theo từng ngày rõ ràng.
+2. Mỗi ngày phải bắt đầu đúng định dạng: Ngày 1:, Ngày 2:, Ngày 3:...
+3. Sau tiêu đề mỗi ngày, liệt kê các bài tập bằng dấu gạch đầu dòng '-'.
+4. Mỗi bài tập ghi rõ số hiệp và số lần, ví dụ: 4 hiệp x 10 lần.
+5. Có dòng khởi động nếu phù hợp.
+6. Có dòng nghỉ giữa hiệp nếu phù hợp.
+7. Nội dung thực tế, dễ hiểu, phù hợp người tập gym.
+8. Không viết mở đầu dài dòng, không viết kết luận dài.
+9. Không dùng bảng markdown.
+10. Không dùng ký hiệu lạ, chỉ dùng văn bản thuần để hiển thị trên website.
 
-M?u b?t bu?c ph?i gi?ng nhu sau:
+Mẫu bắt buộc phải giống như sau:
 
-Ng�y 1: T�n nh�m co ho?c m?c ti�u bu?i t?p
-- Kh?i d?ng: ...
-- B�i t?p 1: 4 hi?p x 10 l?n
-- B�i t?p 2: 3 hi?p x 12 l?n
-- B�i t?p 3: 3 hi?p x 12 l?n
-- Ngh? gi?a hi?p: 45-60 gi�y
+Ngày 1: Tên nhóm cơ hoặc mục tiêu buổi tập
+- Khởi động: ...
+- Bài tập 1: 4 hiệp x 10 lần
+- Bài tập 2: 3 hiệp x 12 lần
+- Bài tập 3: 3 hiệp x 12 lần
+- Nghỉ giữa hiệp: 45-60 giây
 
-Ng�y 2: T�n nh�m co ho?c m?c ti�u bu?i t?p
-- Kh?i d?ng: ...
-- B�i t?p 1: 4 hi?p x 10 l?n
-- B�i t?p 2: 3 hi?p x 12 l?n
-- B�i t?p 3: 3 hi?p x 12 l?n
-- Ngh? gi?a hi?p: 45-60 gi�y
+Ngày 2: Tên nhóm cơ hoặc mục tiêu buổi tập
+- Khởi động: ...
+- Bài tập 1: 4 hiệp x 10 lần
+- Bài tập 2: 3 hiệp x 12 lần
+- Bài tập 3: 3 hiệp x 12 lần
+- Nghỉ giữa hiệp: 45-60 giây
 
-Ch? tr? v? n?i dung k? ho?ch t?p luy?n d�ng format tr�n.
+Chỉ trả về nội dung kế hoạch tập luyện đúng format trên.
 ";
 
     $payload = [
         'contents' => [
             [
                 'parts' => [
-                    ['text' => $prompt]
-                ]
-            ]
+                    ['text' => $prompt],
+                ],
+            ],
         ],
         'generationConfig' => [
-            'temperature' => 0.7
-        ]
+            'temperature' => 0.7,
+        ],
     ];
 
-    $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=' . urlencode($apiKey);
+    $url = 'https://generativelanguage.googleapis.com/v1/models/' . $model . ':generateContent?key=' . urlencode($apiKey);
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json'
+            'Content-Type: application/json',
         ],
         CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
-        CURLOPT_TIMEOUT => 60
+        CURLOPT_TIMEOUT => 60,
     ]);
 
     $response = curl_exec($ch);
@@ -294,27 +294,25 @@ Ch? tr? v? n?i dung k? ho?ch t?p luy?n d�ng format tr�n.
     curl_close($ch);
 
     if ($response === false || $curlError !== '') {
-        throw new Exception('Kh�ng g?i du?c Gemini API.');
+        throw new Exception('Không gọi được Gemini API.');
     }
 
     $decoded = json_decode($response, true);
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        throw new Exception('Gemini API l?i.');
+        throw new Exception('Gemini API lỗi.');
     }
 
-    $text = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
-    $text = trim($text);
-
+    $text = trim($decoded['candidates'][0]['content']['parts'][0]['text'] ?? '');
     if ($text === '') {
-        throw new Exception('Gemini kh�ng tr? v? n?i dung h?p l?.');
+        throw new Exception('Gemini không trả về nội dung hợp lệ.');
     }
 
     return $text;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: " . $base_path . "workout-plans.php");
+    header('Location: ' . $base_path . 'workout-plans.php');
     exit();
 }
 
@@ -324,42 +322,42 @@ if (
     $csrf_token === '' ||
     !hash_equals($_SESSION['csrf_token'], $csrf_token)
 ) {
-    die('CSRF token kh�ng h?p l?.');
+    die('CSRF token không hợp lệ.');
 }
 
-$member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
+$member_id = isset($_POST['member_id']) ? (int) $_POST['member_id'] : 0;
 $goal = trim($_POST['goal'] ?? '');
 $level = trim($_POST['level'] ?? '');
-$days_per_week = isset($_POST['days_per_week']) ? (int)$_POST['days_per_week'] : 0;
+$days_per_week = isset($_POST['days_per_week']) ? (int) $_POST['days_per_week'] : 0;
 $health_note = trim($_POST['health_note'] ?? '');
 
 if ($member_id <= 0 || $goal === '' || $level === '' || $days_per_week <= 0) {
-    header("Location: " . $base_path . "workout-plans.php?error=missing_fields");
+    header('Location: ' . $base_path . 'workout-plans.php?error=missing_fields');
     exit();
 }
 
-$stmtMember = $conn->prepare("SELECT id, full_name FROM members WHERE id = ? LIMIT 1");
-$stmtMember->bind_param("i", $member_id);
+$stmtMember = $conn->prepare('SELECT id, full_name FROM members WHERE id = ? LIMIT 1');
+$stmtMember->bind_param('i', $member_id);
 $stmtMember->execute();
 $resultMember = $stmtMember->get_result();
 $member = $resultMember ? $resultMember->fetch_assoc() : null;
 $stmtMember->close();
 
 if (!$member) {
-    header("Location: " . $base_path . "workout-plans.php?error=member_not_found");
+    header('Location: ' . $base_path . 'workout-plans.php?error=member_not_found');
     exit();
 }
 
-$ai_prompt = "M?c ti�u: " . getGoalLabel($goal)
-    . " | Tr�nh d?: " . getLevelLabel($level)
-    . " | S? bu?i/tu?n: " . $days_per_week
-    . " | Luu � s?c kh?e: " . $health_note;
+$ai_prompt = 'Mục tiêu: ' . getGoalLabel($goal)
+    . ' | Trình độ: ' . getLevelLabel($level)
+    . ' | Số buổi/tuần: ' . $days_per_week
+    . ' | Lưu ý sức khỏe: ' . $health_note;
 
 $ai_response = '';
 
 try {
     if (!isset($gemini_api_key) || trim($gemini_api_key) === '') {
-        header("Location: " . $base_path . "workout-plans.php?error=gemini_key_missing");
+        header('Location: ' . $base_path . 'workout-plans.php?error=gemini_key_missing');
         exit();
     }
 
@@ -383,7 +381,7 @@ try {
 
 $status = 'active';
 
-$stmtInsert = $conn->prepare("
+$stmtInsert = $conn->prepare('
     INSERT INTO ai_workout_plans (
         member_id,
         goal,
@@ -394,9 +392,9 @@ $stmtInsert = $conn->prepare("
         ai_response,
         status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-");
+');
 $stmtInsert->bind_param(
-    "ississss",
+    'ississss',
     $member_id,
     $goal,
     $level,
@@ -409,13 +407,11 @@ $stmtInsert->bind_param(
 
 if (!$stmtInsert->execute()) {
     $stmtInsert->close();
-    header("Location: " . $base_path . "workout-plans.php?error=save_failed");
+    header('Location: ' . $base_path . 'workout-plans.php?error=save_failed');
     exit();
 }
 
 $stmtInsert->close();
 
-header("Location: " . $base_path . "workout-plans.php?success=1&member_id=" . $member_id);
+header('Location: ' . $base_path . 'workout-plans.php?success=1&member_id=' . $member_id);
 exit();
-
-
