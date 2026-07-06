@@ -22,10 +22,28 @@ function getActivePackages(mysqli $conn): array
 {
     $items = [];
 
-    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status
+    $sql = "SELECT 
+                id,
+                package_name,
+                duration_months,
+                price,
+                description,
+                short_description,
+                detail_content,
+                benefits,
+                suitable_for,
+                image,
+                status,
+                package_type,
+                duration_days,
+                trial_once_per_user
             FROM packages
             WHERE status = 'active'
-            ORDER BY price ASC, duration_months ASC, id ASC";
+            ORDER BY 
+                CASE WHEN package_type = 'free_trial' THEN 0 ELSE 1 END,
+                price ASC,
+                duration_months ASC,
+                id ASC";
 
     $result = $conn->query($sql);
 
@@ -37,10 +55,23 @@ function getActivePackages(mysqli $conn): array
 
     return $items;
 }
-
 function getPackageById(mysqli $conn, int $id): ?array
 {
-    $sql = "SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status
+    $sql = "SELECT 
+                id,
+                package_name,
+                duration_months,
+                price,
+                description,
+                short_description,
+                detail_content,
+                benefits,
+                suitable_for,
+                image,
+                status,
+                package_type,
+                duration_days,
+                trial_once_per_user
             FROM packages
             WHERE id = ?
             LIMIT 1";
@@ -54,7 +85,35 @@ function getPackageById(mysqli $conn, int $id): ?array
 
     return $item ?: null;
 }
+function isFreeTrialPackage(array $package): bool
+{
+    return ($package['package_type'] ?? 'paid') === 'free_trial';
+}
 
+function formatPackagePrice(array $package): string
+{
+    if (isFreeTrialPackage($package)) {
+        return 'Miễn phí';
+    }
+
+    return formatPriceVn((float)($package['price'] ?? 0));
+}
+
+function formatPackageDuration(array $package): string
+{
+    if (isFreeTrialPackage($package)) {
+        $days = (int)($package['duration_days'] ?? 7);
+        return $days . ' ngày dùng thử';
+    }
+
+    $months = (int)($package['duration_months'] ?? 0);
+
+    if ($months <= 0) {
+        return 'Linh hoạt';
+    }
+
+    return $months . ' tháng';
+}
 function formatPriceVn(float $price): string
 {
     return number_format($price, 0, ',', '.') . 'đ';

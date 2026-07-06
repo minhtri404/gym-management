@@ -115,3 +115,48 @@ function sendPasswordResetOTP($toEmail, $otp)
 
     $mail->send();
 }
+
+function sendPackageRegistrationOTP($toEmail, $otp)
+{
+    $mailHost = get_mail_config_value('MAIL_HOST', 'smtp.gmail.com');
+    $mailPort = (int)get_mail_config_value('MAIL_PORT', '587');
+    $mailUsername = get_mail_config_value('MAIL_USERNAME');
+    $mailPassword = get_mail_config_value('MAIL_PASSWORD');
+    $mailEncryption = strtolower(get_mail_config_value('MAIL_ENCRYPTION', 'tls'));
+    $mailFromAddress = get_mail_config_value('MAIL_FROM_ADDRESS', $mailUsername);
+    $mailFromName = get_mail_config_value('MAIL_FROM_NAME', 'FLEXZONE');
+
+    if ($mailUsername === '' || $mailPassword === '' || $mailFromAddress === '') {
+        throw new Exception('MAIL_USERNAME, MAIL_PASSWORD hoặc MAIL_FROM_ADDRESS chưa được cấu hình.');
+    }
+
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $mailHost;
+    $mail->SMTPAuth = true;
+    $mail->CharSet = 'UTF-8';
+
+    $mail->Username = $mailUsername;
+    $mail->Password = $mailPassword;
+
+    $mail->SMTPSecure = $mailEncryption;
+    $mail->Port = $mailPort;
+
+    $mail->setFrom($mailFromAddress, $mailFromName);
+    $mail->addAddress($toEmail);
+
+    $mail->isHTML(true);
+    $mail->Subject = 'OTP xác nhận đăng ký gói tập - FLEXZONE';
+    $mail->Body = "
+        <div style='font-family:Arial,sans-serif;color:#111827;line-height:1.6'>
+            <h2 style='margin:0 0 12px;color:#0ea5e9'>FLEXZONE</h2>
+            <p>Mã OTP xác nhận đăng ký gói tập của bạn là:</p>
+            <div style='font-size:32px;font-weight:800;letter-spacing:8px;color:#0f172a;margin:18px 0'>$otp</div>
+            <p>Mã này có hiệu lực trong 5 phút. Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.</p>
+        </div>
+    ";
+    $mail->AltBody = "Ma OTP xac nhan dang ky goi tap FLEXZONE cua ban la: $otp. Ma co hieu luc trong 5 phut.";
+
+    $mail->send();
+}

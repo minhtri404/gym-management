@@ -1,22 +1,12 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
 function h($value)
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-}
-
-function trainer_avatar_url(?string $avatar, string $name, string $basePath): string
-{
-    $avatar = trim((string) $avatar);
-
-    if ($avatar !== '') {
-        return $basePath . 'uploads/trainers/' . rawurlencode($avatar);
-    }
-
-    return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff';
 }
 
 function review_initial(string $name): string
@@ -58,7 +48,7 @@ if (!$trainer) {
     exit;
 }
 
-$avatar = trainer_avatar_url($trainer['avatar'] ?? '', (string) ($trainer['full_name'] ?? 'HLV FLEXZONE'), $base_path);
+$avatar = resolve_trainer_avatar_url($trainer_id, $trainer['avatar'] ?? '', $base_path);
 $specialty = trim((string) ($trainer['specialty'] ?? ''));
 
 /* =========================

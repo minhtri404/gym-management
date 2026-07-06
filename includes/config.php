@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
@@ -17,7 +17,7 @@ if ($session_token === '') {
 $conn = new mysqli($host, $username, $password, $dbname, $port);
 
 if ($conn->connect_error) {
-    die("Kết nối database thất bại: " . $conn->connect_error);
+    die("Káº¿t ná»‘i database tháº¥t báº¡i: " . $conn->connect_error);
 }
 
 $conn->set_charset("utf8mb4");
@@ -57,3 +57,5 @@ if (is_file($env_path)) {
 $openai_api_key_missing = ($openai_api_key === '');
 $gemini_api_key_missing = ($gemini_api_key === '');
 ?>
+
+

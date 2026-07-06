@@ -46,7 +46,7 @@ function branchDisplayName(string $name): string
 $branchId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($branchId <= 0) {
-    header('Location: ' . $base_path . 'user/home.php#clubs');
+    header('Location: ' . $base_path . 'user/home#clubs');
     exit;
 }
 
@@ -64,7 +64,7 @@ $branch = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$branch) {
-    header('Location: ' . $base_path . 'user/home.php#clubs');
+    header('Location: ' . $base_path . 'user/home#clubs');
     exit;
 }
 
@@ -106,9 +106,9 @@ $galleryImages = array_slice($galleryImages, 0, 3);
         <section class="branch-detail-section">
             <div class="container">
                 <div class="branch-detail-breadcrumb">
-                    <a href="<?php echo $base_path; ?>user/home.php">Home</a>
+                    <a href="<?php echo $base_path; ?>user/home">Home</a>
                     <i class="bi bi-chevron-right"></i>
-                    <a href="<?php echo $base_path; ?>user/home.php#clubs">Find a Club</a>
+                    <a href="<?php echo $base_path; ?>user/home#clubs">Find a Club</a>
                     <i class="bi bi-chevron-right"></i>
                     <span><?php echo h($branchShortName); ?></span>
                 </div>
@@ -160,7 +160,7 @@ $galleryImages = array_slice($galleryImages, 0, 3);
                             </p>
                         <?php endif; ?>
 
-                        <a href="<?php echo $base_path; ?>contact-form.php" class="branch-join-btn">Join now</a>
+                        <a href="<?php echo $base_path; ?>user/package/index" class="branch-join-btn">Join now</a>
                     </div>
 
                     <div class="branch-gallery" data-branch-gallery>

@@ -53,6 +53,16 @@ try {
     $stmt->execute();
     $stmt->close();
 
+    $stmt = $conn->prepare('DELETE FROM trainer_bookings WHERE member_id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $conn->prepare('DELETE FROM trainer_reviews WHERE member_id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $stmt->close();
+
     $stmt = $conn->prepare('DELETE FROM members WHERE id = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();

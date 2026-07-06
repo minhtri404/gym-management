@@ -218,7 +218,7 @@ $avatar_path = resolve_user_avatar_url(
                             </form>
 
                             <div class="mt-4">
-                                <a href="<?php echo $base_path; ?>user/home.php" class="btn btn-outline-secondary">Quay l&#7841;i</a>
+                                <a href="<?php echo $base_path; ?>user/home" class="btn btn-outline-secondary">Quay l&#7841;i</a>
                             </div>
                         <?php else: ?>
                             <div class="alert alert-danger mb-0">

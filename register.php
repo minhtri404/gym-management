@@ -3,11 +3,11 @@ include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
     if (strtolower(trim($_SESSION['user_role'] ?? '')) === 'admin') {
-        header('Location: admin/dashboard.php');
+        header('Location: admin/dashboard');
         exit;
     }
 
-    header('Location: user/home.php');
+    header('Location: user/home');
     exit;
 }
 
@@ -95,7 +95,7 @@ $error = trim($_GET['error'] ?? '');
             </form>
 
             <div class="text-center">
-              <a href="login.php" class="text-decoration-none">&#272;&atilde; c&oacute; t&agrave;i kho&#7843;n? &#272;&#259;ng nh&#7853;p</a>
+              <a href="login" class="text-decoration-none">&#272;&atilde; c&oacute; t&agrave;i kho&#7843;n? &#272;&#259;ng nh&#7853;p</a>
             </div>
           </div>
         </div>

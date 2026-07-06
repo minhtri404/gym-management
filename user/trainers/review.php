@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
@@ -72,9 +73,7 @@ if ($user) {
     $stmt_member->close();
 }
 
-$avatar = !empty($trainer['avatar'])
-    ? $base_path . 'uploads/trainers/' . $trainer['avatar']
-    : 'https://ui-avatars.com/api/?name=' . urlencode($trainer['full_name']) . '&background=0f172a&color=ffffff';
+$avatar = resolve_trainer_avatar_url($trainer_id, $trainer['avatar'] ?? '', $base_path);
 
 $error = '';
 $success = '';

@@ -58,12 +58,22 @@ try {
     $package_id = isset($registration['package_id']) ? (int)$registration['package_id'] : 0;
 
     // validate package exists (only real error case)
-    $stmt = $conn->prepare("SELECT id, duration_months, price FROM packages WHERE id = ? LIMIT 1");
-    $stmt->bind_param('i', $package_id);
-    $stmt->execute();
-    $pkgRes = $stmt->get_result();
-    $package = $pkgRes ? $pkgRes->fetch_assoc() : null;
-    $stmt->close();
+    $stmt = $conn->prepare("
+    SELECT 
+        id,
+        duration_months,
+        duration_days,
+        package_type,
+        price
+    FROM packages
+    WHERE id = ?
+    LIMIT 1
+");
+$stmt->bind_param('i', $package_id);
+$stmt->execute();
+$pkgRes = $stmt->get_result();
+$package = $pkgRes ? $pkgRes->fetch_assoc() : null;
+$stmt->close();
 
     if (!$package) {
         // only real error when package not found
@@ -71,15 +81,29 @@ try {
     }
 
     // compute start/end dates
-    $start_date = date('Y-m-d');
-    $end_date = $start_date;
-    if (!empty($package['duration_months'])) {
-        $start = new DateTime($start_date);
-        $end = clone $start;
-        $end->modify('+' . (int)$package['duration_months'] . ' months');
-        $end_date = $end->format('Y-m-d');
+   $start_date = date('Y-m-d');
+$start = new DateTime($start_date);
+$end = clone $start;
+
+$is_free_trial = (($package['package_type'] ?? 'paid') === 'free_trial');
+
+if ($is_free_trial) {
+    $days = (int)($package['duration_days'] ?? 7);
+
+    if ($days <= 0) {
+        $days = 7;
     }
 
+    $end->modify('+' . $days . ' days');
+} else {
+    $months = (int)($package['duration_months'] ?? 0);
+
+    if ($months > 0) {
+        $end->modify('+' . $months . ' months');
+    }
+}
+
+$end_date = $end->format('Y-m-d');
     // Start transaction
     $conn->begin_transaction();
 
@@ -163,6 +187,15 @@ try {
     $stmt->bind_param('i', $member_id);
     $stmt->execute();
     $stmt->close();
+    $stmt = $conn->prepare("
+    UPDATE member_package_history
+    SET status = 'expired'
+    WHERE member_id = ?
+      AND status = 'active'
+");
+$stmt->bind_param('i', $member_id);
+$stmt->execute();
+$stmt->close();
 
     // Insert new member_packages (active)
     $stmt = $conn->prepare("INSERT INTO member_packages (member_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, 'active')");
@@ -171,10 +204,18 @@ try {
     $stmt->close();
 
     // Insert into member_package_history for audit
-    $price = (float)($package['price'] ?? 0.0);
+   $price = (float)($package['price'] ?? 0.0);
+
+if ($is_free_trial) {
+    $price = 0.0;
+    $paid_amount = 0.0;
+    $remaining_amount = 0.0;
+    $history_note = $note ?: 'Đăng ký gói dùng thử 7 ngày';
+} else {
     $paid_amount = 0.0;
     $remaining_amount = $price - $paid_amount;
-    $history_note = $note ?: 'Đăng ký gói (admin)';
+    $history_note = $note ?: 'Đăng ký gói trả phí';
+}
 
     $stmt = $conn->prepare(
         "INSERT INTO member_package_history ( member_id, package_id, action_type, start_date, end_date, price, paid_amount, remaining_amount, status, note ) VALUES (?, ?, 'new', ?, ?, ?, ?, ?, 'active', ?)"
@@ -184,10 +225,18 @@ try {
     $stmt->close();
 
     // Mark the registration as closed
-    $stmt = $conn->prepare("UPDATE package_registrations SET status = 'closed' WHERE id = ?");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $stmt->close();
+ $stmt = $conn->prepare("
+    UPDATE package_registrations
+    SET status = 'closed',
+        payment_status = ?
+    WHERE id = ?
+");
+
+$registration_payment_status = $is_free_trial ? 'paid' : 'unpaid';
+
+$stmt->bind_param('si', $registration_payment_status, $id);
+$stmt->execute();
+$stmt->close();
 
     $conn->commit();
     header('Location: ' . $base_path . 'package-registrations.php?approve=success');
