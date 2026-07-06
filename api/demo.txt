@@ -1,6 +1,0 @@
-api dang ky//
-full_name: luu cog em
-email: nguyenvana123@gmail.com
-phone: 0909123456
-password: 123456
-confirm_password: 123456

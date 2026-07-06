@@ -1,48 +1,40 @@
 <?php
-include __DIR__ . '/../../includes/config.php';
-include __DIR__ . '/../../includes/functions/plan-functions.php';
-include __DIR__ . '/../includes/response.php';
 
-$user_id = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/plan-functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
-if ($user_id <= 0) {
-apiError('Thiếu hoặc sai user_id.', 400);
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    header('Allow: GET');
+    apiError('Phương thức không hợp lệ. Hãy dùng GET.', 405);
 }
 
+$user = apiRequireAuth($conn);
+$userId = (int) $user['id'];
+apiRejectForeignUserId($userId, 'GET');
+
 try {
-    $user = getUserById($conn, $user_id);
-
-    if (!$user) {
-  apiError('Không tìm thấy user.', 404);    
-    }
-
     $phone = trim((string) ($user['phone'] ?? ''));
     $email = trim((string) ($user['email'] ?? ''));
-
     $member = findMemberByUserContact($conn, $phone, $email);
 
     if (!$member) {
- apiSuccess('Không tìm thấy hội viên liên kết với user này.', [
-    'user' => $user,
-    'member' => null,
-    'workout_plans' => [],
-    'meal_plans' => [],
-]);
-
-        exit;
+        apiSuccess('Tài khoản chưa liên kết với hồ sơ hội viên.', [
+            'user' => $user,
+            'member' => null,
+            'workout_plans' => [],
+            'meal_plans' => [],
+        ]);
     }
 
-    $member_id = (int) $member['id'];
-    $workout_plans = getWorkoutPlansByMemberId($conn, $member_id);
-    $meal_plans = getMealPlansByMemberId($conn, $member_id);
+    $memberId = (int) $member['id'];
 
-apiSuccess('Lấy kế hoạch của user thành công.', [
-    'user' => $user,
-    'member' => $member,
-    'workout_plans' => $workout_plans,
-    'meal_plans' => $meal_plans,
-]);
-
+    apiSuccess('Lấy kế hoạch của user thành công.', [
+        'user' => $user,
+        'member' => $member,
+        'workout_plans' => getWorkoutPlansByMemberId($conn, $memberId),
+        'meal_plans' => getMealPlansByMemberId($conn, $memberId),
+    ]);
 } catch (Throwable $e) {
-  apiError('Có lỗi xảy ra khi lấy kế hoạch của user.', 500, $e->getMessage());
+    apiServerError('Có lỗi xảy ra khi lấy kế hoạch của user.', $e);
 }

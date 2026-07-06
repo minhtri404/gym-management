@@ -1,20 +1,36 @@
 <?php
-include __DIR__ . '/../../includes/config.php';
-include __DIR__ . '/../../includes/functions/registration-functions.php';
-include __DIR__ . '/../includes/response.php';
 
-$keyword = trim($_GET['keyword'] ?? '');
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/registration-functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
-if ($keyword === '') {
- apiError('Thiếu keyword để tra cứu đăng ký.', 400);
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    header('Allow: GET');
+    apiError('Phương thức không hợp lệ. Hãy dùng GET.', 405);
 }
 
-try {
-    $results = findRegistrationsByKeyword($conn, $keyword);
+$user = apiRequireAuth($conn);
+$role = strtolower(trim((string) ($user['role'] ?? '')));
+$keyword = trim((string) ($_GET['keyword'] ?? ''));
 
-  apiSuccess('Tra cứu đăng ký thành công.', $results, 200, [
-    'count' => count($results),
-]);
+try {
+    if ($role === 'admin') {
+        if ($keyword === '') {
+            apiError('Thiếu keyword để tra cứu đăng ký.', 400);
+        }
+
+        $results = findRegistrationsByKeyword($conn, $keyword);
+    } else {
+        $results = findRegistrationsForAccount(
+            $conn,
+            trim((string) ($user['email'] ?? '')),
+            trim((string) ($user['phone'] ?? ''))
+        );
+    }
+
+    apiSuccess('Tra cứu đăng ký thành công.', $results, 200, [
+        'count' => count($results),
+    ]);
 } catch (Throwable $e) {
-apiError('Có lỗi xảy ra khi tra cứu đăng ký.', 500, $e->getMessage());
+    apiServerError('Có lỗi xảy ra khi tra cứu đăng ký.', $e);
 }
