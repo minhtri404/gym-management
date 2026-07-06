@@ -136,9 +136,19 @@ function checkin_status_badge($checkoutTime, $status)
     return '<span class="badge bg-success">Đang trong phòng</span>';
 }
 
-$token = env_value_qr('CHECKIN_QR_TOKEN', 'gym_checkin_2026');
-$checkinUrl = resolve_qr_base_url() . '/user/checkins/scan?token=' . urlencode($token);
-$qrImage = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' . urlencode($checkinUrl);
+$qrSecret = env_value_qr('CHECKIN_QR_TOKEN', '');
+$qrExpiresAt = time() + 300;
+$checkinUrl = '';
+$qrImage = '';
+
+if ($qrSecret !== '') {
+    $qrSignature = hash_hmac('sha256', (string) $qrExpiresAt, $qrSecret);
+    $checkinUrl = resolve_qr_base_url() . '/user/checkins/scan?' . http_build_query([
+        'expires' => $qrExpiresAt,
+        'signature' => $qrSignature,
+    ]);
+    $qrImage = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' . urlencode($checkinUrl);
+}
 
 $keyword = trim((string)($_GET['q'] ?? ''));
 $date_from = trim((string)($_GET['date_from'] ?? ''));
@@ -432,6 +442,9 @@ if ($memberResult) {
       <?php if (isset($_GET['error']) && $_GET['error'] === '1'): ?>
         <div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i>Không thể xử lý check-in/check-out. Vui lòng kiểm tra lại dữ liệu.</div>
       <?php endif; ?>
+      <?php if (isset($_GET['csrf_error']) && $_GET['csrf_error'] === '1'): ?>
+        <div class="alert alert-danger"><i class="bi bi-shield-x me-2"></i>Phiên thao tác đã hết hạn. Vui lòng tải lại trang và thử lại.</div>
+      <?php endif; ?>
 
       <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -519,6 +532,7 @@ if ($memberResult) {
             </div>
             <div class="card-body pt-2">
               <form method="POST" action="../php/checkins/add-checkin.php">
+                <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
                 <div class="mb-3">
                   <label class="form-label">Hội viên</label>
                   <select name="member_id" class="form-select" required>
@@ -548,12 +562,21 @@ if ($memberResult) {
               <h5 class="fw-bold mb-0">QR check-in</h5>
             </div>
             <div class="card-body text-center pt-2">
-              <div class="bg-light rounded-3 p-3 mb-3 d-inline-block">
-                <img src="<?php echo h($qrImage); ?>" alt="QR Check-in" class="checkin-qr-img">
-              </div>
-              <div class="small text-muted text-start" style="word-break:break-all;">
-                <?php echo h($checkinUrl); ?>
-              </div>
+              <?php if ($qrSecret === ''): ?>
+                <div class="alert alert-warning text-start mb-0">
+                  Chưa cấu hình <code>CHECKIN_QR_TOKEN</code> trong file <code>.env</code>.
+                </div>
+              <?php else: ?>
+                <div class="bg-light rounded-3 p-3 mb-3 d-inline-block">
+                  <img src="<?php echo h($qrImage); ?>" alt="QR Check-in" class="checkin-qr-img">
+                </div>
+                <div class="small text-muted mb-2">
+                  QR hết hạn lúc <?php echo h(date('H:i:s', $qrExpiresAt)); ?>. Tải lại trang để tạo mã mới.
+                </div>
+                <div class="small text-muted text-start" style="word-break:break-all;">
+                  <?php echo h($checkinUrl); ?>
+                </div>
+              <?php endif; ?>
             </div>
           </div>
         </div>
@@ -621,13 +644,17 @@ if ($memberResult) {
                             <i class="bi bi-eye"></i>
                           </a>
                           <?php if (empty($item['checkout_time'])): ?>
-                            <a
-                              href="../php/checkins/checkout.php?id=<?php echo (int)$item['id']; ?>"
-                              class="btn btn-outline-danger btn-sm"
-                              onclick="return confirm('Xác nhận check-out cho hội viên này?');"
+                            <form
+                              method="POST"
+                              action="../php/checkins/checkout.php"
+                              onsubmit="return confirm('Xác nhận check-out cho hội viên này?');"
                             >
-                              <i class="bi bi-box-arrow-right me-1"></i>Check-out
-                            </a>
+                              <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                              <input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>">
+                              <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-box-arrow-right me-1"></i>Check-out
+                              </button>
+                            </form>
                           <?php else: ?>
                             <span class="text-muted small align-self-center">Đã ra</span>
                           <?php endif; ?>
