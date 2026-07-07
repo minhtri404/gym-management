@@ -17,7 +17,15 @@ $note_error = '';
 $edit_note_id = isset($_GET['edit_note_id']) ? (int) $_GET['edit_note_id'] : 0;
 $filter_note_date = isset($_GET['note_date']) ? trim($_GET['note_date']) : '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $note_error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $note_error === '' && isset($_POST['add_note'])) {
     $note_content = trim($_POST['note'] ?? '');
 
     if ($note_content === '') {
@@ -37,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_note'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_note'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $note_error === '' && isset($_POST['update_note'])) {
     $note_id = isset($_POST['note_id']) ? (int) $_POST['note_id'] : 0;
     $note_content = trim($_POST['note'] ?? '');
 
@@ -56,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_note'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_note'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $note_error === '' && isset($_POST['delete_note'])) {
     $note_id = isset($_POST['note_id']) ? (int) $_POST['note_id'] : 0;
     if ($note_id > 0) {
         $stmt_delete = $conn->prepare('DELETE FROM member_notes WHERE id = ? AND member_id = ?');
@@ -419,6 +427,7 @@ function formatPaymentStatusText($price, $remainingAmount, $packageType)
 
                                 <form method="POST" action="">
                                     <input type="hidden" name="add_note" value="1">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     <div class="mb-3">
                                         <label class="form-label">Nội dung ghi chú</label>
                                         <textarea name="note" class="form-control" rows="3" placeholder="Nhập ghi chú về hội viên..." required></textarea>
@@ -619,6 +628,7 @@ function formatPaymentStatusText($price, $remainingAmount, $packageType)
                                                             </a>
                                                             <form method="POST" action="" onsubmit="return confirm('Xóa ghi chú này?');">
                                                                 <input type="hidden" name="delete_note" value="1">
+                                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                                                 <input type="hidden" name="note_id" value="<?php echo (int) $note['id']; ?>">
                                                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                                                     <i class="bi bi-trash me-1"></i>Xóa
@@ -630,6 +640,7 @@ function formatPaymentStatusText($price, $remainingAmount, $packageType)
                                                 <?php if ($edit_note_id === (int) $note['id']): ?>
                                                     <form method="POST" action="" class="mb-3">
                                                         <input type="hidden" name="update_note" value="1">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                                         <input type="hidden" name="note_id" value="<?php echo (int) $note['id']; ?>">
                                                         <div class="mb-2">
                                                             <textarea name="note" class="form-control" rows="3" required><?php echo htmlspecialchars($note['note']); ?></textarea>

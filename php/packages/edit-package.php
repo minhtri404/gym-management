@@ -15,7 +15,27 @@ if ($id <= 0) {
     exit();
 }
 
+$stmt = $conn->prepare('SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status FROM packages WHERE id = ? LIMIT 1');
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    $stmt->close();
+    header('Location: ' . $base_path . 'packages.php');
+    exit();
+}
+
+$package = $result->fetch_assoc();
+$stmt->close();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    }
+
     $package_name = trim($_POST['package_name'] ?? '');
     $duration_months = (int) ($_POST['duration_months'] ?? 0);
     $price = (float) ($_POST['price'] ?? 0);
@@ -28,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $remove_image = isset($_POST['remove_image']) && $_POST['remove_image'] === '1';
     $upload_dir = __DIR__ . '/../../uploads/packages/';
 
-    if ($package_name === '' || $duration_months <= 0 || $price < 0) {
+    if ($error === '' && ($package_name === '' || $duration_months <= 0 || $price < 0)) {
         $error = 'Vui lòng nhập đầy đủ và đúng định dạng các trường bắt buộc.';
-    } else {
+    } elseif ($error === '') {
         $current_image = $package['image'] ?? '';
         $next_image = $current_image;
 
@@ -75,20 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
-
-$stmt = $conn->prepare('SELECT id, package_name, duration_months, price, description, short_description, detail_content, benefits, suitable_for, image, status FROM packages WHERE id = ? LIMIT 1');
-$stmt->bind_param('i', $id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    $stmt->close();
-    header('Location: ' . $base_path . 'packages.php');
-    exit();
-}
-
-$package = $result->fetch_assoc();
-$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -122,6 +128,7 @@ $stmt->close();
         <div class="card shadow-sm border-0">
           <div class="card-body p-4">
             <form method="POST" action="" enctype="multipart/form-data">
+              <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Tên gói tập <span class="text-danger">*</span></label>

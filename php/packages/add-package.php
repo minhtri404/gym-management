@@ -9,6 +9,12 @@ $error = '';
 $uploaded_image = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+  if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+    http_response_code(403);
+    $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+  }
+
   $package_name = trim($_POST['package_name'] ?? '');
   $duration_months = trim($_POST['duration_months'] ?? '');
   $price = trim($_POST['price'] ?? '');
@@ -20,9 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $status = trim($_POST['status'] ?? 'active');
   $upload_dir = __DIR__ . '/../../uploads/packages/';
 
-  if ($package_name === '' || $duration_months === '' || $price === '') {
+  if ($error === '' && ($package_name === '' || $duration_months === '' || $price === '')) {
     $error = 'Vui lòng nhập đầy đủ các trường bắt buộc.';
-  } elseif (!empty($_FILES['image']['name'] ?? '')) {
+  } elseif ($error === '' && !empty($_FILES['image']['name'] ?? '')) {
     $upload = upload_package_image_file($_FILES['image'], $upload_dir);
 
     if (empty($upload['success'])) {
@@ -87,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card shadow-sm border-0">
           <div class="card-body p-4">
             <form method="POST" action="" enctype="multipart/form-data">
+              <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Tên gói tập <span class="text-danger">*</span></label>

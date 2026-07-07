@@ -30,6 +30,12 @@ if (!$trainer) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    }
+
     $full_name = trim((string) ($_POST['full_name'] ?? ''));
     $specialty = trim((string) ($_POST['specialty'] ?? ''));
     $experience_years = max(0, (int) ($_POST['experience_years'] ?? 0));
@@ -47,13 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = 'active';
     }
 
-    if ($full_name === '' || $specialty === '') {
+    if ($error === '' && ($full_name === '' || $specialty === '')) {
         $error = 'Vui lòng nhập tên HLV và chuyên môn.';
-    } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif ($error === '' && $email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Email HLV không hợp lệ.';
-    } elseif ($rating < 0 || $rating > 5) {
+    } elseif ($error === '' && ($rating < 0 || $rating > 5)) {
         $error = 'Đánh giá mặc định phải nằm trong khoảng 0 đến 5.';
-    } else {
+    } elseif ($error === '') {
         if ($remove_image) {
             $next_image = '';
         }
@@ -156,6 +162,7 @@ $avatarUrl = resolve_trainer_avatar_url($id, $trainer['avatar'] ?? '', $root_bas
       <div class="card shadow-sm border-0">
         <div class="card-body p-4">
           <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label">Tên HLV <span class="text-danger">*</span></label>
