@@ -25,15 +25,17 @@ $hashData = rtrim($hashData, '&');
 
 $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-if ($secureHash !== $vnp_SecureHash) {
+if ($vnp_SecureHash === '' || !hash_equals($secureHash, (string) $vnp_SecureHash)) {
     die('Sai chữ ký VNPAY. Giao dịch không hợp lệ.');
 }
 
 $vnp_TxnRef = $_GET['vnp_TxnRef'] ?? '';
 $vnp_ResponseCode = $_GET['vnp_ResponseCode'] ?? '';
+$vnp_TransactionStatus = $_GET['vnp_TransactionStatus'] ?? '';
 $vnp_TransactionNo = $_GET['vnp_TransactionNo'] ?? '';
 $vnp_BankCode = $_GET['vnp_BankCode'] ?? '';
 $vnp_PayDate = $_GET['vnp_PayDate'] ?? '';
+$vnp_Amount = isset($_GET['vnp_Amount']) ? (int) $_GET['vnp_Amount'] : 0;
 
 if ($vnp_TxnRef === '') {
     die('Thiếu mã giao dịch.');
@@ -41,7 +43,7 @@ if ($vnp_TxnRef === '') {
 
 // Tìm payment theo mã giao dịch
 $stmt = $conn->prepare("
-    SELECT id, registration_id, payment_status
+    SELECT id, registration_id, payment_status, amount
     FROM payments
     WHERE vnp_txn_ref = ?
     LIMIT 1
@@ -55,12 +57,18 @@ if (!$payment) {
     die('Không tìm thấy giao dịch trong hệ thống.');
 }
 
+$expectedAmount = (int) round((float) $payment['amount'] * 100);
+if ($vnp_Amount <= 0 || $vnp_Amount !== $expectedAmount) {
+    http_response_code(400);
+    die('Số tiền thanh toán không khớp với giao dịch.');
+}
+
 if ($payment['payment_status'] === 'paid') {
     header('Location: ' . $base_path . 'user/home.php?payment_success=1');
     exit;
 }
 
-if ($vnp_ResponseCode === '00') {
+if ($vnp_ResponseCode === '00' && $vnp_TransactionStatus === '00') {
     // VNPAY báo thanh toán thành công
     $stmt = $conn->prepare("
         UPDATE payments
