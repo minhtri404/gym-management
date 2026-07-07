@@ -58,7 +58,7 @@ function apiRequireCsrf(): void
     $requestToken = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? ''));
 
     if ($sessionToken === '' || $requestToken === '' || !hash_equals($sessionToken, $requestToken)) {
-        apiError('CSRF token không hợp lệ.', 419);
+        apiError('CSRF token không hợp lệ.', 403);
     }
 }
 
