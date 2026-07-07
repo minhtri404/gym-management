@@ -302,9 +302,14 @@ foreach ($trainers as $trainer) {
                         <a href="../php/trainers/edit-trainer.php?id=<?php echo $trainerId; ?>" class="btn btn-warning btn-sm" title="Sửa HLV">
                           <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="../php/trainers/toggle-status.php?id=<?php echo $trainerId; ?>&status=<?php echo h($nextStatus); ?>" class="btn btn-outline-secondary btn-sm" title="Đổi trạng thái">
-                          <i class="bi bi-power"></i>
-                        </a>
+                        <form method="POST" action="../php/trainers/toggle-status.php">
+                          <input type="hidden" name="id" value="<?php echo $trainerId; ?>">
+                          <input type="hidden" name="status" value="<?php echo h($nextStatus); ?>">
+                          <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                          <button type="submit" class="btn btn-outline-secondary btn-sm" title="Đổi trạng thái">
+                            <i class="bi bi-power"></i>
+                          </button>
+                        </form>
                         <form method="POST" action="../php/trainers/delete-trainer.php" onsubmit="return confirm('Xóa HLV này? Nếu đã có lịch/đánh giá, hệ thống sẽ tạm ngưng thay vì xóa.');">
                           <input type="hidden" name="id" value="<?php echo $trainerId; ?>">
                           <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token']); ?>">

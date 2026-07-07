@@ -79,7 +79,11 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!$member) {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    } elseif (!$member) {
         $error = 'Tài khoản của bạn chưa liên kết với hồ sơ hội viên.';
     } else {
         $rating = (int)($_POST['rating'] ?? 0);
@@ -204,6 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 
                         <div class="mb-3">
                             <label class="form-label">Số sao đánh giá</label>

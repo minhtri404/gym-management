@@ -6,8 +6,20 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
     exit;
 }
 
-$review_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-$status = $_GET['status'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Allow: POST');
+    http_response_code(405);
+    exit;
+}
+
+$csrfToken = (string) ($_POST['csrf_token'] ?? '');
+if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+    header('Location: ../../admin/trainer-reviews.php?status=csrf_error');
+    exit;
+}
+
+$review_id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+$status = $_POST['status'] ?? '';
 
 if ($review_id <= 0 || !in_array($status, ['show', 'hide'], true)) {
     header('Location: ../../admin/trainer-reviews.php');

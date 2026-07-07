@@ -17,7 +17,15 @@ $user_id = (int)$_SESSION['user_id'];
 $message = '';
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_profile') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '' && ($_POST['action'] ?? '') === 'update_profile') {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -43,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_avatar') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '' && ($_POST['action'] ?? '') === 'update_avatar') {
     $allowedMimeTypes = [
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
@@ -176,6 +184,7 @@ $avatar_path = resolve_user_avatar_url(
 
                                 <form method="POST" enctype="multipart/form-data" class="mt-3">
                                     <input type="hidden" name="action" value="update_avatar">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     <div class="mb-2">
                                         <input type="file" name="avatar" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
                                     </div>
@@ -186,6 +195,7 @@ $avatar_path = resolve_user_avatar_url(
 
                             <form method="POST" class="row g-3">
                                 <input type="hidden" name="action" value="update_profile">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">H&#7885; v&agrave; t&ecirc;n</label>
