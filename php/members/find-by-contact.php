@@ -1,10 +1,23 @@
 <?php
+include __DIR__ . '/../../includes/auth-check.php';
 header('Content-Type: application/json; charset=utf-8');
-include __DIR__ . '/../../includes/config.php';
 
-// accept POST or GET for easier testing
-$phone = trim($_POST['phone'] ?? $_GET['phone'] ?? '');
-$email = trim($_POST['email'] ?? $_GET['email'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Allow: POST');
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
+}
+
+$csrfToken = (string) ($_POST['csrf_token'] ?? '');
+if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+    exit;
+}
+
+$phone = trim($_POST['phone'] ?? '');
+$email = trim($_POST['email'] ?? '');
 
 // normalize
 $phone_digits = preg_replace('/\D+/', '', $phone);
@@ -37,20 +50,6 @@ if (!$member && $phone_digits !== '') {
     $stmt->close();
 }
 
-// Fallback: try contains (last 8 digits)
-if (!$member && $phone_digits !== '') {
-    $last8 = substr($phone_digits, -8);
-    if ($last8 !== false && $last8 !== '') {
-        $like = '%' . $last8;
-        $stmt = $conn->prepare("SELECT id, full_name, phone, email, date_of_birth, address FROM members WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') LIKE ? LIMIT 1");
-        $stmt->bind_param('s', $like);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $member = $res ? $res->fetch_assoc() : null;
-        $stmt->close();
-    }
-}
-
 if ($member) {
     echo json_encode(['success' => true, 'member' => $member]);
 } else {
@@ -72,19 +71,6 @@ if ($member) {
         $res = $stmt->get_result();
         $user = $res ? $res->fetch_assoc() : null;
         $stmt->close();
-    }
-
-    if (!$user && $phone_digits !== '') {
-        $last8 = substr($phone_digits, -8);
-        if ($last8 !== false && $last8 !== '') {
-            $like = '%' . $last8;
-            $stmt = $conn->prepare("SELECT id, full_name, phone, email FROM users WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') LIKE ? LIMIT 1");
-            $stmt->bind_param('s', $like);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            $user = $res ? $res->fetch_assoc() : null;
-            $stmt->close();
-        }
     }
 
     if ($user) {

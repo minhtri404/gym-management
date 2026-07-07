@@ -14,7 +14,7 @@
  * - Transactional (commit / rollback)
  */
 
-include __DIR__ . '/../../includes/config.php';
+include __DIR__ . '/../../includes/auth-check.php';
 
 $base_path = '../../admin/';
 
