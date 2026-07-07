@@ -1,3 +1,4 @@
 .env
 uploads/
 user/uploads/
+database/backups/
