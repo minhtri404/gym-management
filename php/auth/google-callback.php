@@ -3,7 +3,9 @@ require_once __DIR__ . '/../../includes/google-client.php';
 
 $base_path = '../../';
 
-if (!isset($_GET['state']) || $_GET['state'] !== ($_SESSION['google_oauth_state'] ?? '')) {
+$returnedState = (string) ($_GET['state'] ?? '');
+$expectedState = (string) ($_SESSION['google_oauth_state'] ?? '');
+if ($returnedState === '' || $expectedState === '' || !hash_equals($expectedState, $returnedState)) {
     header('Location: ' . $base_path . 'login.php?error=' . urlencode('Phiên đăng nhập Google không hợp lệ.'));
     exit;
 }
@@ -96,12 +98,13 @@ try {
     $_SESSION['user_name'] = $user['full_name'];
     $_SESSION['user_email'] = $user['email'];
     $_SESSION['user_role'] = $user['role'];
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
     unset($_SESSION['google_oauth_state']);
 
     if (strtolower(trim($user['role'] ?? '')) === 'admin') {
         unset($_SESSION['redirect_after_login'], $_SESSION['post_login_redirect']);
-        header('Location: ' . $base_path . 'admin/dashboard.php');
+        header('Location: ' . $base_path . 'user/home.php');
         exit;
     }
 

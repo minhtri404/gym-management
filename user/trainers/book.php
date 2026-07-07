@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
@@ -12,15 +13,6 @@ if (empty($_SESSION['user_id'])) {
 function h($value)
 {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-}
-
-function trainer_book_avatar($avatar, $name, $base_path)
-{
-    if (!empty($avatar)) {
-        return $base_path . 'uploads/trainers/' . rawurlencode($avatar);
-    }
-
-    return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff';
 }
 
 $trainer_id = isset($_GET['trainer_id']) ? (int)$_GET['trainer_id'] : (int)($_POST['trainer_id'] ?? 0);
@@ -176,7 +168,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
-$avatar = trainer_book_avatar($trainer['avatar'] ?? '', $trainer['full_name'] ?? 'HLV FLEXZONE', $base_path);
+$avatar = resolve_trainer_avatar_url($trainer_id, $trainer['avatar'] ?? '', $base_path);
 $min_date = date('Y-m-d');
 ?>
 <!DOCTYPE html>

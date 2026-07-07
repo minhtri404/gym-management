@@ -3,11 +3,11 @@ include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
     if (strtolower(trim($_SESSION['user_role'] ?? '')) === 'admin') {
-        header('Location: admin/dashboard.php');
+        header('Location: admin/dashboard');
         exit;
     }
 
-    header('Location: user/home.php');
+    header('Location: user/home');
     exit;
 }
 
@@ -98,8 +98,8 @@ $error = trim($_GET['error'] ?? '');
               </div>
 
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="forgot-password.php" class="text-decoration-none small">Qu&ecirc;n m&#7853;t kh&#7849;u?</a>
-                <a href="register.php" class="text-decoration-none small">T&#7841;o t&agrave;i kho&#7843;n</a>
+                <a href="forgot-password" class="text-decoration-none small">Qu&ecirc;n m&#7853;t kh&#7849;u?</a>
+                <a href="register" class="text-decoration-none small">T&#7841;o t&agrave;i kho&#7843;n</a>
               </div>
 
               <button type="submit" class="btn btn-primary w-100 mb-3">

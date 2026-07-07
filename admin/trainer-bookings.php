@@ -121,6 +121,12 @@ foreach ($bookings as $booking) {
                 </div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['status']) && $_GET['status'] === 'csrf_error'): ?>
+                <div class="alert alert-danger">
+                    Phiên thao tác đã hết hạn. Vui lòng tải lại trang và thử lại.
+                </div>
+            <?php endif; ?>
+
             <?php if (!$bookings_table_exists): ?>
                 <div class="alert alert-warning">
                     Bảng <code>trainer_bookings</code> chưa tồn tại trong database. Hãy tạo bảng trước để quản lý lịch đặt HLV.
@@ -228,37 +234,43 @@ foreach ($bookings as $booking) {
                                         <td class="text-end">
                                             <div class="d-flex gap-2 justify-content-end flex-wrap">
                                                 <?php if ($booking['status'] === 'pending'): ?>
-                                                    <a
-                                                        href="../php/trainers/update-booking-status.php?id=<?php echo (int) $booking['id']; ?>&status=confirmed"
-                                                        class="btn btn-sm btn-outline-primary"
-                                                    >
-                                                        Xác nhận
-                                                    </a>
+                                                    <form method="POST" action="../php/trainers/update-booking-status.php">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                        <input type="hidden" name="id" value="<?php echo (int) $booking['id']; ?>">
+                                                        <input type="hidden" name="status" value="confirmed">
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary">Xác nhận</button>
+                                                    </form>
 
-                                                    <a
-                                                        href="../php/trainers/update-booking-status.php?id=<?php echo (int) $booking['id']; ?>&status=cancelled"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="return confirm('Bạn có chắc muốn hủy lịch này không?');"
+                                                    <form
+                                                        method="POST"
+                                                        action="../php/trainers/update-booking-status.php"
+                                                        onsubmit="return confirm('Bạn có chắc muốn hủy lịch này không?');"
                                                     >
-                                                        Hủy
-                                                    </a>
+                                                        <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                        <input type="hidden" name="id" value="<?php echo (int) $booking['id']; ?>">
+                                                        <input type="hidden" name="status" value="cancelled">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
+                                                    </form>
                                                 <?php endif; ?>
 
                                                 <?php if ($booking['status'] === 'confirmed'): ?>
-                                                    <a
-                                                        href="../php/trainers/update-booking-status.php?id=<?php echo (int) $booking['id']; ?>&status=completed"
-                                                        class="btn btn-sm btn-outline-success"
-                                                    >
-                                                        Hoàn thành
-                                                    </a>
+                                                    <form method="POST" action="../php/trainers/update-booking-status.php">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                        <input type="hidden" name="id" value="<?php echo (int) $booking['id']; ?>">
+                                                        <input type="hidden" name="status" value="completed">
+                                                        <button type="submit" class="btn btn-sm btn-outline-success">Hoàn thành</button>
+                                                    </form>
 
-                                                    <a
-                                                        href="../php/trainers/update-booking-status.php?id=<?php echo (int) $booking['id']; ?>&status=cancelled"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="return confirm('Bạn có chắc muốn hủy lịch này không?');"
+                                                    <form
+                                                        method="POST"
+                                                        action="../php/trainers/update-booking-status.php"
+                                                        onsubmit="return confirm('Bạn có chắc muốn hủy lịch này không?');"
                                                     >
-                                                        Hủy
-                                                    </a>
+                                                        <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                        <input type="hidden" name="id" value="<?php echo (int) $booking['id']; ?>">
+                                                        <input type="hidden" name="status" value="cancelled">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
+                                                    </form>
                                                 <?php endif; ?>
 
                                                 <?php if (in_array($booking['status'], ['completed', 'cancelled'], true)): ?>

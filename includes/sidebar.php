@@ -17,52 +17,62 @@ $logout_path = $logout_path ?? ($base_path !== '' ? rtrim(dirname(rtrim($base_pa
 
   <ul class="nav flex-column sidebar-menu">
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>dashboard.php" class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>dashboard" class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
         <i class="bi bi-house-door me-2"></i>Dashboard
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>members.php" class="nav-link <?php echo ($current_page == 'members.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>members" class="nav-link <?php echo ($current_page == 'members.php') ? 'active' : ''; ?>">
         <i class="bi bi-people me-2"></i>Hội viên
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>packages.php" class="nav-link <?php echo ($current_page == 'packages.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>packages" class="nav-link <?php echo ($current_page == 'packages.php') ? 'active' : ''; ?>">
         <i class="bi bi-box-seam me-2"></i>Gói tập
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>workout-plans.php" class="nav-link <?php echo ($current_page == 'workout-plans.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>workout-plans" class="nav-link <?php echo ($current_page == 'workout-plans.php') ? 'active' : ''; ?>">
         <i class="bi bi-clipboard2-pulse me-2"></i>Kế hoạch tập luyện
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>meal-plans.php" class="nav-link <?php echo ($current_page == 'meal-plans.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>meal-plans" class="nav-link <?php echo ($current_page == 'meal-plans.php') ? 'active' : ''; ?>">
         <i class="bi bi-egg-fried me-2"></i>Kế hoạch dinh dưỡng
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>checkins.php" class="nav-link <?php echo ($current_page == 'checkins.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>checkins" class="nav-link <?php echo ($current_page == 'checkins.php') ? 'active' : ''; ?>">
         <i class="bi bi-check-circle me-2"></i>Check-in
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>contacts.php" class="nav-link <?php echo ($current_page == 'contacts.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>contacts" class="nav-link <?php echo ($current_page == 'contacts.php') ? 'active' : ''; ?>">
         <i class="bi bi-telephone me-2"></i>Liên hệ
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>package-registrations.php" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>package-registrations" class="nav-link <?php echo ($current_page == 'package-registrations.php') ? 'active' : ''; ?>">
         <i class="bi bi-bag-check me-2"></i>Đăng ký gói
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>trainer-reviews.php" class="nav-link <?php echo ($current_page == 'trainer-reviews.php') ? 'active' : ''; ?>">
+      <a href="<?php echo $base_path; ?>trainers" class="nav-link <?php echo ($current_page == 'trainers.php') ? 'active' : ''; ?>">
+        <i class="bi bi-person-badge me-2"></i>Huấn luyện viên
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="<?php echo $base_path; ?>trainer-bookings" class="nav-link <?php echo ($current_page == 'trainer-bookings.php') ? 'active' : ''; ?>">
+        <i class="bi bi-calendar-check me-2"></i>Lịch đặt HLV
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="<?php echo $base_path; ?>trainer-reviews" class="nav-link <?php echo ($current_page == 'trainer-reviews.php') ? 'active' : ''; ?>">
         <i class="bi bi-chat-square-quote me-2"></i>Đánh giá HLV
       </a>
     </li>
     <li class="nav-item">
-      <a href="<?php echo $base_path; ?>../user/home.php" class="nav-link">
+      <a href="<?php echo $base_path; ?>../user/home" class="nav-link">
         <i class="bi bi-arrow-up-right-circle me-2"></i>Về giao diện user
       </a>
     </li>

@@ -4,6 +4,17 @@ include __DIR__ . '/../../includes/config.php';
 
 $base_path = '../../admin/';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ' . $base_path . 'checkins.php?error=1');
+    exit;
+}
+
+$csrf_token = (string) ($_POST['csrf_token'] ?? '');
+if ($csrf_token === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrf_token)) {
+    header('Location: ' . $base_path . 'checkins.php?csrf_error=1');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $member_id = isset($_POST['member_id']) ? (int)$_POST['member_id'] : 0;
     $note = trim($_POST['note'] ?? '');

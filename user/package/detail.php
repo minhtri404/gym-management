@@ -10,14 +10,14 @@ function h($value)
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 if ($id <= 0) {
-    header('Location: ' . $base_path . 'user/package/index.php');
+    header('Location: ' . $base_path . 'user/package/index');
     exit;
 }
 
 $package = getPackageById($conn, $id);
 
 if (!$package || ($package['status'] ?? '') !== 'active') {
-    header('Location: ' . $base_path . 'user/package/index.php');
+    header('Location: ' . $base_path . 'user/package/index');
     exit;
 }
 
@@ -58,7 +58,7 @@ $package_image_url = getPackageImageUrl($package, $base_path, max(0, ((int) ($pa
                     <div class="card-body p-4">
                         <div class="fs-3 fw-bold mb-2 package-detail-price"><?php echo number_format((float) $package['price'], 0, ',', '.'); ?>đ</div>
                         <div class="mb-3 package-detail-meta">Thời hạn: <?php echo (int) $package['duration_months']; ?> tháng</div>
-                        <a href="<?php echo $base_path; ?>user/package/register.php?package_id=<?php echo (int) $package['id']; ?>" class="btn btn-primary w-100 mb-2">Đăng ký gói này</a>
+                        <a href="<?php echo $base_path; ?>user/package/register?package_id=<?php echo (int) $package['id']; ?>" class="btn btn-primary w-100 mb-2">Đăng ký gói này</a>
                         <a href="<?php echo $base_path; ?>contact-form.php" class="btn btn-outline-dark w-100">Liên hệ tư vấn</a>
                     </div>
                 </div>

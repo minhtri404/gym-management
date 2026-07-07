@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
@@ -72,15 +73,17 @@ if ($user) {
     $stmt_member->close();
 }
 
-$avatar = !empty($trainer['avatar'])
-    ? $base_path . 'uploads/trainers/' . $trainer['avatar']
-    : 'https://ui-avatars.com/api/?name=' . urlencode($trainer['full_name']) . '&background=0f172a&color=ffffff';
+$avatar = resolve_trainer_avatar_url($trainer_id, $trainer['avatar'] ?? '', $base_path);
 
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!$member) {
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    if ($csrfToken === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrfToken)) {
+        http_response_code(403);
+        $error = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang và thử lại.';
+    } elseif (!$member) {
         $error = 'Tài khoản của bạn chưa liên kết với hồ sơ hội viên.';
     } else {
         $rating = (int)($_POST['rating'] ?? 0);
@@ -205,6 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 
                         <div class="mb-3">
                             <label class="form-label">Số sao đánh giá</label>

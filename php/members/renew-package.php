@@ -14,7 +14,18 @@ if ($member_id <= 0) {
     exit;
 }
 
-$stmt_member = $conn->prepare('SELECT m.*, p.package_name FROM members m LEFT JOIN packages p ON m.package_id = p.id WHERE m.id = ? LIMIT 1');
+$stmt_member = $conn->prepare('
+    SELECT 
+        m.*, 
+        p.package_name,
+        p.package_type,
+        p.duration_days,
+        p.duration_months
+    FROM members m 
+    LEFT JOIN packages p ON m.package_id = p.id 
+    WHERE m.id = ? 
+    LIMIT 1
+');
 $stmt_member->bind_param('i', $member_id);
 $stmt_member->execute();
 $result_member = $stmt_member->get_result();
@@ -25,9 +36,22 @@ if (!$member) {
     header('Location: ' . $base_path . 'members.php');
     exit;
 }
-
+$is_current_trial = (($member['package_type'] ?? '') === 'free_trial');
+$page_title = $is_current_trial ? 'Nâng cấp gói tập' : 'Gia hạn gói tập';
 $packages = [];
-$result_packages = $conn->query("SELECT id, package_name, price, duration_months FROM packages WHERE status = 'active' ORDER BY id DESC");
+$result_packages = $conn->query("
+    SELECT 
+        id, 
+        package_name, 
+        price, 
+        duration_months,
+        duration_days,
+        package_type
+    FROM packages 
+    WHERE status = 'active'
+      AND package_type = 'paid'
+    ORDER BY price ASC, duration_months ASC, id ASC
+");
 if ($result_packages) {
     while ($row = $result_packages->fetch_assoc()) {
         $packages[] = $row;
@@ -35,9 +59,21 @@ if ($result_packages) {
 }
 
 $error = '';
+$default_start_date = date('Y-m-d');
+
+if (!empty($member['end_date']) && !$is_current_trial) {
+    $today = new DateTime(date('Y-m-d'));
+    $current_end = DateTime::createFromFormat('Y-m-d', $member['end_date']);
+
+    if ($current_end && $current_end >= $today) {
+        $current_end->modify('+1 day');
+        $default_start_date = $current_end->format('Y-m-d');
+    }
+}
+
 $form = [
     'package_id' => '',
-    'start_date' => date('Y-m-d'),
+    'start_date' => $default_start_date,
     'paid_amount' => '',
     'note' => '',
 ];
@@ -63,7 +99,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $package = null;
     if ($error === '') {
-        $stmt_package = $conn->prepare('SELECT id, package_name, price, duration_months FROM packages WHERE id = ? LIMIT 1');
+        $stmt_package = $conn->prepare('
+    SELECT 
+        id, 
+        package_name, 
+        price, 
+        duration_months,
+        duration_days,
+        package_type
+    FROM packages 
+    WHERE id = ? 
+      AND status = "active"
+    LIMIT 1
+');
         $stmt_package->bind_param('i', $package_id);
         $stmt_package->execute();
         $result_package = $stmt_package->get_result();
@@ -72,6 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$package) {
             $error = 'Gói tập không tồn tại.';
+        }
+        if ($error === '' && (($package['package_type'] ?? '') !== 'paid')) {
+            $error = 'Chỉ được chọn gói trả phí khi gia hạn hoặc nâng cấp.';
         }
     }
 
@@ -99,7 +150,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paid_amount = $price;
         }
         $remaining_amount = max(0, $price - $paid_amount);
-        $history_note = $note !== '' ? $note : 'Gia hạn gói tập';
+        $history_note = $note !== ''
+            ? $note
+            : ($is_current_trial ? 'Nâng cấp từ gói dùng thử sang gói trả phí' : 'Gia hạn gói tập');
 
         $conn->begin_transaction();
         try {
@@ -107,6 +160,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_expire->bind_param('i', $member_id);
             $stmt_expire->execute();
             $stmt_expire->close();
+
+            $stmt_expire_history = $conn->prepare("
+                UPDATE member_package_history
+                SET status = 'expired'
+                WHERE member_id = ?
+                  AND status = 'active'
+            ");
+            $stmt_expire_history->bind_param('i', $member_id);
+            $stmt_expire_history->execute();
+            $stmt_expire_history->close();
 
             $stmt_member_package = $conn->prepare('INSERT INTO member_packages (member_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)');
             $active_status = 'active';
@@ -121,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_update->close();
 
             $stmt_history = $conn->prepare('INSERT INTO member_package_history (member_id, package_id, action_type, start_date, end_date, price, paid_amount, remaining_amount, status, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $action_type = 'renew';
+            $action_type = $is_current_trial ? 'upgrade' : 'renew';
             $history_status = 'active';
             $stmt_history->bind_param('iisssdddss', $member_id, $package_id, $action_type, $start_date, $end_date, $price, $paid_amount, $remaining_amount, $history_status, $history_note);
             $stmt_history->execute();
@@ -156,7 +219,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold mb-0">Gia hạn gói tập</h2>
+          <h2 class="fw-bold mb-0">
+            <?php echo $is_current_trial ? 'Nâng cấp gói tập' : 'Gia hạn gói tập'; ?>
+          </h2>
           <a href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member_id; ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-1"></i> Quay lại
           </a>
@@ -184,6 +249,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
 
                   <div class="mb-2">
+                    <div class="text-muted small">Loại gói hiện tại</div>
+                    <div>
+                      <?php if ($is_current_trial): ?>
+                        <span class="badge bg-info text-dark">Dùng thử</span>
+                      <?php else: ?>
+                        <span class="badge bg-primary">Trả phí</span>
+                      <?php endif; ?>
+                    </div>
+                  </div>
+
+                  <div class="mb-2">
                     <div class="text-muted small">Ngày bắt đầu hiện tại</div>
                     <div><?php echo htmlspecialchars($member['start_date'] ?: 'Chưa có'); ?></div>
                   </div>
@@ -201,12 +277,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <input type="hidden" name="member_id" value="<?php echo (int) $member_id; ?>">
 
                   <div class="mb-3">
-                    <label class="form-label">Chọn gói mới</label>
+                    <label class="form-label">
+                      <?php echo $is_current_trial ? 'Chọn gói trả phí để nâng cấp' : 'Chọn gói để gia hạn'; ?>
+                    </label>
                     <select name="package_id" id="package_id" class="form-select" required>
                       <option value="">-- Chọn gói --</option>
                       <?php foreach ($packages as $package): ?>
-                        <option value="<?php echo (int) $package['id']; ?>" data-duration="<?php echo (int) $package['duration_months']; ?>" <?php echo ((int) $form['package_id'] === (int) $package['id']) ? 'selected' : ''; ?>>
-                          <?php echo htmlspecialchars($package['package_name']); ?> - <?php echo number_format((float) $package['price'], 0, ',', '.'); ?> VNĐ - <?php echo (int) $package['duration_months']; ?> tháng
+                        <option
+                          value="<?php echo (int) $package['id']; ?>"
+                          data-duration="<?php echo (int) $package['duration_months']; ?>"
+                          <?php echo ((int) $form['package_id'] === (int) $package['id']) ? 'selected' : ''; ?>
+                        >
+                          <?php echo htmlspecialchars($package['package_name']); ?>
+                          - <?php echo number_format((float) $package['price'], 0, ',', '.'); ?> VNĐ
+                          - <?php echo (int) $package['duration_months']; ?> tháng
                         </option>
                       <?php endforeach; ?>
                     </select>
@@ -234,7 +318,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
 
                   <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Lưu gia hạn
+                    <i class="bi bi-save me-1"></i>
+                    <?php echo $is_current_trial ? 'Lưu nâng cấp' : 'Lưu gia hạn'; ?>
                   </button>
                 </form>
               </div>

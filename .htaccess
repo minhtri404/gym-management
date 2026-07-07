@@ -1,0 +1,17 @@
+RewriteEngine On
+
+Options -Indexes
+
+<FilesMatch "(^\.env|^composer\.(json|lock)$|\.(sql|log|ini|bak|dist)$)">
+    Require all denied
+</FilesMatch>
+
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{REQUEST_URI} !^/php/
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{THE_REQUEST} \s/+(.+)\.php[?\s]
+RewriteRule ^(.+)\.php$ /$1 [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]

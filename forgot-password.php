@@ -3,11 +3,11 @@ include __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id'])) {
     if (strtolower(trim($_SESSION['user_role'] ?? '')) === 'admin') {
-        header('Location: admin/dashboard.php');
+        header('Location: admin/dashboard');
         exit;
     }
 
-    header('Location: user/home.php');
+    header('Location: user/home');
     exit;
 }
 
@@ -81,7 +81,7 @@ $success = trim($_GET['success'] ?? '');
             </form>
 
             <div class="text-center">
-              <a href="login.php" class="text-decoration-none">Quay lại đăng nhập</a>
+              <a href="login" class="text-decoration-none">Quay lại đăng nhập</a>
             </div>
 
           </div>

@@ -13,12 +13,12 @@ if (preg_match('#^(.*?)/(admin|api|assets|css|includes|js|php|uploads|user)(/.*)
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . $projectBasePath . 'login.php');
+    header('Location: ' . $projectBasePath . 'login');
     exit;
 }
 
 if (strtolower(trim($_SESSION['user_role'] ?? '')) !== 'admin') {
-    header('Location: ' . $projectBasePath . 'user/home.php');
+    header('Location: ' . $projectBasePath . 'user/home');
     exit;
 }
 ?>

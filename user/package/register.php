@@ -1,7 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
 include __DIR__ . '/../../includes/functions/package-functions.php';
-require_once __DIR__ . '/../../includes/recaptcha.php';
 
 $base_path = '../../';
 
@@ -15,21 +14,59 @@ function money_vn($amount)
     return number_format((float) $amount, 0, ',', '.') . 'đ';
 }
 
-function package_duration_label($months)
+function package_duration_text($package)
 {
-    $months = (int) $months;
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        $days = (int)($package['duration_days'] ?? 7);
+        return 'Dùng thử: ' . $days . ' ngày';
+    }
 
-    if ($months <= 0) {
+    $duration = (int)($package['duration_months'] ?? 0);
+
+    if ($duration <= 0) {
+        return 'Thời hạn linh hoạt';
+    }
+
+    return 'Thời hạn: ' . $duration . ' tháng';
+}
+
+function package_duration_label($package)
+{
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        $days = (int)($package['duration_days'] ?? 7);
+        return $days . ' ngày dùng thử';
+    }
+
+    $duration = (int)($package['duration_months'] ?? $package['duration'] ?? 0);
+
+    if ($duration <= 0) {
         return 'Linh hoạt';
     }
 
-    if ($months === 1) {
-        return '1 tháng';
-    }
-
-    return $months . ' tháng';
+    return $duration . ' tháng';
 }
 
+function package_price_text($package)
+{
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        return 'Miễn phí';
+    }
+
+    return money_vn($package['price'] ?? 0);
+}
+
+function package_button_text($package)
+{
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        return 'Dùng thử 7 ngày';
+    }
+
+    return 'Đăng ký gói này';
+}
+function is_free_trial_package($package)
+{
+    return (($package['package_type'] ?? 'paid') === 'free_trial');
+}
 function package_registration_badge($price)
 {
     $price = (float) $price;
@@ -51,13 +88,17 @@ $package = null;
 if ($package_id > 0) {
     $raw = getPackageById($conn, $package_id);
 
-    if ($raw) {
+    if ($raw && ($raw['status'] ?? '') === 'active') {
         $package = [
             'id' => $raw['id'] ?? $package_id,
             'name' => $raw['package_name'] ?? 'Gói tập',
             'price' => $raw['price'] ?? 0,
             'description' => $raw['short_description'] ?: ($raw['description'] ?? ''),
             'duration' => $raw['duration_months'] ?? null,
+            'duration_months' => $raw['duration_months'] ?? null,
+            'duration_days' => $raw['duration_days'] ?? null,
+            'package_type' => $raw['package_type'] ?? 'paid',
+            'trial_once_per_user' => $raw['trial_once_per_user'] ?? 0,
             'status' => $raw['status'] ?? 'active',
             'suitable_for' => $raw['suitable_for'] ?? '',
             'image' => $raw['image'] ?? '',
@@ -73,8 +114,6 @@ $package_image_url = $package ? getPackageImageUrl($package, $base_path, max(0, 
 $prefill_name = '';
 $prefill_phone = '';
 $prefill_email = '';
-$prefill_dob = '';
-$prefill_address = '';
 
 if (!empty($_SESSION['user_id'])) {
     $uid = (int) $_SESSION['user_id'];
@@ -89,26 +128,11 @@ if (!empty($_SESSION['user_id'])) {
         $prefill_email = $urow['email'] ?? '';
         $prefill_phone = $urow['phone'] ?? '';
     }
-
-    $tryPhone = $prefill_phone;
-    $tryEmail = $prefill_email;
-
-    if ($tryPhone || $tryEmail) {
-        $stmtM = $conn->prepare('SELECT date_of_birth, address FROM members WHERE phone = ? OR email = ? LIMIT 1');
-        $stmtM->bind_param('ss', $tryPhone, $tryEmail);
-        $stmtM->execute();
-        $mrow = $stmtM->get_result()->fetch_assoc();
-        $stmtM->close();
-
-        if ($mrow) {
-            $prefill_dob = $mrow['date_of_birth'] ?? '';
-            $prefill_address = $mrow['address'] ?? '';
-        }
-    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -116,442 +140,573 @@ if (!empty($_SESSION['user_id'])) {
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../includes/assets/css/user.css?v=light-1">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link rel="stylesheet" href="../includes/assets/css/user.css?v=package-wizard-1">
 </head>
+
 <body class="user-body">
 
-<?php include __DIR__ . '/../includes/navbar.php'; ?>
+    <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
-<section class="section-dark package-register-section register-package-page">
-    <div class="container">
-        <div class="register-page-shell">
-            <div class="text-center register-page-heading">
-                <span class="section-badge">PACKAGE REGISTRATION</span>
-                <h1 class="packages-title">Đăng ký <span class="accent">Gói tập</span></h1>
-                <p class="packages-subtitle">Điền đầy đủ thông tin để hoàn tất đăng ký và chọn một trong hai phương thức thanh toán: VNPAY hoặc tại phòng.</p>
-            </div>
+    <main class="package-wizard-page">
+        <div class="container">
+            <div class="package-wizard-shell">
+                <div class="wizard-brand-row">
+                    <a href="<?php echo $base_path; ?>user/home" class="wizard-logo">
+                        <span class="wizard-logo-the">THE</span>
+                        <span class="wizard-logo-main">FLEXZONE</span>
+                        <span class="wizard-logo-sub">new way to fit</span>
+                    </a>
 
-            <?php if ($success): ?>
-                <div class="alert alert-success register-alert">
-                    Đăng ký gói tập thành công. Phòng gym sẽ liên hệ với bạn sớm để xác nhận.
-                </div>
-            <?php endif; ?>
-
-            <?php if ($error !== ''): ?>
-                <div class="alert alert-danger register-alert"><?php echo h($error); ?></div>
-            <?php endif; ?>
-
-            <div class="register-top-card">
-                <div class="register-card-heading">
-                    <div class="register-card-icon"><i class="bi bi-tags-fill"></i></div>
-                    <div>
-                        <h2>Thông tin gói tập</h2>
-                        <p>Chi tiết gói tập bạn đã chọn</p>
+                    <div class="wizard-steps" aria-label="Tiến trình đăng ký">
+                        <button class="wizard-step-dot active" type="button" data-step-jump="1">1</button>
+                        <span></span>
+                        <button class="wizard-step-dot" type="button" data-step-jump="2">2</button>
+                        <span></span>
+                        <button class="wizard-step-dot" type="button" data-step-jump="3">3</button>
+                        <span></span>
+                        <button class="wizard-step-dot" type="button" data-step-jump="4">4</button>
                     </div>
                 </div>
 
-                <?php if ($package): ?>
-                    <div class="register-package-summary">
-                        <div class="register-package-hero">
-                            <div class="register-package-visual">
-                                <?php if ($package_image_url !== ''): ?>
-                                    <img src="<?php echo h($package_image_url); ?>" alt="<?php echo h($package['name'] ?? 'Ảnh gói tập'); ?>">
-                                <?php else: ?>
-                                    <i class="bi bi-barbell"></i>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="register-package-copy">
-                                <div class="register-package-title-row">
-                                    <h3><?php echo h($package['name']); ?></h3>
-                                    <span class="register-package-badge"><?php echo h(package_registration_badge($package['price'])); ?></span>
-                                </div>
-                                <p><?php echo h($package['description'] !== '' ? $package['description'] : 'Gói tập phù hợp để bắt đầu và duy trì thói quen luyện tập đều đặn.'); ?></p>
-
-                                <div class="register-package-features">
-                                    <div>
-                                        <span>Thời hạn</span>
-                                        <strong><?php echo h(package_duration_label($package['duration'])); ?></strong>
-                                    </div>
-                                    <div>
-                                        <span>Giá gói</span>
-                                        <strong><?php echo h(money_vn($package['price'])); ?></strong>
-                                    </div>
-                                    <div>
-                                        <span>Phù hợp với</span>
-                                        <strong><?php echo h($package['suitable_for'] !== '' ? $package['suitable_for'] : 'Người mới bắt đầu'); ?></strong>
-                                    </div>
-                                    <div>
-                                        <span>Hình thức tập</span>
-                                        <strong>Không giới hạn giờ hoạt động</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="register-package-price-panel">
-                            <span>Giá gói</span>
-                            <strong><?php echo h(money_vn($package['price'])); ?></strong>
-                        </div>
+                <?php if ($success): ?>
+                    <div class="alert alert-success wizard-alert">
+                        Đăng ký gói tập thành công. FLEXZONE sẽ liên hệ xác nhận trong thời gian sớm nhất.
                     </div>
-                <?php else: ?>
-                    <div class="alert alert-warning mb-0">Không tìm thấy gói tập. Vui lòng quay lại trang Packages và chọn lại.</div>
                 <?php endif; ?>
-            </div>
 
-            <div class="register-main-card">
-                <div class="register-card-heading">
-                    <div class="register-card-icon"><i class="bi bi-clipboard-check-fill"></i></div>
-                    <div>
-                        <h2>Thông tin đăng ký</h2>
-                        <p>Vui lòng điền đầy đủ thông tin để hoàn tất đăng ký</p>
-                    </div>
-                </div>
+                <?php if ($error !== ''): ?>
+                    <div class="alert alert-danger wizard-alert"><?php echo h($error); ?></div>
+                <?php endif; ?>
 
-                <div class="register-content-grid">
-                    <div class="register-form-panel">
-                        <form action="<?php echo $base_path; ?>php/package-registrations/submit-registration.php" method="POST">
-                            <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token']); ?>">
-                            <input type="hidden" name="package_id" value="<?php echo (int) $package_id; ?>">
-                            <input type="hidden" name="payment_method" value="cash">
+                <?php if (!$package): ?>
+                    <section class="wizard-card">
+                        <h1>Không tìm thấy gói tập</h1>
+                        <p>Vui lòng quay lại trang Packages và chọn lại gói tập bạn muốn đăng ký.</p>
+                        <a href="<?php echo $base_path; ?>user/package/index" class="wizard-primary-btn">Chọn gói tập</a>
+                    </section>
+                <?php else: ?>
+                    <section class="wizard-panel is-active" data-step-panel="1">
+                        <div class="wizard-package-grid">
+                            <div class="wizard-package-media">
+                                <?php if ($package_image_url !== ''): ?>
+                                    <img src="<?php echo h($package_image_url); ?>" alt="<?php echo h($package['name']); ?>">
+                                <?php else: ?>
+                                    <div class="wizard-media-fallback"><i class="bi bi-building"></i></div>
+                                <?php endif; ?>
+                                <button class="wizard-float-btn" type="button" data-next-step="2">Tiếp tục</button>
+                            </div>
 
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Họ và tên</label>
-                                    <input type="text" name="full_name" class="form-control register-input" required maxlength="100" placeholder="Nhập họ và tên" value="<?php echo h($prefill_name); ?>">
+                            <aside class="wizard-package-aside">
+                                <div class="wizard-side-image">
+                                    <?php if ($package_image_url !== ''): ?>
+                                        <img src="<?php echo h($package_image_url); ?>" alt="">
+                                    <?php endif; ?>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Số điện thoại</label>
-                                    <input type="text" name="phone" class="form-control register-input" required maxlength="20" placeholder="Nhập số điện thoại" value="<?php echo h($prefill_phone); ?>">
+                                <div class="wizard-side-image">
+                                    <?php if ($package_image_url !== ''): ?>
+                                        <img src="<?php echo h($package_image_url); ?>" alt="">
+                                    <?php endif; ?>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email" class="form-control register-input" maxlength="120" placeholder="Nhập email (nếu có)" value="<?php echo h($prefill_email); ?>">
+                            </aside>
+                        </div>
+
+                        <div class="wizard-package-meta">
+                            <div>
+                                <h1><?php echo h($package['name']); ?></h1>
+                                <p class="wizard-location">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    Tất cả chi nhánh FLEXZONE
+                                </p>
+                            </div>
+                            <div class="wizard-price-block">
+                                <span>Tham gia ngay, chỉ từ</span>
+                                <strong><?php echo h(package_price_text($package)); ?></strong>
+                                <em>/ <?php echo h(package_duration_label($package)); ?></em>
+                            </div>
+                            <div class="wizard-open-block">
+                                <span>Mở cửa:</span>
+                                <strong>24/7</strong>
+                            </div>
+                        </div>
+
+                        <div class="wizard-package-note">
+                            <span><?php echo h(package_registration_badge($package['price'])); ?></span>
+                            <?php echo h($package['description'] !== '' ? $package['description'] : 'Gói tập phù hợp để bắt đầu và duy trì thói quen luyện tập đều đặn.'); ?>
+                        </div>
+                    </section>
+
+                    <section class="wizard-panel" data-step-panel="2">
+                        <div class="wizard-form-card">
+                            <h1>Số điện thoại của bạn?</h1>
+                            <p>FLEXZONE dùng số này để liên hệ tư vấn và đối chiếu thông tin hội viên.</p>
+
+                            <label class="wizard-phone-input">
+                                <span>🇻🇳</span>
+                                <input
+                                    type="tel"
+                                    id="wizardPhone"
+                                    inputmode="tel"
+                                    autocomplete="tel"
+                                    maxlength="11"
+                                    placeholder="Nhập số điện thoại"
+                                    value="<?php echo h($prefill_phone); ?>">
+                            </label>
+
+                            <div class="wizard-action-row">
+                                <button class="wizard-secondary-btn" type="button" data-prev-step="1">Quay lại</button>
+                                <button class="wizard-primary-btn" type="button" data-next-step="3">Tiếp tục</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="wizard-panel" data-step-panel="3">
+                        <div class="wizard-form-card">
+                            <h1>Email nhận mã OTP</h1>
+                            <p>Mã xác thực 4 chữ số sẽ được gửi đến email này.</p>
+
+                            <input
+                                type="email"
+                                id="wizardEmail"
+                                class="wizard-text-input"
+                                autocomplete="email"
+                                maxlength="120"
+                                placeholder="Nhập email"
+                                value="<?php echo h($prefill_email); ?>">
+
+                            <div class="wizard-action-row">
+                                <button class="wizard-secondary-btn" type="button" data-prev-step="2">Quay lại</button>
+                                <button class="wizard-primary-btn" type="button" id="sendPackageOtpBtn">
+                                    Gửi OTP
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="wizard-panel" data-step-panel="4">
+                        <div class="wizard-checkout-grid">
+                            <div class="wizard-form-card">
+                                <h1>Nhập mã OTP</h1>
+                                <p>
+                                    Nhập mã gồm 4 chữ số được gửi đến
+                                    <strong id="otpEmailLabel"><?php echo h($prefill_email !== '' ? $prefill_email : 'email của bạn'); ?></strong>.
+                                </p>
+
+                                <div class="wizard-otp-inputs">
+                                    <?php for ($i = 0; $i < 4; $i++): ?>
+                                        <input type="text" inputmode="numeric" maxlength="1" class="wizard-otp-digit" data-otp-index="<?php echo $i; ?>">
+                                    <?php endfor; ?>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Ngày sinh</label>
-                                    <input type="date" name="date_of_birth" class="form-control register-input" value="<?php echo h($prefill_dob); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Địa chỉ</label>
-                                    <input type="text" name="address" class="form-control register-input" maxlength="190" placeholder="Nhập địa chỉ" value="<?php echo h($prefill_address); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Mã gói</label>
-                                    <input type="text" class="form-control register-input" value="<?php echo $package ? ('#' . $package['id'] . ' - ' . $package['name']) : ''; ?>" readonly>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Ghi chú</label>
-                                    <textarea name="note" class="form-control register-input register-textarea" rows="4" maxlength="300" placeholder="Ví dụ: muốn tập tăng cơ, giảm mỡ, cần tư vấn PT..."></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Google reCAPTCHA</label>
-                                    <div class="package-captcha-box">
-                                        <div class="package-captcha-note mb-3">
-                                            Hoàn thành Google reCAPTCHA để xác nhận đây là yêu cầu đăng ký thật và giúp hệ thống hạn chế spam.
-                                        </div>
-                                        <div class="g-recaptcha" data-sitekey="<?php echo h(get_recaptcha_site_key()); ?>"></div>
-                                    </div>
-                                </div>
-                                <div class="col-12 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
-                                    <a href="<?php echo $base_path; ?>user/package/index.php" class="btn register-back-btn">
-                                        <i class="bi bi-arrow-left me-2"></i>Quay lại gói tập
-                                    </a>
-                                    <button type="button" class="btn register-submit-btn" id="openPaymentMethodModal">
-                                        <i class="bi bi-send me-2"></i>Gửi đăng ký
+
+                                <div class="wizard-action-row">
+                                    <button class="wizard-secondary-btn" type="button" data-prev-step="3">Quay lại</button>
+                                    <button class="wizard-primary-btn" type="button" id="verifyPackageOtpBtn">
+                                        Xác nhận OTP
                                     </button>
                                 </div>
-                            </div>
-                        </form>
-                    </div>
 
-                    <aside class="register-side-panel">
-                        <div class="register-side-card">
-                            <h3><i class="bi bi-info-circle me-2"></i>Thông tin nhanh</h3>
-
-                            <div class="register-side-list">
-                                <div><span>Gói tập</span><strong><?php echo h($package['name'] ?? 'Chưa chọn'); ?></strong></div>
-                                <div><span>Thời hạn</span><strong><?php echo h(package_duration_label($package['duration'] ?? 0)); ?></strong></div>
-                                <div><span>Giá</span><strong class="price"><?php echo h(money_vn($package['price'] ?? 0)); ?></strong></div>
+                                <button class="wizard-link-btn" type="button" id="resendPackageOtpBtn">Gửi lại mã</button>
                             </div>
 
-                            <div class="register-side-divider"></div>
+                            <form class="wizard-payment-card" id="packageWizardForm" action="<?php echo $base_path; ?>php/package-registrations/submit-registration.php" method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token']); ?>">
+                                <input type="hidden" name="package_id" value="<?php echo (int) $package_id; ?>">
+                                <input type="hidden" name="full_name" id="wizardFullName" value="<?php echo h($prefill_name); ?>">
+                                <input type="hidden" name="phone" id="wizardPhoneHidden" value="<?php echo h($prefill_phone); ?>">
+                                <input type="hidden" name="email" id="wizardEmailHidden" value="<?php echo h($prefill_email); ?>">
+                                <input
+                                    type="hidden"
+                                    name="payment_method"
+                                    id="wizardPaymentMethod"
+                                    value="<?php echo is_free_trial_package($package) ? 'free_trial' : 'vnpay'; ?>">
+                                <h2>Chi tiết thanh toán</h2>
+                                <div class="wizard-payment-lines">
+                                    <div><span>Club</span><strong>Tất cả chi nhánh</strong></div>
+                                    <div>
+                                        <span><?php echo h(package_duration_label($package)); ?></span>
+                                        <strong><?php echo h(package_price_text($package)); ?></strong>
+                                    </div>
 
-                            <h4>Phương thức thanh toán</h4>
-                            <div class="register-payment-preview">
-                                <div class="register-payment-preview-item">
-                                    <span class="icon"><i class="bi bi-shop"></i></span>
-                                    <span>Tại phòng</span>
+                                    <div>
+                                        <span>Phí hội viên</span>
+                                        <strong>Miễn phí</strong>
+                                    </div>
+
+                                    <div class="total">
+                                        <span>TỔNG</span>
+                                        <strong><?php echo h(package_price_text($package)); ?></strong>
+                                    </div>
                                 </div>
-                                <div class="register-payment-preview-item">
-                                    <span class="icon"><i class="bi bi-credit-card"></i></span>
-                                    <span>VNPAY</span>
-                                </div>
-                            </div>
 
-                            <div class="register-side-divider"></div>
+                                <label class="wizard-name-field">
+                                    <span>Họ và tên</span>
+                                    <input type="text" id="wizardNameInput" maxlength="100" placeholder="Nhập họ tên để lưu đăng ký" value="<?php echo h($prefill_name); ?>">
+                                </label>
 
-                            <h4>Vì sao chọn chúng tôi?</h4>
-                            <ul class="register-why-list">
-                                <li><i class="bi bi-check-circle"></i><span>Huấn luyện viên chuyên nghiệp</span></li>
-                                <li><i class="bi bi-check-circle"></i><span>Phòng tập hiện đại, sạch sẽ</span></li>
-                                <li><i class="bi bi-check-circle"></i><span>Lộ trình cá nhân hóa theo mục tiêu</span></li>
-                                <li><i class="bi bi-check-circle"></i><span>Hỗ trợ nhanh sau khi đăng ký</span></li>
-                            </ul>
-                        </div>
-                    </aside>
-                </div>
+                                <p class="wizard-terms">
+                                    Bằng cách nhấp vào Xác nhận, bạn đồng ý với điều khoản sử dụng của FLEXZONE.
+                                </p>
 
-                <div class="register-security-note">
-                    <i class="bi bi-shield-lock"></i>
-                    <div>
-                        <strong>Thông tin của bạn được bảo mật tuyệt đối.</strong>
-                        <span>Đội ngũ của chúng tôi sẽ liên hệ xác nhận trong vòng 24 giờ qua số điện thoại hoặc email bạn đã cung cấp.</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                <?php if (is_free_trial_package($package)): ?>
+                                    <h3>Phương thức thanh toán</h3>
+                                    <div class="wizard-payment-methods">
+                                        <button type="button" class="wizard-method-card selected" data-payment-method="free_trial">
+                                            <i class="bi bi-gift"></i>
+                                            Gói dùng thử miễn phí
+                                        </button>
+                                    </div>
+                                <?php else: ?>
+                                    <h3>Chọn phương thức thanh toán</h3>
+                                    <div class="wizard-payment-methods">
+                                        <button type="button" class="wizard-method-card selected" data-payment-method="vnpay">
+                                            <i class="bi bi-qr-code"></i>
+                                            INTERNET BANKING - QR
+                                        </button>
+                                        <button type="button" class="wizard-method-card" data-payment-method="cash">
+                                            <i class="bi bi-shop"></i>
+                                            Thanh toán tại phòng
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+
+                           <?php if (!$is_logged_in && !is_free_trial_package($package)): ?>
+    <div class="wizard-login-note">
+        <i class="bi bi-info-circle"></i>
+        Nếu chọn VNPAY, bạn cần đăng nhập trước khi chuyển sang cổng thanh toán.
     </div>
-</section>
+<?php endif; ?>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php if (!$is_logged_in && is_free_trial_package($package)): ?>
+    <div class="wizard-login-note">
+        <i class="bi bi-info-circle"></i>
+        Bạn cần đăng nhập để nhận gói dùng thử 7 ngày.
+    </div>
+<?php endif; ?>
 
-<div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content payment-choice-modal">
-            <div class="modal-header border-0 align-items-start">
-                <div class="payment-modal-heading">
-                    <span class="payment-modal-kicker">THANH TOÁN</span>
-                    <h2 class="payment-modal-title mb-2" id="paymentMethodModalLabel">Chọn phương thức thanh toán</h2>
-                    <p class="payment-modal-subtitle mb-0">Xác nhận cách thanh toán trước khi gửi đăng ký gói tập.</p>
-                </div>
-                <button type="button" class="btn-close payment-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-0">
-                <div class="payment-summary-box mb-4">
-                    <div class="payment-summary-main">
-                        <div class="payment-summary-label">Gói đã chọn</div>
-                        <div class="payment-summary-name"><?php echo $package ? h($package['name']) : 'Gói tập'; ?></div>
-                        <div class="payment-summary-meta">
-                            <span><i class="bi bi-calendar-range"></i><?php echo $package && !empty($package['duration']) ? (int) $package['duration'] . ' tháng' : 'Linh hoạt'; ?></span>
-                            <span><i class="bi bi-shield-check"></i>Xác nhận nhanh</span>
+                                <div class="wizard-payment-actions">
+                                    <button class="wizard-secondary-btn" type="button" data-prev-step="3">Quay lại</button>
+                                    <button class="wizard-primary-btn" type="submit" id="finalSubmitBtn" disabled>Xác nhận</button>
+                                </div>
+                            </form>
                         </div>
-                    </div>
-                    <div class="payment-summary-total">
-                        <div class="payment-summary-label">Tổng thanh toán</div>
-                        <div class="payment-summary-price"><?php echo $package ? number_format((float) $package['price'], 0, ',', '.') : '0'; ?>đ</div>
-                        <div class="payment-summary-note">Chọn 1 trong 2 phương thức: tại phòng hoặc VNPAY</div>
-                    </div>
-                </div>
+                    </section>
 
-                <div class="row g-4 payment-options-grid">
-                    <div class="col-md-6">
-                        <button type="button" class="payment-option-card payment-option-card-cash w-100" data-payment-method="cash">
-                            <span class="payment-option-badge">Tư vấn trực tiếp tại quầy</span>
-                            <span class="payment-option-icon payment-option-icon-cash"><i class="bi bi-shop-window"></i></span>
-                            <span class="payment-option-title">Thanh toán tại phòng</span>
-                            <span class="payment-option-text">Gửi đăng ký trước để giữ chỗ, sau đó thanh toán trực tiếp khi đến phòng gym.</span>
-                            <span class="payment-option-footer">
-                                <span><i class="bi bi-check2-circle"></i>Không cần thanh toán ngay</span>
-                                <span><i class="bi bi-people"></i>Phù hợp nếu cần tư vấn thêm</span>
-                            </span>
-                            <span class="payment-option-cta">Chá»n phÆ°Æ¡ng thá»©c nÃ y</span>
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        <button type="button" class="payment-option-card payment-option-card-vnpay w-100" data-payment-method="vnpay">
-                            <span class="payment-option-badge payment-option-badge-highlight">Thanh toán online ngay</span>
-                            <span class="payment-option-icon payment-option-icon-vnpay" aria-hidden="true">
-                                <span class="vnpay-mark">
-                                    <span class="vnpay-mark-blue"></span>
-                                    <span class="vnpay-mark-red"></span>
-                                </span>
-                                <span class="vnpay-wordmark">VNPAY</span>
-                            </span>
-                            <span class="payment-option-title">Thanh toán qua VNPAY</span>
-                            <span class="payment-option-text">Chuyển sang cổng thanh toán VNPAY an toàn để hoàn tất đăng ký ngay trên hệ thống.</span>
-                            <span class="payment-option-footer">
-                                <span><i class="bi bi-lightning-charge"></i>Xử lý nhanh</span>
-                                <span><i class="bi bi-shield-lock"></i>Bảo mật giao dịch</span>
-                            </span>
-                            <span class="payment-option-cta payment-option-cta-primary">Thanh toÃ¡n vá»›i VNPAY</span>
-                        </button>
-                    </div>
-                </div>
-
-                <?php if (!$is_logged_in): ?>
-                    <div class="payment-login-note mt-4 mb-0">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Để thanh toán qua VNPAY, bạn sẽ được yêu cầu đăng nhập trước khi chuyển sang cổng thanh toán.</span>
-                    </div>
+                    <div class="wizard-status" id="wizardStatus" aria-live="polite"></div>
                 <?php endif; ?>
             </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    (function () {
-        const phoneInput = document.querySelector('input[name="phone"]');
-        const emailInput = document.querySelector('input[name="email"]');
-        const fullNameInput = document.querySelector('input[name="full_name"]');
-        const dobInput = document.querySelector('input[name="date_of_birth"]');
-        const addressInput = document.querySelector('input[name="address"]');
-        const form = document.querySelector('form[action*="submit-registration.php"]');
-        const submitBtn = document.getElementById('openPaymentMethodModal');
-        const paymentMethodInput = form.querySelector('input[name="payment_method"]');
-        const paymentMethodModalElement = document.getElementById('paymentMethodModal');
-        const paymentMethodModal = paymentMethodModalElement ? new bootstrap.Modal(paymentMethodModalElement) : null;
-        const paymentMethodButtons = paymentMethodModalElement ? paymentMethodModalElement.querySelectorAll('[data-payment-method]') : [];
+    <?php include __DIR__ . '/../includes/footer.php'; ?>
 
-        const DEBOUNCE_MS = 600;
-        let debounceTimer = null;
-        let ongoingFetch = null;
-        let paymentSelectionConfirmed = false;
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const csrfToken = <?php echo json_encode($_SESSION['csrf_token']); ?>;
+            const packageId = <?php echo (int) $package_id; ?>;
+            const panels = Array.from(document.querySelectorAll('[data-step-panel]'));
+            const dots = Array.from(document.querySelectorAll('.wizard-step-dot'));
+            const statusBox = document.getElementById('wizardStatus');
+            const phoneInput = document.getElementById('wizardPhone');
+            const emailInput = document.getElementById('wizardEmail');
+            const emailLabel = document.getElementById('otpEmailLabel');
+            const phoneHidden = document.getElementById('wizardPhoneHidden');
+            const emailHidden = document.getElementById('wizardEmailHidden');
+            const nameHidden = document.getElementById('wizardFullName');
+            const nameInput = document.getElementById('wizardNameInput');
+            const sendOtpBtn = document.getElementById('sendPackageOtpBtn');
+            const resendOtpBtn = document.getElementById('resendPackageOtpBtn');
+            const verifyOtpBtn = document.getElementById('verifyPackageOtpBtn');
+            const otpInputs = Array.from(document.querySelectorAll('.wizard-otp-digit'));
+            const paymentMethodInput = document.getElementById('wizardPaymentMethod');
+            const methodCards = Array.from(document.querySelectorAll('.wizard-method-card'));
+            const finalSubmitBtn = document.getElementById('finalSubmitBtn');
+            const form = document.getElementById('packageWizardForm');
 
-        async function fetchAndFill() {
-            if (ongoingFetch) {
-                return ongoingFetch;
+            let currentStep = 1;
+            let otpVerified = false;
+
+            function setStatus(message, type = 'info') {
+                if (!statusBox) return;
+                statusBox.textContent = message || '';
+                statusBox.dataset.type = type;
+                statusBox.classList.toggle('is-visible', Boolean(message));
             }
 
-            ongoingFetch = (async () => {
-                const phone = phoneInput.value.trim();
-                const email = emailInput.value.trim();
+            function cleanPhone() {
+                return (phoneInput ? phoneInput.value : '').replace(/\D+/g, '');
+            }
 
-                if (!phone && !email) {
-                    ongoingFetch = null;
-                    return null;
+            function cleanEmail() {
+                return (emailInput ? emailInput.value : '').trim();
+            }
+
+            function isValidPhone(phone) {
+                return /^0\d{9,10}$/.test(phone);
+            }
+
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            function showStep(step) {
+                currentStep = step;
+                panels.forEach(function(panel) {
+                    panel.classList.toggle('is-active', Number(panel.dataset.stepPanel) === step);
+                });
+                dots.forEach(function(dot) {
+                    const dotStep = Number(dot.dataset.stepJump);
+                    dot.classList.toggle('active', dotStep === step);
+                    dot.classList.toggle('done', dotStep < step);
+                });
+                setStatus('');
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+
+            function syncHiddenFields() {
+                const phone = cleanPhone();
+                const email = cleanEmail();
+                if (phoneHidden) phoneHidden.value = phone;
+                if (emailHidden) emailHidden.value = email;
+                if (emailLabel && email) emailLabel.textContent = email;
+                if (nameHidden && nameInput) {
+                    nameHidden.value = nameInput.value.trim();
+                }
+            }
+
+            async function sendOtp(button) {
+                const phone = cleanPhone();
+                const email = cleanEmail();
+
+                if (!isValidPhone(phone)) {
+                    setStatus('Vui lòng nhập số điện thoại Việt Nam hợp lệ, ví dụ 0364818531.', 'danger');
+                    showStep(2);
+                    return false;
                 }
 
-                showStatus('Đang kiểm tra hồ sơ...', 'info');
+                if (!isValidEmail(email)) {
+                    setStatus('Vui lòng nhập email hợp lệ để nhận mã OTP.', 'danger');
+                    return false;
+                }
+
+                syncHiddenFields();
+                otpVerified = false;
+                if (finalSubmitBtn) finalSubmitBtn.disabled = true;
+
+                const originalText = button ? button.textContent : '';
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Đang gửi...';
+                }
 
                 const fd = new FormData();
+                fd.append('csrf_token', csrfToken);
+                fd.append('package_id', String(packageId));
                 fd.append('phone', phone);
                 fd.append('email', email);
 
                 try {
-                    const resp = await fetch('../../php/members/find-by-contact.php', { method: 'POST', body: fd });
-                    const data = await resp.json();
+                    const response = await fetch('../../php/package-registrations/send-otp.php', {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'same-origin'
+                    });
+                    const data = await response.json();
 
-                    if (data && data.success && data.member) {
-                        const member = data.member;
-
-                        if ((!fullNameInput.value || fullNameInput.value.trim() === '') && member.full_name) fullNameInput.value = member.full_name;
-                        if ((!dobInput.value || dobInput.value.trim() === '') && member.date_of_birth) dobInput.value = member.date_of_birth;
-                        if ((!addressInput.value || addressInput.value.trim() === '') && member.address) addressInput.value = member.address;
-                        if ((!emailInput.value || emailInput.value.trim() === '') && member.email) emailInput.value = member.email;
-                        if ((!phoneInput.value || phoneInput.value.trim() === '') && member.phone) phoneInput.value = member.phone;
-
-                        showStatus('Tự động điền thông tin từ hồ sơ', 'success');
-                    } else {
-                        showStatus('Không tìm thấy hồ sơ phù hợp', 'info');
+                    if (!data.success) {
+                        setStatus(data.message || 'Không gửi được OTP. Vui lòng thử lại.', 'danger');
+                        return false;
                     }
 
-                    ongoingFetch = null;
-                    return data;
-                } catch (err) {
-                    console.error(err);
-                    showStatus('Lỗi khi tìm hồ sơ', 'danger');
-                    ongoingFetch = null;
-                    throw err;
+                    setStatus(data.message || 'OTP đã được gửi đến email của bạn.', 'success');
+                    showStep(4);
+                    otpInputs.forEach(function(input) {
+                        input.value = '';
+                    });
+                    if (otpInputs[0]) otpInputs[0].focus();
+                    return true;
+                } catch (error) {
+                    console.error(error);
+                    setStatus('Lỗi kết nối khi gửi OTP. Vui lòng thử lại.', 'danger');
+                    return false;
+                } finally {
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = originalText;
+                    }
                 }
-            })();
-
-            return ongoingFetch;
-        }
-
-        function scheduleFetch() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fetchAndFill, DEBOUNCE_MS);
-        }
-
-        phoneInput.addEventListener('input', scheduleFetch);
-        emailInput.addEventListener('input', scheduleFetch);
-        phoneInput.addEventListener('blur', fetchAndFill);
-        emailInput.addEventListener('blur', fetchAndFill);
-
-        async function prepareBeforeSubmit() {
-            const needsFetch =
-                (fullNameInput.value.trim() === '' || dobInput.value.trim() === '' || addressInput.value.trim() === '') &&
-                (phoneInput.value.trim() !== '' || emailInput.value.trim() !== '');
-
-            if (!needsFetch) {
-                return;
             }
 
-            try {
-                await fetchAndFill();
-            } catch (err) {
-                // Allow manual submission if autofill fails.
-            }
-        }
-
-        submitBtn.addEventListener('click', async function () {
-            if (!form.reportValidity()) {
-                return;
+            function getOtpCode() {
+                return otpInputs.map(function(input) {
+                    return input.value.replace(/\D+/g, '');
+                }).join('');
             }
 
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Đang kiểm tra';
+            async function verifyOtp() {
+                const code = getOtpCode();
+                const phone = cleanPhone();
+                const email = cleanEmail();
 
-            try {
-                await prepareBeforeSubmit();
-                if (paymentMethodModal) {
-                    paymentMethodModal.show();
+                if (!/^\d{4}$/.test(code)) {
+                    setStatus('Vui lòng nhập đủ 4 chữ số OTP.', 'danger');
+                    return;
                 }
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi đăng ký';
+
+                syncHiddenFields();
+                verifyOtpBtn.disabled = true;
+                verifyOtpBtn.textContent = 'Đang xác nhận...';
+
+                const fd = new FormData();
+                fd.append('csrf_token', csrfToken);
+                fd.append('package_id', String(packageId));
+                fd.append('phone', phone);
+                fd.append('email', email);
+                fd.append('otp', code);
+
+                try {
+                    const response = await fetch('../../php/package-registrations/verify-otp.php', {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'same-origin'
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        setStatus(data.message || 'OTP không hợp lệ hoặc đã hết hạn.', 'danger');
+                        return;
+                    }
+
+                    otpVerified = true;
+                    if (finalSubmitBtn) finalSubmitBtn.disabled = false;
+                    setStatus('Xác thực OTP thành công. Bạn có thể xác nhận đăng ký.', 'success');
+                } catch (error) {
+                    console.error(error);
+                    setStatus('Lỗi kết nối khi xác nhận OTP. Vui lòng thử lại.', 'danger');
+                } finally {
+                    verifyOtpBtn.disabled = false;
+                    verifyOtpBtn.textContent = 'Xác nhận OTP';
+                }
             }
-        });
 
-        form.addEventListener('submit', function (event) {
-            if (paymentSelectionConfirmed) {
-                return;
-            }
-
-            event.preventDefault();
-            submitBtn.click();
-        });
-
-        paymentMethodButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                paymentMethodInput.value = button.getAttribute('data-payment-method') || 'cash';
-                paymentSelectionConfirmed = true;
-                paymentMethodButtons.forEach(function (item) {
-                    item.disabled = true;
+            document.querySelectorAll('[data-next-step]').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const next = Number(button.dataset.nextStep);
+                    if (next === 3 && !isValidPhone(cleanPhone())) {
+                        setStatus('Vui lòng nhập số điện thoại Việt Nam hợp lệ trước khi tiếp tục.', 'danger');
+                        return;
+                    }
+                    syncHiddenFields();
+                    showStep(next);
                 });
-                submitBtn.disabled = true;
-                form.requestSubmit();
             });
-        });
 
-        function showStatus(text, type) {
-            let el = document.getElementById('autofill-status');
+            document.querySelectorAll('[data-prev-step]').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    showStep(Number(button.dataset.prevStep));
+                });
+            });
 
-            if (!el) {
-                el = document.createElement('div');
-                el.id = 'autofill-status';
-                el.className = 'register-autofill-status';
-                form.parentNode.insertBefore(el, form.nextSibling);
+            dots.forEach(function(dot) {
+                dot.addEventListener('click', function() {
+                    const target = Number(dot.dataset.stepJump);
+                    if (target > currentStep + 1) return;
+                    showStep(target);
+                });
+            });
+
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    phoneInput.value = cleanPhone().slice(0, 11);
+                    syncHiddenFields();
+                });
             }
 
-            el.textContent = text;
-
-            if (type === 'success') {
-                el.style.background = '#d1fae5';
-                el.style.color = '#065f46';
-            } else if (type === 'danger') {
-                el.style.background = '#fee2e2';
-                el.style.color = '#991b1b';
-            } else {
-                el.style.background = '#dbeafe';
-                el.style.color = '#1e3a8a';
+            if (emailInput) {
+                emailInput.addEventListener('input', syncHiddenFields);
             }
-        }
-    })();
-</script>
+
+            if (nameInput) {
+                nameInput.addEventListener('input', syncHiddenFields);
+            }
+
+            if (sendOtpBtn) {
+                sendOtpBtn.addEventListener('click', function() {
+                    sendOtp(sendOtpBtn);
+                });
+            }
+
+            if (resendOtpBtn) {
+                resendOtpBtn.addEventListener('click', function() {
+                    sendOtp(resendOtpBtn);
+                });
+            }
+
+            otpInputs.forEach(function(input, index) {
+                input.addEventListener('input', function() {
+                    input.value = input.value.replace(/\D+/g, '').slice(0, 1);
+                    if (input.value && otpInputs[index + 1]) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Backspace' && !input.value && otpInputs[index - 1]) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', function(event) {
+                    event.preventDefault();
+                    const pasted = (event.clipboardData || window.clipboardData).getData('text').replace(/\D+/g, '').slice(0, 4);
+                    pasted.split('').forEach(function(digit, offset) {
+                        if (otpInputs[offset]) otpInputs[offset].value = digit;
+                    });
+                    if (otpInputs[Math.min(pasted.length, 3)]) {
+                        otpInputs[Math.min(pasted.length, 3)].focus();
+                    }
+                });
+            });
+
+            if (verifyOtpBtn) {
+                verifyOtpBtn.addEventListener('click', verifyOtp);
+            }
+
+            methodCards.forEach(function(card) {
+                card.addEventListener('click', function() {
+                    methodCards.forEach(function(item) {
+                        item.classList.remove('selected');
+                    });
+                    card.classList.add('selected');
+                    if (paymentMethodInput) {
+                        paymentMethodInput.value = card.dataset.paymentMethod || 'cash';
+                    }
+                });
+            });
+
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    syncHiddenFields();
+
+                    if (!otpVerified) {
+                        event.preventDefault();
+                        setStatus('Vui lòng xác nhận OTP trước khi hoàn tất đăng ký.', 'danger');
+                        return;
+                    }
+
+                    if (nameInput && nameInput.value.trim() === '') {
+                        nameInput.value = 'Khách hàng ' + cleanPhone();
+                        syncHiddenFields();
+                    }
+
+                    finalSubmitBtn.disabled = true;
+                    finalSubmitBtn.textContent = 'Đang xử lý...';
+                });
+            }
+        })();
+    </script>
 </body>
+
 </html>

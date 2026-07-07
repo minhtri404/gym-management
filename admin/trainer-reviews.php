@@ -216,19 +216,19 @@ if ($stmt) {
 
                                         <td class="text-end">
                                             <?php if ($review['status'] === 'show'): ?>
-                                                <a
-                                                    href="../php/trainers/toggle-review.php?id=<?php echo (int) $review['id']; ?>&status=hide"
-                                                    class="btn btn-sm btn-outline-secondary"
-                                                >
-                                                    Ẩn
-                                                </a>
+                                                <form method="POST" action="../php/trainers/toggle-review.php" class="d-inline">
+                                                    <input type="hidden" name="id" value="<?php echo (int) $review['id']; ?>">
+                                                    <input type="hidden" name="status" value="hide">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Ẩn</button>
+                                                </form>
                                             <?php else: ?>
-                                                <a
-                                                    href="../php/trainers/toggle-review.php?id=<?php echo (int) $review['id']; ?>&status=show"
-                                                    class="btn btn-sm btn-outline-success"
-                                                >
-                                                    Hiện
-                                                </a>
+                                                <form method="POST" action="../php/trainers/toggle-review.php" class="d-inline">
+                                                    <input type="hidden" name="id" value="<?php echo (int) $review['id']; ?>">
+                                                    <input type="hidden" name="status" value="show">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token'] ?? ''); ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">Hiện</button>
+                                                </form>
                                             <?php endif; ?>
                                         </td>
                                     </tr>

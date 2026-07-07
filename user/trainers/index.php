@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
@@ -40,15 +41,6 @@ while ($row = $result->fetch_assoc()) {
 
 $stmt->close();
 
-function trainer_avatar($avatar, $name, $base_path)
-{
-    if (!empty($avatar)) {
-        $path = $base_path . 'uploads/trainers/' . $avatar;
-        return $path;
-    }
-
-    return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff';
-}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -130,7 +122,7 @@ function trainer_avatar($avatar, $name, $base_path)
                     <?php foreach ($trainers as $trainer): ?>
                         <?php
                         $trainer_id = (int)$trainer['id'];
-                        $avatar = trainer_avatar($trainer['avatar'], $trainer['full_name'], $base_path);
+                        $avatar = resolve_trainer_avatar_url($trainer_id, $trainer['avatar'] ?? '', $base_path);
                         ?>
 
                         <article class="trainer-card" id="trainer-<?php echo $trainer_id; ?>">

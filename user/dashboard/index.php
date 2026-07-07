@@ -375,7 +375,7 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
 
         <!-- WELCOME -->
         <div class="dashboard-welcome">
-            <h1>Xin chào, <span><?php echo h($member_name); ?></span> 💪</h1>
+            <h1>Xin chào, <span><?php echo h($member_name); ?></span> </h1>
             <p>Chúc bạn có một buổi tập luyện hiệu quả và tràn đầy năng lượng!</p>
         </div>
 

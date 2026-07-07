@@ -17,8 +17,26 @@ function money_vn($amount)
     return number_format((float)$amount, 0, ',', '.') . 'đ';
 }
 
-function package_duration_text($duration)
+function package_price_text($package)
 {
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        return 'Miễn phí';
+    }
+
+    return money_vn($package['price'] ?? $package['package_price'] ?? 0);
+}
+
+function package_duration_text($package)
+{
+    if (is_array($package) && (($package['package_type'] ?? 'paid') === 'free_trial')) {
+        $days = (int)($package['duration_days'] ?? 7);
+        return 'Dùng thử: ' . $days . ' ngày';
+    }
+
+    $duration = is_array($package)
+        ? ($package['duration_months'] ?? $package['duration'] ?? $package['duration_in_months'] ?? 0)
+        : $package;
+
     $duration = (int)$duration;
 
     if ($duration <= 0) {
@@ -26,6 +44,16 @@ function package_duration_text($duration)
     }
 
     return 'Thời hạn: ' . $duration . ' tháng';
+}
+
+function package_button_text($package)
+{
+    if (($package['package_type'] ?? 'paid') === 'free_trial') {
+        $days = (int)($package['duration_days'] ?? 7);
+        return 'Dùng thử ' . $days . ' ngày';
+    }
+
+    return 'Đăng ký gói này';
 }
 
 function clean_package_text($value)
@@ -151,6 +179,12 @@ function build_default_package_benefits($package, $tier)
     $duration = (int)($package['duration_months'] ?? 0);
 
     $defaults = [
+        'trial' => [
+            'Trải nghiệm khu tập trước khi đăng ký dài hạn',
+            'Sử dụng khu tập gym tiêu chuẩn',
+            'Phù hợp để làm quen không gian và thiết bị',
+            'Tư vấn gói tập phù hợp sau thời gian dùng thử',
+        ],
         'basic' => [
             'Sử dụng khu tập gym tiêu chuẩn',
             'Check-in không giới hạn trong giờ hoạt động',
@@ -191,9 +225,10 @@ function build_default_package_benefits($package, $tier)
 function package_benefits($package, $pricePoints)
 {
     $customItems = split_package_benefits($package['benefits'] ?? '');
+    $isTrial = (($package['package_type'] ?? 'paid') === 'free_trial');
     $fallbackItems = build_default_package_benefits(
         $package,
-        package_tier($package['price'] ?? 0, $pricePoints)
+        $isTrial ? 'trial' : package_tier($package['price'] ?? 0, $pricePoints)
     );
 
     $items = [];
@@ -315,8 +350,13 @@ $price_points = package_price_points($packages);
                             $is_active = (int)$status === 1;
                         }
 
-                        $tier = package_tier($price, $price_points);
-                        $tag = package_tag($tier);
+                        $is_trial = (($pkg['package_type'] ?? 'paid') === 'free_trial');
+
+                        $tier = $is_trial ? 'trial' : package_tier($price, $price_points);
+                        $tag = $is_trial
+                            ? ['text' => 'Dùng thử', 'class' => 'basic']
+                            : package_tag($tier);
+
                         $summary = package_summary($pkg, $tier);
                         $benefits = package_benefits($pkg, $price_points);
                         ?>
@@ -337,13 +377,13 @@ $price_points = package_price_points($packages);
                                         <div class="package-name-row">
                                             <h3><?php echo h($package_name); ?></h3>
                                             <div class="package-price-pro">
-                                                <?php echo money_vn($price); ?>
+                                                <?php echo h(package_price_text($pkg)); ?>
                                             </div>
                                         </div>
 
                                         <div class="package-duration">
                                             <i class="bi bi-calendar3"></i>
-                                            <span><?php echo h(package_duration_text($duration)); ?></span>
+                                            <span><?php echo h(package_duration_text($pkg)); ?></span>
                                         </div>
 
                                         <p class="package-summary-text">
@@ -365,9 +405,9 @@ $price_points = package_price_points($packages);
                                                 Chi tiết gói
                                             </a>
 
-                                            <a href="<?php echo $base_path; ?>user/package/register.php?package_id=<?php echo $package_id; ?>"
+                                            <a href="<?php echo $base_path; ?>user/package/register?package_id=<?php echo $package_id; ?>"
                                                class="btn-package-primary">
-                                                Đăng ký gói này
+                                                <?php echo h(package_button_text($pkg)); ?>
                                             </a>
                                         </div>
 

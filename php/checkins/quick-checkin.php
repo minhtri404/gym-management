@@ -4,8 +4,19 @@ include __DIR__ . '/../../includes/config.php';
 
 $base_path = '../../admin/';
 
-if (isset($_GET['member_id'])) {
-    $member_id = (int)$_GET['member_id'];
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ' . $base_path . 'members.php?checkin_error=1');
+    exit;
+}
+
+$csrf_token = (string) ($_POST['csrf_token'] ?? '');
+if ($csrf_token === '' || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $csrf_token)) {
+    header('Location: ' . $base_path . 'members.php?checkin_error=1');
+    exit;
+}
+
+if (isset($_POST['member_id'])) {
+    $member_id = (int)$_POST['member_id'];
     $premium_checkin_min_price = 1000000;
 
     if ($member_id > 0) {

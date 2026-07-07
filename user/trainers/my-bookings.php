@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/functions/trainer-image-helper.php';
 
 $base_path = '../../';
 
@@ -201,9 +202,7 @@ if ($member || $phone !== '' || $email !== '') {
 
                             <?php foreach ($bookings as $booking): ?>
                                 <?php
-                                $avatar = !empty($booking['trainer_avatar'])
-                                    ? $base_path . 'uploads/trainers/' . $booking['trainer_avatar']
-                                    : 'https://ui-avatars.com/api/?name=' . urlencode($booking['trainer_name']) . '&background=0f172a&color=ffffff';
+                                $avatar = resolve_trainer_avatar_url((int) $booking['trainer_id'], $booking['trainer_avatar'] ?? '', $base_path);
                                 ?>
 
                                 <div class="my-booking-card">
