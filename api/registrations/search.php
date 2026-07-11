@@ -24,7 +24,8 @@ try {
         $results = findRegistrationsForAccount(
             $conn,
             trim((string) ($user['email'] ?? '')),
-            trim((string) ($user['phone'] ?? ''))
+            trim((string) ($user['phone'] ?? '')),
+            (int) ($user['id'] ?? 0)
         );
     }
 

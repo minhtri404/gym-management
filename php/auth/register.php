@@ -23,13 +23,19 @@ $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
 $password = trim($_POST['password'] ?? '');
 $confirm_password = trim($_POST['confirm_password'] ?? '');
+$email = $email === '' ? null : $email;
 
-if ($full_name === '' || $email === '' || $password === '' || $confirm_password === '') {
+if ($full_name === '' || $password === '' || $confirm_password === '') {
     header('Location: ' . $base_path . 'register.php?error=' . urlencode('Vui lòng nhập đầy đủ thông tin bắt buộc.'));
     exit;
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if ($email === null && $phone === '') {
+    header('Location: ' . $base_path . 'register.php?error=' . urlencode('Vui lòng nhập email hoặc số điện thoại.'));
+    exit;
+}
+
+if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     header('Location: ' . $base_path . 'register.php?error=' . urlencode('Email không hợp lệ.'));
     exit;
 }
@@ -44,15 +50,21 @@ if ($password !== $confirm_password) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-$stmt->bind_param("s", $email);
+$stmt = $conn->prepare("
+    SELECT id
+    FROM users
+    WHERE (? IS NOT NULL AND email = ?)
+       OR (? <> '' AND phone = ?)
+    LIMIT 1
+");
+$stmt->bind_param("ssss", $email, $email, $phone, $phone);
 $stmt->execute();
 $result = $stmt->get_result();
 $exists = $result->fetch_assoc();
 $stmt->close();
 
 if ($exists) {
-    header('Location: ' . $base_path . 'register.php?error=' . urlencode('Email này đã tồn tại.'));
+    header('Location: ' . $base_path . 'register.php?error=' . urlencode('Email hoặc số điện thoại đã tồn tại.'));
     exit;
 }
 

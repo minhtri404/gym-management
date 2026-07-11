@@ -609,7 +609,7 @@ function formatPaymentStatusText($price, $remainingAmount, $packageType)
                                         <input type="hidden" name="id" value="<?php echo (int) $member['id']; ?>">
                                         <input type="date" name="note_date" class="form-control form-control-sm" value="<?php echo htmlspecialchars($filter_note_date); ?>">
                                         <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member['id']; ?>#member-notes">Reset</a>
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo $root_base_path; ?>php/members/view-member.php?id=<?php echo (int) $member['id']; ?>#member-notes">&#272;&#7863;t l&#7841;i</a>
                                     </form>
                                 </div>
                             </div>

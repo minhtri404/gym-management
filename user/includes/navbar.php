@@ -32,22 +32,22 @@ $avatar_url = resolve_user_avatar_url($user_avatar, $base_path, $user_name !== '
             FLEXZONE
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar" aria-controls="userNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar" aria-controls="userNavbar" aria-expanded="false" aria-label="M&#7903; menu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="userNavbar">
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/home">Home</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/home">Trang ch&#7911;</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/package/index">Packages</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/package/index">G&oacute;i t&#7853;p</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>user/plans/index">Plans</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>user/plans/index">K&#7871; ho&#7841;ch</a>
                 </li>
 
                 <li class="nav-item">
@@ -55,7 +55,7 @@ $avatar_url = resolve_user_avatar_url($user_avatar, $base_path, $user_name !== '
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $base_path; ?>contact">Contact</a>
+                    <a class="nav-link" href="<?php echo $base_path; ?>contact">Li&ecirc;n h&#7879;</a>
                 </li>
 
                 <li class="nav-item">
@@ -67,10 +67,10 @@ $avatar_url = resolve_user_avatar_url($user_avatar, $base_path, $user_name !== '
                     $nav_avatar = resolve_user_avatar_url(
                         $_SESSION['user_avatar'] ?? '',
                         $base_path,
-                        $_SESSION['user_name'] ?? 'User'
+                        $_SESSION['user_name'] ?? 'Tài khoản'
                     );
 
-                    $nav_user_name = $_SESSION['user_name'] ?? 'Tai khoan';
+                    $nav_user_name = $_SESSION['user_name'] ?? 'Tài khoản';
                     ?>
                     <li class="nav-item dropdown ms-lg-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 user-nav-trigger"

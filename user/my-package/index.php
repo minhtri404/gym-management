@@ -204,19 +204,19 @@ $is_active = $has_package && ($status === 'active' || $status === 'đang hoạt 
 
             <div class="membership-topbar">
                 <div class="membership-tabs">
-                    <button class="membership-tab">Schedule</button>
-                    <button class="membership-tab active">Membership status</button>
+                    <button class="membership-tab">L&#7883;ch t&#7853;p</button>
+                    <button class="membership-tab active">Tr&#7841;ng th&aacute;i h&#7897;i vi&ecirc;n</button>
                 </div>
 
                 <div class="membership-search">
-                    <input type="text" placeholder="Search">
+                    <input type="text" placeholder="T&igrave;m ki&#7871;m">
                     <i class="bi bi-bell"></i>
                     <img src="<?php echo h($avatar_path); ?>" alt="Avatar" class="membership-avatar">
                 </div>
             </div>
 
-            <h1 class="membership-title">MEMBERSHIP STATUS</h1>
-            <p class="membership-subtitle">Check your membership status.</p>
+            <h1 class="membership-title">TR&#7840;NG TH&Aacute;I H&#7896;I VI&Ecirc;N</h1>
+            <p class="membership-subtitle">Ki&#7875;m tra tr&#7841;ng th&aacute;i g&oacute;i t&#7853;p c&#7911;a b&#7841;n.</p>
 
             <?php if (isset($_GET['payment_success'])): ?>
                 <div class="membership-alert">
@@ -247,9 +247,9 @@ $is_active = $has_package && ($status === 'active' || $status === 'đang hoạt 
                                     <?php echo h($package_name); ?>
                                 </h3>
                                 <div class="membership-badges">
-                                    <span class="membership-badge">Monthly</span>
+                                    <span class="membership-badge">Theo th&aacute;ng</span>
                                     <span class="membership-badge active">
-                                        <?php echo $is_active ? 'Active' : 'Inactive'; ?>
+                                        <?php echo $is_active ? '&#272;ang ho&#7841;t &#273;&#7897;ng' : 'Kh&ocirc;ng ho&#7841;t &#273;&#7897;ng'; ?>
                                     </span>
                                 </div>
                             </div>
@@ -267,7 +267,7 @@ $is_active = $has_package && ($status === 'active' || $status === 'đang hoạt 
                                 </div>
 
                                 <a href="<?php echo $base_path; ?>user/package/index.php" class="membership-upgrade-btn">
-                                    Upgrade plan
+                                    N&acirc;ng c&#7845;p g&oacute;i
                                 </a>
                             </div>
                         </div>
@@ -275,7 +275,7 @@ $is_active = $has_package && ($status === 'active' || $status === 'đang hoạt 
 
                     <div class="col-lg-2">
                         <div class="membership-stat-card">
-                            <div class="membership-stat-label">Number of check-ins</div>
+                            <div class="membership-stat-label">S&#7889; l&#7847;n check-in</div>
                             <div class="membership-stat-number">
                                 <?php echo $total_checkins; ?>
                             </div>
@@ -287,7 +287,7 @@ $is_active = $has_package && ($status === 'active' || $status === 'đang hoạt 
 
                     <div class="col-lg-3">
                         <div class="membership-stat-card">
-                            <div class="membership-stat-label">Expiry</div>
+                            <div class="membership-stat-label">Ng&agrave;y h&#7871;t h&#7841;n</div>
                             <div class="membership-stat-number">
                                 <?php echo formatDateVN($end_date); ?>
                             </div>

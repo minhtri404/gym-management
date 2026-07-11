@@ -68,8 +68,8 @@ function sendOTP($toEmail, $otp)
     $mail->setFrom($mailFromAddress, $mailFromName);
     $mail->addAddress($toEmail);
 
-    $mail->Subject = 'Ma OTP dang nhap';
-    $mail->Body = "Ma OTP cua ban la: $otp (co hieu luc 5 phut)";
+    $mail->Subject = 'Mã OTP đăng nhập';
+    $mail->Body = "Mã OTP của bạn là: $otp (có hiệu lực 5 phút)";
 
     $mail->send();
 }
@@ -156,7 +156,7 @@ function sendPackageRegistrationOTP($toEmail, $otp)
             <p>Mã này có hiệu lực trong 5 phút. Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.</p>
         </div>
     ";
-    $mail->AltBody = "Ma OTP xac nhan dang ky goi tap FLEXZONE cua ban la: $otp. Ma co hieu luc trong 5 phut.";
+    $mail->AltBody = "Mã OTP xác nhận đăng ký gói tập FLEXZONE của bạn là: $otp. Mã có hiệu lực trong 5 phút.";
 
     $mail->send();
 }

@@ -42,7 +42,7 @@ try {
         exit;
     }
 
-    die('Dich vu database tam thoi khong kha dung.');
+    die('Dịch vụ database tạm thời không khả dụng.');
 }
 
 $conn->set_charset('utf8mb4');

@@ -141,7 +141,7 @@ if ($payment_id <= 0 || $registration['linked_payment_status'] !== 'pending' || 
 }
 
 // Tạo URL thanh toán VNPAY
-$vnp_OrderInfo = 'Thanh toan goi tap ' . $registration['package_name'];
+$vnp_OrderInfo = 'Thanh toán gói tập ' . $registration['package_name'];
 $vnp_OrderType = 'billpayment';
 $vnp_Amount = $amount * 100;
 $vnp_Locale = 'vn';

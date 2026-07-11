@@ -21,7 +21,7 @@ try {
     $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
 
     if (isset($token['error'])) {
-        header('Location: ' . $base_path . 'login.php?error=' . urlencode('Google Login thất bại.'));
+        header('Location: ' . $base_path . 'login.php?error=' . urlencode('Đăng nhập Google thất bại.'));
         exit;
     }
 

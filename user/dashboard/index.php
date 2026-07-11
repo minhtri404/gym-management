@@ -272,7 +272,7 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard hội viên</title>
+    <title>Tổng quan hội viên</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -294,7 +294,7 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
             </div>
             <div class="dashboard-logo-text">
                 <h3>GYM FIT</h3>
-                <span>Stronger everyday</span>
+                <span>M&#7841;nh h&#417;n m&#7895;i ng&agrave;y</span>
             </div>
         </div>
 
@@ -302,7 +302,7 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
             <li>
                 <a href="<?php echo $base_path; ?>user/dashboard/index.php" class="active">
                     <i class="bi bi-grid-1x2-fill"></i>
-                    Dashboard
+                    Tổng quan
                 </a>
             </li>
             <li>
@@ -362,7 +362,7 @@ $package_status = ($package && ($package['status'] ?? '') === 'active') ? 'Đang
 
         <!-- TOPBAR -->
         <div class="dashboard-topbar">
-            <h2>Dashboard</h2>
+            <h2>Tổng quan</h2>
 
             <div class="dashboard-profile">
                 <img src="<?php echo h($avatar_path); ?>" alt="Avatar" class="dashboard-avatar">

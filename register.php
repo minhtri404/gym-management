@@ -39,7 +39,16 @@ $error = trim($_GET['error'] ?? '');
             </div>
 
             <?php if ($success): ?>
-              <div class="alert alert-success">&#272;&#259;ng k&yacute; th&agrave;nh c&ocirc;ng. B&#7841;n c&oacute; th&#7875; &#273;&#259;ng nh&#7853;p ngay.</div>
+              <div class="alert alert-success register-success-alert" role="alert">
+                <div class="register-alert-icon">
+                  <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="register-alert-content">
+                  <strong>&#272;&#259;ng k&yacute; th&agrave;nh c&ocirc;ng</strong>
+                  <span>T&agrave;i kho&#7843;n c&#7911;a b&#7841;n &#273;&atilde; s&#7861;n s&agrave;ng. H&atilde;y &#273;&#259;ng nh&#7853;p &#273;&#7875; ti&#7871;p t&#7909;c.</span>
+                  <a href="login" class="btn btn-success btn-sm mt-2">Chuy&#7875;n &#273;&#7871;n &#273;&#259;ng nh&#7853;p</a>
+                </div>
+              </div>
             <?php endif; ?>
 
             <?php if ($error !== ''): ?>
@@ -58,10 +67,10 @@ $error = trim($_GET['error'] ?? '');
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Email</label>
+                <label class="form-label">Email <span class="text-muted fw-normal">(kh&ocirc;ng b&#7855;t bu&#7897;c)</span></label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                  <input type="email" class="form-control" name="email" placeholder="Nh&#7853;p email" required maxlength="120">
+                  <input type="email" class="form-control" name="email" placeholder="Nh&#7853;p email n&#7871;u c&oacute;" maxlength="120">
                 </div>
               </div>
 
@@ -69,7 +78,7 @@ $error = trim($_GET['error'] ?? '');
                 <label class="form-label">S&#7889; &#273;i&#7879;n tho&#7841;i</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                  <input type="text" class="form-control" name="phone" placeholder="Nh&#7853;p s&#7889; &#273;i&#7879;n tho&#7841;i" maxlength="20">
+                  <input type="text" class="form-control" name="phone" placeholder="B&#7855;t bu&#7897;c n&#7871;u kh&ocirc;ng c&oacute; email" maxlength="20">
                 </div>
               </div>
 

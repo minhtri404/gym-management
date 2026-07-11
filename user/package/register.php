@@ -152,9 +152,9 @@ if (!empty($_SESSION['user_id'])) {
             <div class="package-wizard-shell">
                 <div class="wizard-brand-row">
                     <a href="<?php echo $base_path; ?>user/home" class="wizard-logo">
-                        <span class="wizard-logo-the">THE</span>
+                        <span class="wizard-logo-the">CLB</span>
                         <span class="wizard-logo-main">FLEXZONE</span>
-                        <span class="wizard-logo-sub">new way to fit</span>
+                        <span class="wizard-logo-sub">phong c&aacute;ch t&#7853;p luy&#7879;n m&#7899;i</span>
                     </a>
 
                     <div class="wizard-steps" aria-label="Tiến trình đăng ký">
@@ -181,7 +181,7 @@ if (!empty($_SESSION['user_id'])) {
                 <?php if (!$package): ?>
                     <section class="wizard-card">
                         <h1>Không tìm thấy gói tập</h1>
-                        <p>Vui lòng quay lại trang Packages và chọn lại gói tập bạn muốn đăng ký.</p>
+                        <p>Vui lòng quay lại trang gói tập và chọn lại gói tập bạn muốn đăng ký.</p>
                         <a href="<?php echo $base_path; ?>user/package/index" class="wizard-primary-btn">Chọn gói tập</a>
                     </section>
                 <?php else: ?>
@@ -320,7 +320,7 @@ if (!empty($_SESSION['user_id'])) {
                                     value="<?php echo is_free_trial_package($package) ? 'free_trial' : 'vnpay'; ?>">
                                 <h2>Chi tiết thanh toán</h2>
                                 <div class="wizard-payment-lines">
-                                    <div><span>Club</span><strong>Tất cả chi nhánh</strong></div>
+                                    <div><span>Chi nh&aacute;nh</span><strong>Tất cả chi nhánh</strong></div>
                                     <div>
                                         <span><?php echo h(package_duration_label($package)); ?></span>
                                         <strong><?php echo h(package_price_text($package)); ?></strong>

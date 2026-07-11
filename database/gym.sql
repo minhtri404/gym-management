@@ -479,7 +479,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `full_name` varchar(100) NOT NULL,
-  `email` varchar(120) NOT NULL,
+  `email` varchar(120) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `role` varchar(20) NOT NULL DEFAULT 'member',

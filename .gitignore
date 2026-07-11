@@ -2,3 +2,10 @@
 uploads/
 user/uploads/
 database/backups/
+.vscode/
+.agents/
+tools/
+*.docx
+~$*.docx
+__pycache__/
+*.pyc

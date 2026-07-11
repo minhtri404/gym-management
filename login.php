@@ -66,16 +66,16 @@ $error = trim($_GET['error'] ?? '');
               <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
               <div class="mb-3">
-                <label class="form-label">Email</label>
+                <label class="form-label">Email ho&#7863;c s&#7889; &#273;i&#7879;n tho&#7841;i</label>
                 <div class="input-group">
                   <span class="input-group-text">
                     <i class="bi bi-envelope"></i>
                   </span>
                   <input
-                    type="email"
+                    type="text"
                     class="form-control"
-                    name="email"
-                    placeholder="Nh&#7853;p email"
+                    name="email_or_phone"
+                    placeholder="Nh&#7853;p email ho&#7863;c s&#7889; &#273;i&#7879;n tho&#7841;i"
                     required
                   />
                 </div>

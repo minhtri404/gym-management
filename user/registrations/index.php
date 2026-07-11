@@ -82,55 +82,53 @@ $user_phone = trim((string) ($user['phone'] ?? ''));
 
 $registrations = [];
 
-if ($user_email !== '' || $user_phone !== '') {
-    $conditions = [];
-    $params = [];
-    $types = '';
+$conditions = ['pr.user_id = ?'];
+$params = [$user_id];
+$types = 'i';
 
-    if ($user_phone !== '') {
-        $conditions[] = 'pr.phone = ?';
-        $params[] = $user_phone;
-        $types .= 's';
+if ($user_phone !== '') {
+    $conditions[] = 'pr.phone = ?';
+    $params[] = $user_phone;
+    $types .= 's';
+}
+
+if ($user_email !== '') {
+    $conditions[] = 'pr.email = ?';
+    $params[] = $user_email;
+    $types .= 's';
+}
+
+$sql = "
+    SELECT
+        pr.id,
+        pr.full_name,
+        pr.phone,
+        pr.email,
+        pr.date_of_birth,
+        pr.address,
+        pr.note,
+        pr.status,
+        pr.payment_status,
+        pr.payment_id,
+        pr.created_at,
+        p.package_name,
+        p.price,
+        p.duration_months
+    FROM package_registrations pr
+    LEFT JOIN packages p ON p.id = pr.package_id
+    WHERE " . implode(' OR ', $conditions) . "
+    ORDER BY pr.created_at DESC, pr.id DESC
+";
+
+$stmt = $conn->prepare($sql);
+if ($stmt) {
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $registrations[] = $row;
     }
-
-    if ($user_email !== '') {
-        $conditions[] = 'pr.email = ?';
-        $params[] = $user_email;
-        $types .= 's';
-    }
-
-    $sql = "
-        SELECT
-            pr.id,
-            pr.full_name,
-            pr.phone,
-            pr.email,
-            pr.date_of_birth,
-            pr.address,
-            pr.note,
-            pr.status,
-            pr.payment_status,
-            pr.payment_id,
-            pr.created_at,
-            p.package_name,
-            p.price,
-            p.duration_months
-        FROM package_registrations pr
-        LEFT JOIN packages p ON p.id = pr.package_id
-        WHERE " . implode(' OR ', $conditions) . "
-        ORDER BY pr.created_at DESC, pr.id DESC
-    ";
-
-    $stmt = $conn->prepare($sql);
-    if ($stmt) {
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        while ($row = $result->fetch_assoc()) {
-            $registrations[] = $row;
-        }
-        $stmt->close();
-    }
+    $stmt->close();
 }
 
 $total_registrations = count($registrations);
@@ -413,10 +411,10 @@ $filtered_registrations = array_values(array_filter($registrations, function (ar
     <div class="container" style="margin-top: 80px;">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
             <div>
-                <span class="section-badge">Package registrations</span>
+                <span class="section-badge">&#272;&#259;ng k&yacute; g&oacute;i t&#7853;p</span>
                 <h1 class="fw-bold mt-3 mb-2">L&#7883;ch s&#7917; &#273;&#259;ng k&yacute; g&oacute;i</h1>
                 <p class="text-secondary mb-0">
-                    T&#7921; &#273;&#7897;ng hi&#7875;n th&#7883; c&aacute;c g&oacute;i b&#7841;n &#273;&atilde; &#273;&#259;ng k&yacute; theo S&#272;T/email trong account.
+                    T&#7921; &#273;&#7897;ng hi&#7875;n th&#7883; c&aacute;c g&oacute;i b&#7841;n &#273;&atilde; &#273;&#259;ng k&yacute; theo t&agrave;i kho&#7843;n, S&#272;T ho&#7863;c email.
                 </p>
             </div>
             <a href="<?php echo $base_path; ?>user/package/index.php" class="btn btn-hero-primary" style="width:auto;">
@@ -478,15 +476,15 @@ $filtered_registrations = array_values(array_filter($registrations, function (ar
                 <div>
                     <h3 class="fw-bold mb-1">Danh s&aacute;ch &#273;&#259;ng k&yacute;</h3>
                     <p class="registration-muted mb-0">
-                        H&#7879; th&#7889;ng t&#7921; l&#7885;c theo S&#272;T/email account, kh&ocirc;ng c&#7847;n nh&#7853;p tay.
+                        H&#7879; th&#7889;ng t&#7921; l&#7885;c theo t&agrave;i kho&#7843;n &#273;&#259;ng nh&#7853;p, S&#272;T ho&#7863;c email.
                     </p>
                 </div>
             </div>
 
-            <?php if ($user_email === '' && $user_phone === ''): ?>
+            <?php if ($user_email === '' && $user_phone === '' && empty($registrations)): ?>
                 <div class="registration-empty">
                     <i class="bi bi-person-exclamation"></i>
-                    <h4 class="text-white mb-2">Account ch&#432;a c&oacute; S&#272;T/email</h4>
+                    <h4 class="mb-2">Account ch&#432;a c&oacute; S&#272;T/email</h4>
                     <p class="mb-0">H&atilde;y c&#7853;p nh&#7853;t account &#273;&#7875; h&#7879; th&#7889;ng t&#7921; t&igrave;m &#273;&#259;ng k&yacute; g&oacute;i c&#7911;a b&#7841;n.</p>
                 </div>
             <?php elseif (!empty($registrations)): ?>
@@ -596,7 +594,7 @@ $filtered_registrations = array_values(array_filter($registrations, function (ar
                 <?php else: ?>
                     <div class="registration-empty">
                         <i class="bi bi-search"></i>
-                        <h4 class="text-white mb-2">Kh&ocirc;ng c&oacute; k&#7871;t qu&#7843; ph&ugrave; h&#7907;p</h4>
+                        <h4 class="mb-2">Kh&ocirc;ng c&oacute; k&#7871;t qu&#7843; ph&ugrave; h&#7907;p</h4>
                         <p class="mb-4">Th&#7917; &#273;&#7893;i t&#7915; kh&oacute;a ho&#7863;c b&#7897; l&#7885;c &#273;&#7875; xem l&#7841;i danh s&aacute;ch.</p>
                         <a href="index.php" class="btn btn-hero-primary" style="width:auto;">
                             X&oacute;a b&#7897; l&#7885;c
@@ -606,8 +604,8 @@ $filtered_registrations = array_values(array_filter($registrations, function (ar
             <?php else: ?>
                 <div class="registration-empty">
                     <i class="bi bi-clipboard-x"></i>
-                    <h4 class="text-white mb-2">Ch&#432;a c&oacute; &#273;&#259;ng k&yacute; g&oacute;i</h4>
-                    <p class="mb-4">Ch&#432;a t&igrave;m th&#7845;y &#273;&#259;ng k&yacute; n&agrave;o kh&#7899;p v&#7899;i S&#272;T/email trong account.</p>
+                    <h4 class="mb-2">Ch&#432;a c&oacute; &#273;&#259;ng k&yacute; g&oacute;i</h4>
+                    <p class="mb-4">Ch&#432;a t&igrave;m th&#7845;y &#273;&#259;ng k&yacute; n&agrave;o kh&#7899;p v&#7899;i t&agrave;i kho&#7843;n, S&#272;T ho&#7863;c email trong account.</p>
                     <a href="<?php echo $base_path; ?>user/package/index.php" class="btn btn-hero-primary" style="width:auto;">
                         Xem g&oacute;i t&#7853;p
                     </a>

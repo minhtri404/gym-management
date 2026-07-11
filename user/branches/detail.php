@@ -106,9 +106,9 @@ $galleryImages = array_slice($galleryImages, 0, 3);
         <section class="branch-detail-section">
             <div class="container">
                 <div class="branch-detail-breadcrumb">
-                    <a href="<?php echo $base_path; ?>user/home">Home</a>
+                    <a href="<?php echo $base_path; ?>user/home">Trang ch&#7911;</a>
                     <i class="bi bi-chevron-right"></i>
-                    <a href="<?php echo $base_path; ?>user/home#clubs">Find a Club</a>
+                    <a href="<?php echo $base_path; ?>user/home#clubs">T&igrave;m ph&ograve;ng t&#7853;p</a>
                     <i class="bi bi-chevron-right"></i>
                     <span><?php echo h($branchShortName); ?></span>
                 </div>
@@ -135,22 +135,22 @@ $galleryImages = array_slice($galleryImages, 0, 3);
 
                             <a class="branch-info-row branch-info-link" href="<?php echo h($branchMapUrl !== '' && $branchMapUrl !== '#' ? $branchMapUrl : 'https://maps.google.com/?q=' . rawurlencode($branchAddress !== '' ? $branchAddress : $branchName)); ?>" target="_blank" rel="noopener">
                                 <i class="bi bi-arrow-right"></i>
-                                <span>View map</span>
+                                <span>Xem b&#7843;n &#273;&#7891;</span>
                             </a>
 
                             <div class="branch-info-row">
                                 <i class="bi bi-clock"></i>
-                                <span>Open 24/7</span>
+                                <span>M&#7903; c&#7917;a 24/7</span>
                             </div>
 
                             <a class="branch-info-row branch-info-link" href="<?php echo h($branchScheduleUrl !== '' && $branchScheduleUrl !== '#' ? $branchScheduleUrl : $base_path . 'user/plans/index.php'); ?>">
                                 <i class="bi bi-calendar3"></i>
-                                <span>Class schedule</span>
+                                <span>L&#7883;ch l&#7899;p</span>
                             </a>
 
                             <a class="branch-info-row branch-info-link" href="<?php echo $base_path; ?>feedback.php">
                                 <i class="bi bi-star"></i>
-                                <span>Evaluate</span>
+                                <span>&#272;&aacute;nh gi&aacute;</span>
                             </a>
                         </div>
 
@@ -160,7 +160,7 @@ $galleryImages = array_slice($galleryImages, 0, 3);
                             </p>
                         <?php endif; ?>
 
-                        <a href="<?php echo $base_path; ?>user/package/index" class="branch-join-btn">Join now</a>
+                        <a href="<?php echo $base_path; ?>user/package/index" class="branch-join-btn">Tham gia ngay</a>
                     </div>
 
                     <div class="branch-gallery" data-branch-gallery>

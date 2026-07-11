@@ -1,6 +1,6 @@
 <?php
-$page_title = $page_title ?? 'Dashboard';
-$admin_name = $_SESSION['admin_full_name'] ?? 'Admin';
+$page_title = $page_title ?? 'Tổng quan';
+$admin_name = $_SESSION['admin_full_name'] ?? 'Quản trị viên';
 ?>
 
 <nav class="navbar navbar-expand-lg topbar px-4">

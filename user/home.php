@@ -2,8 +2,10 @@
 include __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions/package-functions.php';
 require_once __DIR__ . '/../includes/functions/trainer-image-helper.php';
+require_once __DIR__ . '/../includes/functions/banner-functions.php';
 
 $base_path = '../';
+$homeBanners = get_home_banners($conn, true);
 $homePackages = getActivePackages($conn);
 $homeTrainers = [];
 $homeBranches = [];
@@ -361,7 +363,7 @@ if (count($homeBranchCities) === 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLEXZONE - Gym & Fitness</title>
+    <title>FLEXZONE - Gym &amp; Th&#7875; h&igrave;nh</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -371,40 +373,71 @@ if (count($homeBranchCities) === 0) {
     <link rel="stylesheet" href="includes/assets/css/user.css?v=light-1">
     <link rel="stylesheet" href="includes/assets/css/why-choose.css?v=why-choose-1">
     <link rel="stylesheet" href="includes/assets/css/packages.css?v=package-light-1">
-    <link rel="stylesheet" href="includes/assets/css/home-light.css?v=home-light-3">
+    <link rel="stylesheet" href="includes/assets/css/home-light.css?v=home-light-6">
 </head>
 <body class="user-body home-page-body">
 
     <?php include __DIR__ . '/includes/navbar.php'; ?>
 
-    <section class="hero-section home-hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-kicker">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                    Fitness management for modern members
-                </div>
+    <section class="hero-section home-hero home-banner-slider" data-home-banner>
+        <div class="home-banner-track">
+            <?php foreach ($homeBanners as $index => $banner): ?>
+                <?php
+                $bannerTitle = trim((string)($banner['title'] ?? ''));
+                $bannerSubtitle = trim((string)($banner['subtitle'] ?? ''));
+                $bannerButtonText = trim((string)($banner['button_text'] ?? ''));
+                $bannerButtonLink = trim((string)($banner['button_link'] ?? ''));
+                $bannerImage = banner_image_url((string)($banner['image_path'] ?? ''), $base_path);
+                ?>
+                <article class="home-banner-slide <?php echo $index === 0 ? 'active' : ''; ?>" data-banner-slide aria-hidden="<?php echo $index === 0 ? 'false' : 'true'; ?>">
+                    <img src="<?php echo h($bannerImage); ?>" alt="<?php echo h($bannerTitle !== '' ? $bannerTitle : 'Banner FLEXZONE'); ?>" class="home-banner-image">
+                    <div class="home-banner-overlay"></div>
+                    <div class="container">
+                        <div class="hero-content home-banner-content">
+                            <div class="hero-kicker">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                FLEXZONE
+                            </div>
 
-                <h1 class="hero-title">
-                    START YOUR <br>
-                    JOURNEY <span class="accent">TODAY</span>
-                </h1>
-                <p class="hero-text">
-                    Ph&ograve;ng gym hi&#7879;n &#273;&#7841;i d&agrave;nh cho ng&#432;&#7901;i mu&#7889;n thay &#273;&#7893;i v&oacute;c d&aacute;ng, c&#7843;i thi&#7879;n s&#7913;c kh&#7887;e v&agrave; theo d&otilde;i l&#7897; tr&igrave;nh t&#7853;p luy&#7879;n r&otilde; r&agrave;ng.
-                </p>
+                            <h1 class="hero-title">
+                                <?php echo h($bannerTitle !== '' ? $bannerTitle : 'Bắt đầu hành trình hôm nay'); ?>
+                            </h1>
 
-                <div class="d-flex flex-column flex-sm-row gap-3 hero-actions">
-                    <a href="<?php echo $base_path; ?>contact-form.php" class="btn btn-hero-primary">Join now</a>
-                    <a href="<?php echo $base_path; ?>user/package/index" class="btn btn-hero-outline">Xem g&oacute;i t&#7853;p</a>
-                </div>
+                            <?php if ($bannerSubtitle !== ''): ?>
+                                <p class="hero-text"><?php echo h($bannerSubtitle); ?></p>
+                            <?php endif; ?>
 
-                <div class="hero-trust-row">
-                    <span><i class="bi bi-check-circle-fill"></i> <?php echo count($homePackages); ?>+ g&oacute;i t&#7853;p</span>
-                    <span><i class="bi bi-check-circle-fill"></i> Theo d&otilde;i h&#7897;i vi&ecirc;n</span>
-                    <span><i class="bi bi-check-circle-fill"></i> H&#7895; tr&#7907; ch&#7871; &#273;&#7897; t&#7853;p luy&#7879;n</span>
-                </div>
-            </div>
+                            <div class="d-flex flex-column flex-sm-row gap-3 hero-actions">
+                                <?php if ($bannerButtonText !== '' && $bannerButtonLink !== ''): ?>
+                                    <a href="<?php echo h(banner_link_url($bannerButtonLink, $base_path)); ?>" class="btn btn-hero-primary"><?php echo h($bannerButtonText); ?></a>
+                                <?php endif; ?>
+                                <a href="<?php echo $base_path; ?>user/package/index" class="btn btn-hero-outline">Xem g&oacute;i t&#7853;p</a>
+                            </div>
+
+                            <div class="hero-trust-row">
+                                <span><i class="bi bi-check-circle-fill"></i> <?php echo count($homePackages); ?>+ g&oacute;i t&#7853;p</span>
+                                <span><i class="bi bi-check-circle-fill"></i> Theo d&otilde;i h&#7897;i vi&ecirc;n</span>
+                                <span><i class="bi bi-check-circle-fill"></i> H&#7895; tr&#7907; t&#7853;p luy&#7879;n</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
         </div>
+
+        <?php if (count($homeBanners) > 1): ?>
+            <button class="home-banner-nav home-banner-prev" type="button" data-banner-prev onclick="event.stopImmediatePropagation(); window.homeBannerPrev && window.homeBannerPrev();" aria-label="Banner tr&#432;&#7899;c">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="home-banner-nav home-banner-next" type="button" data-banner-next onclick="event.stopImmediatePropagation(); window.homeBannerNext && window.homeBannerNext();" aria-label="Banner ti&#7871;p theo">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <div class="home-banner-dots" aria-label="Ch&#7885;n banner">
+                <?php foreach ($homeBanners as $index => $banner): ?>
+                    <button type="button" class="<?php echo $index === 0 ? 'active' : ''; ?>" data-banner-dot="<?php echo (int)$index; ?>" onclick="event.stopImmediatePropagation(); window.homeBannerGo && window.homeBannerGo(<?php echo (int)$index; ?>);" aria-label="Banner <?php echo (int)($index + 1); ?>"></button>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </section>
 
     <section class="home-branch-join-section" aria-label="Chọn khu vực tập luyện">
@@ -451,7 +484,7 @@ if (count($homeBranchCities) === 0) {
     <section class="why-section">
         <div class="container">
             <div class="why-header">
-                <h2>Why Choose <span>FLEXZONE</span></h2>
+                <h2>V&igrave; sao ch&#7885;n <span>FLEXZONE</span></h2>
                 <p>
                     Khám phá hệ thống thiết bị nhập khẩu, đội ngũ HLV chuyên môn
                     và lộ trình tập luyện cá nhân hóa dành cho hội viên.
@@ -495,9 +528,9 @@ if (count($homeBranchCities) === 0) {
                     <h3 class="why-detail-title">Danh sách thiết bị nổi bật</h3>
 
                     <div class="equipment-tabs">
-                        <div class="equipment-tab active" data-filter="cardio">Cardio</div>
+                        <div class="equipment-tab active" data-filter="cardio">Tim m&#7841;ch</div>
                         <div class="equipment-tab" data-filter="strength">Tăng cơ</div>
-                        <div class="equipment-tab" data-filter="functional">Functional</div>
+                        <div class="equipment-tab" data-filter="functional">Ch&#7913;c n&#259;ng</div>
                     </div>
 
                     <div class="equipment-grid">
@@ -508,7 +541,7 @@ if (count($homeBranchCities) === 0) {
                             <div>
                                 <h4>Máy chạy bộ<br>Life Fitness Integrity+</h4>
                                 <div class="equipment-status">Đang hoạt động</div>
-                                <p>Cardio bền bỉ · Nhập khẩu từ Life Fitness.</p>
+                                <p>Tim m&#7841;ch b&#7873;n b&#7881; &middot; Nh&#7853;p kh&#7849;u t&#7915; Life Fitness.</p>
                             </div>
                         </div>
 
@@ -585,7 +618,7 @@ if (count($homeBranchCities) === 0) {
                             <div>
                                 <h4>Precor EFX 863<br>Elliptical</h4>
                                 <div class="equipment-status">Đang hoạt động</div>
-                                <p>Cardio ít tác động · Phù hợp giảm mỡ và tăng sức bền.</p>
+                                <p>Tim m&#7841;ch &iacute;t t&aacute;c &#273;&#7897;ng &middot; Ph&ugrave; h&#7907;p gi&#7843;m m&#7905; v&agrave; t&#259;ng s&#7913;c b&#7873;n.</p>
                             </div>
                         </div>
                     </div>
@@ -637,7 +670,7 @@ if (count($homeBranchCities) === 0) {
                         </div>
                         <div>
                             <h4>5 khu vực tập luyện</h4>
-                            <p>Cardio, tăng cơ, functional, group X và recovery.</p>
+                            <p>Tim m&#7841;ch, t&#259;ng c&#417;, ch&#7913;c n&#259;ng, l&#7899;p nh&oacute;m v&agrave; ph&#7909;c h&#7891;i.</p>
                         </div>
                     </div>
                 </aside>
@@ -648,13 +681,13 @@ if (count($homeBranchCities) === 0) {
     <section class="home-clubs-section" id="clubs">
         <div class="container">
             <div class="home-clubs-heading">
-                <h2>Find a Club</h2>
+                <h2>T&igrave;m ph&ograve;ng t&#7853;p</h2>
                 <p>FLEXZONE hi&#7879;n c&oacute; <?php echo count($homeBranches); ?> chi nh&aacute;nh &#273;ang ho&#7841;t &#273;&#7897;ng.</p>
             </div>
 
             <?php if (count($homeBranches) > 0): ?>
                 <div class="home-club-filters" aria-label="L&#7885;c chi nh&aacute;nh theo th&agrave;nh ph&#7889;">
-                    <button class="home-club-filter active" type="button" data-club-filter="all">All</button>
+                    <button class="home-club-filter active" type="button" data-club-filter="all">T&#7845;t c&#7843;</button>
                     <?php foreach ($homeBranchCities as $city): ?>
                         <button class="home-club-filter" type="button" data-club-filter="<?php echo h($city); ?>">
                             <?php echo h(homeBranchCityLabel($city)); ?>
@@ -696,7 +729,7 @@ if (count($homeBranchCities) === 0) {
 
                 <?php if (count($homeBranches) > 4): ?>
                     <div class="home-club-load-wrap">
-                        <button class="home-club-load" type="button">Load more</button>
+                        <button class="home-club-load" type="button">Xem th&ecirc;m</button>
                     </div>
                 <?php endif; ?>
             <?php else: ?>
@@ -713,7 +746,7 @@ if (count($homeBranchCities) === 0) {
         <div class="container">
             <div class="section-heading-split">
                 <div>
-                    <span class="section-badge">Member journey</span>
+                    <span class="section-badge">H&agrave;nh tr&igrave;nh h&#7897;i vi&ecirc;n</span>
                     <h2 class="section-title">Tr&#7843;i nghi&#7879;m h&#7897;i vi&ecirc;n <span class="accent">li&#7873;n m&#7841;ch</span></h2>
                 </div>
                 <p class="section-text">
@@ -756,7 +789,7 @@ if (count($homeBranchCities) === 0) {
     <section class="section-dark home-program-section">
         <div class="container">
             <div class="text-center mb-5">
-                <span class="section-badge">Training support</span>
+                <span class="section-badge">H&#7895; tr&#7907; t&#7853;p luy&#7879;n</span>
                 <h2 class="section-title">H&#7895; tr&#7907; ch&#7871; &#273;&#7897; <span class="accent">t&#7853;p luy&#7879;n &amp; dinh d&#432;&#7905;ng</span></h2>
                 <p class="section-text mx-auto">
                     T&#7915; ng&#432;&#7901;i m&#7899;i b&#7855;t &#273;&#7847;u &#273;&#7871;n h&#7897;i vi&ecirc;n c&oacute; m&#7909;c ti&ecirc;u n&acirc;ng cao, FLEXZONE h&#7895; tr&#7907; l&#7897; tr&igrave;nh ph&ugrave; h&#7907;p v&#7899;i th&#7875; tr&#7841;ng v&agrave; l&#7883;ch sinh ho&#7841;t.
@@ -913,7 +946,7 @@ if (count($homeBranchCities) === 0) {
     <section class="section-dark" id="gallery">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="section-title">Our <span class="accent">Gallery</span></h2>
+                <h2 class="section-title">Th&#432; vi&#7879;n <span class="accent">h&igrave;nh &#7843;nh</span></h2>
                 <p class="section-text mx-auto">
                     Kh&ocirc;ng gian t&#7853;p luy&#7879;n hi&#7879;n &#273;&#7841;i, s&#7841;ch s&#7869;, thi&#7871;t k&#7871; m&#7841;nh m&#7869; v&agrave; t&#7841;o &#273;&#7897;ng l&#7921;c cho ng&#432;&#7901;i t&#7853;p m&#7895;i ng&agrave;y.
                 </p>
@@ -931,7 +964,7 @@ if (count($homeBranchCities) === 0) {
     <section class="section-soft" id="trainers">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="section-title">Meet Our <span class="accent">Trainers</span></h2>
+                <h2 class="section-title">G&#7863;p g&#7905; <span class="accent">hu&#7845;n luy&#7879;n vi&ecirc;n</span></h2>
                 <p class="section-text mx-auto">
                     &#272;&#7897;i ng&#361; hu&#7845;n luy&#7879;n vi&ecirc;n h&#7895; tr&#7907; h&#7885;c vi&ecirc;n t&#7915; ng&#432;&#7901;i m&#7899;i b&#7855;t &#273;&#7847;u &#273;&#7871;n ng&#432;&#7901;i c&oacute; m&#7909;c ti&ecirc;u n&acirc;ng cao th&#7875; h&igrave;nh v&agrave; s&#7913;c b&#7873;n.
                 </p>
@@ -994,6 +1027,91 @@ if (count($homeBranchCities) === 0) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="includes/assets/js/why-choose.js?v=why-choose-2"></script>
     <script>
+        (() => {
+            const banner = document.querySelector('[data-home-banner]');
+            if (!banner) {
+                return;
+            }
+
+            const track = banner.querySelector('.home-banner-track');
+            const slides = Array.from(banner.querySelectorAll('[data-banner-slide]'));
+            const dots = Array.from(banner.querySelectorAll('[data-banner-dot]'));
+            const prev = banner.querySelector('[data-banner-prev]');
+            const next = banner.querySelector('[data-banner-next]');
+            let activeIndex = 0;
+            let timer = null;
+
+            const showSlide = (index) => {
+                if (slides.length === 0) {
+                    return;
+                }
+
+                activeIndex = (index + slides.length) % slides.length;
+
+                if (track) {
+                    track.style.transform = `translateX(-${activeIndex * 100}%)`;
+                }
+
+                slides.forEach((slide, slideIndex) => {
+                    const isActive = slideIndex === activeIndex;
+                    slide.classList.toggle('active', isActive);
+                    slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+                });
+
+                dots.forEach((dot, dotIndex) => {
+                    dot.classList.toggle('active', dotIndex === activeIndex);
+                });
+            };
+
+            const startTimer = () => {
+                if (slides.length <= 1) {
+                    return;
+                }
+
+                window.clearInterval(timer);
+                timer = window.setInterval(() => showSlide(activeIndex + 1), 5000);
+            };
+
+            window.homeBannerGo = (index) => {
+                showSlide(Number(index || 0));
+                startTimer();
+            };
+
+            window.homeBannerPrev = () => {
+                showSlide(activeIndex - 1);
+                startTimer();
+            };
+
+            window.homeBannerNext = () => {
+                showSlide(activeIndex + 1);
+                startTimer();
+            };
+
+            dots.forEach((dot) => {
+                dot.addEventListener('click', () => {
+                    showSlide(Number(dot.dataset.bannerDot || 0));
+                    startTimer();
+                });
+            });
+
+            if (prev) {
+                prev.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.homeBannerPrev();
+                });
+            }
+
+            if (next) {
+                next.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.homeBannerNext();
+                });
+            }
+
+            showSlide(0);
+            startTimer();
+        })();
+
         (() => {
             const grid = document.querySelector('.home-clubs-grid');
             const joinForm = document.querySelector('.home-branch-join-card');

@@ -35,11 +35,17 @@ function findRegistrationsByKeyword(mysqli $conn, string $keyword): array
     return $items;
 }
 
-function findRegistrationsForAccount(mysqli $conn, string $email, string $phone): array
+function findRegistrationsForAccount(mysqli $conn, string $email, string $phone, int $userId = 0): array
 {
     $conditions = [];
     $params = [];
     $types = '';
+
+    if ($userId > 0) {
+        $conditions[] = 'pr.user_id = ?';
+        $params[] = $userId;
+        $types .= 'i';
+    }
 
     if ($email !== '') {
         $conditions[] = 'pr.email = ?';

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Allow: POST');
-    apiError('Phương thức không hợp lệ. Hãy dùng POST.', 405);
+    apiError('Phuong thuc khong hop le. Hay dung POST.', 405);
 }
 
 apiRequireCsrf();
@@ -15,36 +15,47 @@ $email = trim((string) ($_POST['email'] ?? ''));
 $phone = preg_replace('/\D+/', '', (string) ($_POST['phone'] ?? ''));
 $password = (string) ($_POST['password'] ?? '');
 $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
+$email = $email === '' ? null : $email;
 
-if ($fullName === '' || $email === '' || $phone === '' || $password === '' || $confirmPassword === '') {
-    apiError('Vui lòng nhập đầy đủ thông tin.', 422);
+if ($fullName === '' || $password === '' || $confirmPassword === '') {
+    apiError('Vui long nhap day du thong tin bat buoc.', 422);
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    apiError('Email không hợp lệ.', 422);
+if ($email === null && $phone === '') {
+    apiError('Vui long nhap email hoac so dien thoai.', 422);
 }
 
-if (!preg_match('/^0\d{9,10}$/', $phone)) {
-    apiError('Số điện thoại không hợp lệ.', 422);
+if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    apiError('Email khong hop le.', 422);
+}
+
+if ($phone !== '' && !preg_match('/^0\d{9,10}$/', $phone)) {
+    apiError('So dien thoai khong hop le.', 422);
 }
 
 if ($password !== $confirmPassword) {
-    apiError('Mật khẩu xác nhận không khớp.', 422);
+    apiError('Mat khau xac nhan khong khop.', 422);
 }
 
 if (strlen($password) < 8) {
-    apiError('Mật khẩu phải có ít nhất 8 ký tự.', 422);
+    apiError('Mat khau phai co it nhat 8 ky tu.', 422);
 }
 
 try {
-    $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? OR phone = ? LIMIT 1');
-    $stmt->bind_param('ss', $email, $phone);
+    $stmt = $conn->prepare('
+        SELECT id
+        FROM users
+        WHERE (? IS NOT NULL AND email = ?)
+           OR (? <> "" AND phone = ?)
+        LIMIT 1
+    ');
+    $stmt->bind_param('ssss', $email, $email, $phone, $phone);
     $stmt->execute();
     $exists = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
     if ($exists) {
-        apiError('Email hoặc số điện thoại đã tồn tại.', 409);
+        apiError('Email hoac so dien thoai da ton tai.', 409);
     }
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -60,7 +71,7 @@ try {
     $newUserId = (int) $stmt->insert_id;
     $stmt->close();
 
-    apiSuccess('Đăng ký tài khoản thành công.', [
+    apiSuccess('Dang ky tai khoan thanh cong.', [
         'id' => $newUserId,
         'full_name' => $fullName,
         'email' => $email,
@@ -68,5 +79,5 @@ try {
         'role' => $role,
     ], 201);
 } catch (Throwable $e) {
-    apiServerError('Có lỗi xảy ra khi đăng ký tài khoản.', $e);
+    apiServerError('Co loi xay ra khi dang ky tai khoan.', $e);
 }

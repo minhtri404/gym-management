@@ -82,7 +82,7 @@ $dashboard_data = [
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Gym Management</title>
+  <title>T&#7893;ng quan - Gym Management</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -100,7 +100,7 @@ $dashboard_data = [
         <section class="dashboard-hero mb-4">
           <div class="hero-text">
             <p class="text-uppercase small mb-2">Tổng quan vận hành</p>
-            <h1 class="h3 mb-2">Xin chào, Admin</h1>
+            <h1 class="h3 mb-2">Xin chào, quản trị viên</h1>
             <p class="mb-0 text-muted">Theo dõi sức khỏe hệ thống và nhịp độ phòng gym theo thời gian thực.</p>
           </div>
           <div class="hero-actions">

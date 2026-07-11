@@ -11,7 +11,7 @@ if (
     && $currentHost !== ''
     && $currentHost !== $configuredHost
 ) {
-    header('Location: ../../login.php?error=' . urlencode('Google Login chi dung duoc tren may tinh dang chay localhost. Tren dien thoai vui long dang nhap bang email/mat khau hoac cau hinh domain HTTPS cong khai.'));
+    header('Location: ../../login.php?error=' . urlencode('Đăng nhập Google chỉ dùng được trên máy đang chạy localhost. Trên điện thoại vui lòng đăng nhập bằng email/mật khẩu hoặc cấu hình domain HTTPS công khai.'));
     exit;
 }
 

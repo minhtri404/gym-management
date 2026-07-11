@@ -822,7 +822,7 @@ $filtered_contacts = array_values(array_filter($contacts, function (array $conta
     <div class="container" style="margin-top: 80px;">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
             <div>
-                <span class="section-badge">Contact history</span>
+                <span class="section-badge">L&#7883;ch s&#7917; li&ecirc;n h&#7879;</span>
                 <h1 class="fw-bold mt-3 mb-2">L&#7883;ch s&#7917; li&ecirc;n h&#7879;</h1>
                 <p class="text-secondary mb-0">
                     Theo d&otilde;i c&aacute;c y&ecirc;u c&#7847;u li&ecirc;n h&#7879; b&#7841;n &#273;&atilde; g&#7917;i cho FLEXZONE.

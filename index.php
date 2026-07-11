@@ -37,7 +37,7 @@ if ($target === null && $route !== '') {
 
 if ($target === null || !is_file(__DIR__ . '/' . $target)) {
     http_response_code(404);
-    echo '404 - Khong tim thay trang';
+    echo '404 - Không tìm thấy trang';
     exit;
 }
 

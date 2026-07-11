@@ -4,6 +4,9 @@ include __DIR__ . '/../includes/auth-check.php';
 
 $base_path = '';
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
 function registration_status_badge(string $status): string
 {
     return match ($status) {
@@ -132,13 +135,62 @@ $sql = "
     ORDER BY pr.id DESC
 ";
 
+$registrations = [];
+$list_error = '';
+
 if (!empty($params)) {
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    if ($stmt) {
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        $result = false;
+        $list_error = $conn->error;
+    }
 } else {
     $result = $conn->query($sql);
+}
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $registrations[] = $row;
+    }
+} elseif ($list_error === '') {
+    $list_error = $conn->error;
+}
+
+if (isset($stmt) && $stmt instanceof mysqli_stmt) {
+    $stmt->close();
+}
+
+if ($registrations === [] && $total_registrations > 0 && $keyword === '' && $filter_status === '') {
+    $fallback_result = $conn->query("
+        SELECT
+            pr.id,
+            pr.full_name,
+            pr.phone,
+            pr.email,
+            pr.note,
+            pr.status,
+            pr.payment_status,
+            pr.payment_id,
+            pr.created_at,
+            p.package_name,
+            p.price,
+            p.duration_months
+        FROM package_registrations pr
+        LEFT JOIN packages p ON pr.package_id = p.id
+        ORDER BY pr.id DESC
+    ");
+
+    if ($fallback_result) {
+        while ($row = $fallback_result->fetch_assoc()) {
+            $registrations[] = $row;
+        }
+    } elseif ($list_error === '') {
+        $list_error = $conn->error;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -247,7 +299,7 @@ if (!empty($params)) {
 
                     <div class="col-md-auto">
                         <a href="package-registrations.php" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                            <i class="bi bi-arrow-clockwise me-1"></i> Đặt lại
                         </a>
                     </div>
                 </form>
@@ -257,6 +309,16 @@ if (!empty($params)) {
                         <h5 class="mb-0">Danh sách đăng ký gói tập</h5>
                     </div>
                     <div class="card-body px-4 pb-4">
+                        <div class="text-muted small mb-3">
+                            Hi&#7875;n th&#7883; <?php echo count($registrations); ?> / <?php echo $total_registrations; ?> &#273;&#259;ng k&yacute;
+                        </div>
+
+                        <?php if ($list_error !== ''): ?>
+                            <div class="alert alert-danger">
+                                Kh&ocirc;ng th&#7875; t&#7843;i danh s&aacute;ch &#273;&#259;ng k&yacute;: <?php echo htmlspecialchars($list_error); ?>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="table-responsive">
                             <table class="table align-middle">
                                 <thead>
@@ -272,8 +334,8 @@ if (!empty($params)) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if ($result && $result->num_rows > 0): ?>
-                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                    <?php if (!empty($registrations)): ?>
+                                        <?php foreach ($registrations as $row): ?>
                                             <tr>
                                                 <td>#<?php echo str_pad((string) $row['id'], 3, '0', STR_PAD_LEFT); ?></td>
                                                 <td>
@@ -338,7 +400,7 @@ if (!empty($params)) {
                                                     </form>
                                                 </td>
                                             </tr>
-                                        <?php endwhile; ?>
+                                        <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
                                             <td colspan="8" class="text-center text-muted">Chưa có đăng ký gói nào.</td>

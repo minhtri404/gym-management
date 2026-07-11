@@ -38,7 +38,7 @@ function detectHealthAdjustments($healthNote)
     $adjustments = [
         'warmup' => 'Khởi động 8-10 phút đi bộ nhanh, xoay khớp và kích hoạt cơ',
         'rest' => '45-60 giây',
-        'cardio' => 'Cardio nhẹ 10-15 phút',
+        'cardio' => 'Tim mạch nhẹ 10-15 phút',
         'focus_note' => 'Ưu tiên kỹ thuật đúng và tăng tải từ từ.',
         'avoid' => [],
         'replacements' => [],
@@ -68,8 +68,8 @@ function detectHealthAdjustments($healthNote)
 
     if (preg_match('/tim mạch|huyết áp|cao huyết áp|tiền đình/u', $note)) {
         $adjustments['avoid'][] = 'tránh HIIT cường độ cao và nín thở khi gắng sức';
-        $adjustments['replacements'][] = 'ưu tiên cardio ổn định, mức vừa, theo dõi nhịp tim';
-        $adjustments['cardio'] = 'Cardio ổn định 12-20 phút ở mức vừa';
+        $adjustments['replacements'][] = 'ưu tiên tim mạch ổn định, mức vừa, theo dõi nhịp tim';
+        $adjustments['cardio'] = 'Tim mạch ổn định 12-20 phút ở mức vừa';
         $adjustments['rest'] = '60-90 giây';
     }
 
@@ -89,9 +89,9 @@ function buildFallbackDayTemplates($goal, $daysPerWeek)
 {
     $plans = [
         'weight-loss' => [
-            3 => ['Full Body đốt mỡ', 'Thân dưới và core', 'Lưng vai kết hợp cardio'],
-            4 => ['Ngực vai tay sau', 'Chân và mông', 'Lưng tay trước', 'Full Body và cardio'],
-            5 => ['Ngực tay sau', 'Chân mông', 'Lưng tay trước', 'Vai core', 'Cardio và chuyển hóa'],
+            3 => ['Toàn thân đốt mỡ', 'Thân dưới và vùng lõi', 'Lưng vai kết hợp tim mạch'],
+            4 => ['Ngực vai tay sau', 'Chân và mông', 'Lưng tay trước', 'Toàn thân và tim mạch'],
+            5 => ['Ngực tay sau', 'Chân mông', 'Lưng tay trước', 'Vai vùng lõi', 'Tim mạch và chuyển hóa'],
         ],
         'muscle-gain' => [
             3 => ['Ngực tay sau', 'Lưng tay trước', 'Chân vai'],
@@ -99,9 +99,9 @@ function buildFallbackDayTemplates($goal, $daysPerWeek)
             5 => ['Ngực', 'Lưng', 'Chân', 'Vai', 'Tay và bụng'],
         ],
         'maintain' => [
-            3 => ['Full Body', 'Cardio và core', 'Thân trên thân dưới nhẹ'],
-            4 => ['Thân trên', 'Thân dưới', 'Cardio và bụng', 'Full Body nhẹ'],
-            5 => ['Ngực tay', 'Chân', 'Lưng vai', 'Cardio core', 'Full Body'],
+            3 => ['Toàn thân', 'Tim mạch và vùng lõi', 'Thân trên thân dưới nhẹ'],
+            4 => ['Thân trên', 'Thân dưới', 'Tim mạch và bụng', 'Toàn thân nhẹ'],
+            5 => ['Ngực tay', 'Chân', 'Lưng vai', 'Tim mạch vùng lõi', 'Toàn thân'],
         ],
     ];
 

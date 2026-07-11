@@ -87,6 +87,36 @@ if (!empty($params)) {
 }
 $stmt->execute();
 $result = $stmt->get_result();
+$members = [];
+$list_error = '';
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $members[] = $row;
+    }
+} else {
+    $list_error = $conn->error;
+}
+
+$stmt->close();
+
+if ($members === [] && $total > 0 && $q === '' && $filter_package === 0 && $filter_status === '') {
+    $fallback_result = $conn->query("
+        SELECT members.id, members.full_name, members.phone, members.email, members.status, packages.package_name
+        FROM members
+        LEFT JOIN packages ON members.package_id = packages.id
+        ORDER BY members.id DESC
+        LIMIT $per_page OFFSET $offset
+    ");
+
+    if ($fallback_result) {
+        while ($row = $fallback_result->fetch_assoc()) {
+            $members[] = $row;
+        }
+    } elseif ($list_error === '') {
+        $list_error = $conn->error;
+    }
+}
 
 function member_status_badge(string $status): string
 {
@@ -102,7 +132,7 @@ function member_status_badge(string $status): string
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Members - Gym Management</title>
+  <title>H&#7897;i vi&ecirc;n - Gym Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -195,6 +225,16 @@ function member_status_badge(string $status): string
               </div>
             </form>
 
+            <div class="text-muted small mb-3">
+              Hi&#7875;n th&#7883; <?php echo count($members); ?> / <?php echo $total; ?> h&#7897;i vi&ecirc;n
+            </div>
+
+            <?php if ($list_error !== ''): ?>
+              <div class="alert alert-danger">
+                Kh&ocirc;ng th&#7875; t&#7843;i danh s&aacute;ch h&#7897;i vi&ecirc;n: <?php echo htmlspecialchars($list_error); ?>
+              </div>
+            <?php endif; ?>
+
             <div class="table-responsive">
               <table class="table align-middle">
                 <thead>
@@ -209,8 +249,8 @@ function member_status_badge(string $status): string
                   </tr>
                 </thead>
                 <tbody>
-                  <?php if ($result && $result->num_rows > 0): ?>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+                  <?php if (!empty($members)): ?>
+                    <?php foreach ($members as $row): ?>
                       <tr>
                         <td>#<?php echo str_pad((string) $row['id'], 3, '0', STR_PAD_LEFT); ?></td>
                         <td><?php echo htmlspecialchars($row['full_name']); ?></td>
@@ -237,7 +277,7 @@ function member_status_badge(string $status): string
                           </form>
                         </td>
                       </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                   <?php else: ?>
                     <tr>
                       <td colspan="7" class="text-center text-muted">Chưa có hội viên nào.</td>

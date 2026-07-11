@@ -108,12 +108,12 @@ $stmt->close();
 
                 <a href="index.php?specialty=Cardio"
                    class="trainer-filter <?php echo $specialty_filter === 'Cardio' ? 'active' : ''; ?>">
-                    Cardio
+                    Tim m&#7841;ch
                 </a>
 
                 <a href="index.php?specialty=Powerlifting"
                    class="trainer-filter <?php echo $specialty_filter === 'Powerlifting' ? 'active' : ''; ?>">
-                    Powerlifting
+                    S&#7913;c m&#7841;nh
                 </a>
             </div>
 

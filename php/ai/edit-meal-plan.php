@@ -185,8 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="col-md-6">
                                     <label class="form-label">Trạng thái</label>
                                     <select name="status" class="form-select" required>
-                                        <option value="active" <?php echo ($plan['status'] === 'active') ? 'selected' : ''; ?>>active</option>
-                                        <option value="inactive" <?php echo ($plan['status'] === 'inactive') ? 'selected' : ''; ?>>inactive</option>
+                                        <option value="active" <?php echo ($plan['status'] === 'active') ? 'selected' : ''; ?>>&#272;ang ho&#7841;t &#273;&#7897;ng</option>
+                                        <option value="inactive" <?php echo ($plan['status'] === 'inactive') ? 'selected' : ''; ?>>Kh&ocirc;ng ho&#7841;t &#273;&#7897;ng</option>
                                     </select>
                                 </div>
 
